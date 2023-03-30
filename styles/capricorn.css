@@ -1,0 +1,68 @@
+.kephir-sagittarius-error,
+.kephir-sagittarius-invite,
+.kephir-sagittarius-editor {
+    margin: 2em 0 0 0;
+    padding: 0.25em 0.75em;
+    font-size: smaller;
+}
+
+.kephir-sagittarius-error {
+    border: 1px solid #f00;
+    background: #fdd;
+}
+
+.kephir-sagittarius-invite {
+    border: 1px solid #f90;
+    background: #fed;
+}
+
+.kephir-sagittarius-editor {
+    border: 1px solid #090;
+    background: #dfd;
+}
+
+.kephir-sagittarius-editor .tag-list > dd {
+    padding: 0;
+    margin: 0;
+}
+
+.kephir-sagittarius-editor .tag-list ul {
+    column-width: 22em;
+    -moz-column-width: 22em;
+    -webkit-column-width: 22em;
+    padding: 0;
+}
+
+.kephir-sagittarius-editor .tag-list li {
+    display: block;
+    margin: 0;
+}
+
+.kephir-sagittarius-editor input.redirectText {
+    width: 60%;
+}
+
+.kephir-sagittarius-editor input {
+    vertical-align: middle;
+}
+
+.kephir-sagittarius-editor .status-line {
+    margin-left: 1em;
+    font-size: 1.1em;
+    font-weight: bold;
+}
+
+dl.tag-list dt {
+    font-size: 12pt;
+    font-weight: normal;
+    font-style: italic;
+}
+
+.capricorn-link {
+    margin-left: 10px;
+    font-size: 15px;
+}
+
+.capricorn-toggle {
+    float: right;
+}

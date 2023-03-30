@@ -176,11 +176,11 @@ function fetchUserPermissions() {
  * Precondition, title, titleNs is a subject page!
  */
 function getTalkPageName(namespaceData, title, titleNamespace) {
-    const ret = {};
+    const result = {};
     const prefixLength = namespaceData[titleNamespace.toString()]['*'].length === 0 ? 0 : namespaceData[titleNamespace.toString()]['*'].length + 1;
-    ret.titleWithoutPrefix = title.substring(prefixLength, title.length);
-    ret.talkTitle = `${namespaceData[(titleNamespace + 1).toString()]['*']}:${ret.titleWithoutPrefix}`;
-    return ret;
+    result.titleWithoutPrefix = title.substring(prefixLength, title.length);
+    result.talkTitle = `${namespaceData[(titleNamespace + 1).toString()]['*']}:${result.titleWithoutPrefix}`;
+    return result;
 }
 
 /**

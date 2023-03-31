@@ -1,29 +1,29 @@
 .kephir-sagittarius-error,
 .kephir-sagittarius-invite,
 .kephir-sagittarius-editor {
+    font-size: smaller;
     margin: 2em 0 0 0;
     padding: 0.25em 0.75em;
-    font-size: smaller;
 }
 
 .kephir-sagittarius-error {
-    border: 1px solid #f00;
     background: #fdd;
+    border: 1px solid #f00;
 }
 
 .kephir-sagittarius-invite {
-    border: 1px solid #f90;
     background: #fed;
+    border: 1px solid #f90;
 }
 
 .kephir-sagittarius-editor {
-    border: 1px solid #090;
     background: #dfd;
+    border: 1px solid #090;
 }
 
 .kephir-sagittarius-editor .tag-list > dd {
-    padding: 0;
     margin: 0;
+    padding: 0;
 }
 
 .kephir-sagittarius-editor .tag-list ul {
@@ -47,20 +47,20 @@
 }
 
 .kephir-sagittarius-editor .status-line {
-    margin-left: 1em;
     font-size: 1.1em;
     font-weight: bold;
+    margin-left: 1em;
 }
 
 dl.tag-list dt {
     font-size: 12pt;
-    font-weight: normal;
     font-style: italic;
+    font-weight: normal;
 }
 
 .capricorn-link {
-    margin-left: 10px;
     font-size: 15px;
+    margin-left: 10px;
 }
 
 .capricorn-toggle {

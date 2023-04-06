@@ -810,7 +810,7 @@
                 $messageDiv.empty();
                 $messageDiv.append(message);
             } else $messageDiv.html(message);
-            $messageDiv.slideDown();
+            $messageDiv[0].scrollIntoView();
             return true;
         }
     }

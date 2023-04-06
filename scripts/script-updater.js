@@ -9,7 +9,6 @@ mw.loader.using(['mediawiki.util'], () => {
 
         mw.notify('Syncing scripts...', { autoHide: false, tag: 'sync-scripts-notification' });
 
-        let completedScripts = 0;
         await Promise.all(
             scriptData.map(async (script) => {
                 const subpageName = `User:Eejit43/scripts/${script.name}`;
@@ -35,12 +34,10 @@ mw.loader.using(['mediawiki.util'], () => {
                 }
                 await editOrCreate(scriptName, `// <nowiki>\n${scriptContent}\n// </nowiki>`, 'Syncing script from GitHub');
                 if (script.css) await editOrCreate(styleName, styleContent, 'Syncing CSS from GitHub');
-
-                completedScripts++;
             })
         );
 
-        mw.notify(`Synced ${completedScripts} scripts from GitHub!`, { type: 'success', tag: 'sync-scripts-notification' });
+        mw.notify(`Synced ${scriptData.length} scripts from GitHub!`, { type: 'success', tag: 'sync-scripts-notification' });
 
         /**
          * Edits a page, or creates it if it doesn't exist

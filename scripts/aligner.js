@@ -1,6 +1,6 @@
 /* global mw, $ */
 
-(function () {
+(() => {
     if (mw.config.get('wgNamespaceNumber') < 0) return; // Don't run in virtual namespaces
 
     const searches = ['infobox', 'speciesbox', 'taxobox', 'automatic taxobox', 'osm location map', 'motorsport season'];
@@ -9,7 +9,7 @@
         mw.notification.autoHideSeconds.veryShort = 2;
 
         mw.util.addPortletLink('p-cactions', '#', 'Align template params', 'align-params');
-        $('#align-params').click(() => {
+        document.getElementById('align-params').addEventListener('click', () => {
             const splitParam = (string) => {
                 const split = string.split('=');
                 if (split.length <= 2) {

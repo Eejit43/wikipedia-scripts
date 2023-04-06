@@ -1,7 +1,7 @@
 /* global mw, importStylesheet */
 
 mw.loader.using(['mediawiki.util'], () => {
-    const devMode = true;
+    const devMode = false;
 
     if (mw.config.get('wgPageName') !== (devMode ? 'User:Eejit43/sandbox' : 'Wikipedia:Requested_moves/Technical_requests')) return;
 

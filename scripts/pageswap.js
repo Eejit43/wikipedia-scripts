@@ -424,9 +424,9 @@ function swapPages(titleOne, titleTwo, summary, moveTalk, moveSubpages) {
     const intermediateTitle = `Draft:Move/${titleOne}`;
 
     const moves = [
-        { action: 'move', from: titleTwo, to: intermediateTitle, reason: '[[WP:ROUNDROBIN|Round-robin page move]] step 1 (with [[User:Eejit43/scripts/pageswap|pageswap]])', watchlist: 'unwatch', noredirect: 1 },
+        { action: 'move', from: titleTwo, to: intermediateTitle, reason: '[[WP:ROUNDROBIN|Round-robin page move]] step 1 (with [[User:Eejit43/scripts/pageswap|pageswap 2]])', watchlist: 'unwatch', noredirect: 1 },
         { action: 'move', from: titleOne, to: titleTwo, reason: summary, watchlist: 'unwatch', noredirect: 1 },
-        { action: 'move', from: intermediateTitle, to: titleOne, reason: '[[WP:ROUNDROBIN|Round-robin page move]] step 3 (with [[User:Eejit43/scripts/pageswap|pageswap]])', watchlist: 'unwatch', noredirect: 1 }
+        { action: 'move', from: intermediateTitle, to: titleOne, reason: '[[WP:ROUNDROBIN|Round-robin page move]] step 3 (with [[User:Eejit43/scripts/pageswap|pageswap 2]])', watchlist: 'unwatch', noredirect: 1 }
     ];
 
     for (const move of moves) {

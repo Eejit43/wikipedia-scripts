@@ -24,7 +24,7 @@
     {
         "name": "capricorn",
         "short-description": "User script to create and manage redirects",
-        "description": "This user script is a fork of [[User:Wugapodes/Capricorn|Wugapodes's \"Capricorn\"]], fixing running on non-existent pages and adding link to redirected article in UI.",
+        "description": "This user script is a fork of [[User:Wugapodes/Capricorn|Wugapodes's \"Capricorn\"]], which fixes running on non-existent pages and adds a link to redirected article in the UI.",
         "released": "2023|01|21",
         "updated": "2023|02|16",
         "css": true
@@ -72,6 +72,14 @@
         "description": "A user script for ''personal'' use that loads data that can't be parsed with wikitext in [[User:Eejit43#Stuff to monitor|§ Stuff to monitor]]",
         "released": "2023|03|05",
         "updated": "2023|03|22",
+        "subpage": false
+    },
+    {
+        "name": "script-updater",
+        "short-description": null,
+        "description": "A user script for ''personal'' use that updates on-wiki scripts from GitHub",
+        "released": "2023|04|02",
+        "updated": "2023|04|02",
         "subpage": false
     }
 ]

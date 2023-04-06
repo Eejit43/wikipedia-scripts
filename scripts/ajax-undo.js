@@ -1,4 +1,4 @@
-/* global mw, importStylesheet */
+/* global mw */
 
 mw.loader.using(['mediawiki.util'], () => {
     if (mw.config.get('wgAction') !== 'history') return;
@@ -9,7 +9,37 @@ mw.loader.using(['mediawiki.util'], () => {
         AWAITING_RELOAD: 2
     };
 
-    importStylesheet('User:Eejit43/scripts/ajax-undo.css');
+    mw.util.addCSS(`
+/* Modified from Max Beier's "text-spinners" (https://github.com/maxbeier/text-spinners) */
+#ajax-undo-loading {
+    display: inline-block;
+    height: 1.3em;
+    line-height: 1.5em;
+    margin: -0.3em 3px 0 2px;
+    overflow: hidden;
+    vertical-align: text-bottom;
+}
+
+#ajax-undo-loading::after {
+    animation: ajax-undo-loading 0.8s steps(10) infinite;
+    color: gray;
+    content: '⠋\\A⠙\\A⠹\\A⠸\\A⠼\\A⠴\\A⠦\\A⠧\\A⠇\\A⠏';
+    display: inline-table;
+    text-align: left;
+    white-space: pre;
+}
+
+@keyframes ajax-undo-loading {
+    to {
+        transform: translateY(-15em);
+    }
+}
+
+#ajax-undo-reason {
+    display: none;
+    margin-left: 3px;
+}
+`);
 
     document.querySelectorAll('.mw-history-undo').forEach((undoSpan) => {
         const undoUrl = new URL(undoSpan.querySelector('a').href);

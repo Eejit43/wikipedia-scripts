@@ -11,8 +11,7 @@
         "short-description": "User script to easily undo edits",
         "description": "This user script adds a link following \"undo\" on page histories, allowing the edit to be undone without leaving the history page. It allows for an optional comment to add to the edit summary.",
         "released": "2023|02|16",
-        "updated": "2023|03|05",
-        "css": true
+        "updated": "2023|03|05"
     },
     {
         "name": "aligner",

@@ -61,10 +61,10 @@ mw.loader.using(['mediawiki.util'], () => {
         async function editOrCreate(title, text, summary) {
             summary += ' (via [[User:Eejit43/scripts/script-updater.js|script]])';
             await new mw.Api()
-                .edit(title, () => ({ text, summary }))
+                .edit(title, () => ({ text, summary, watchlist: 'watch' }))
                 .catch(async (error, data) => {
                     if (error === 'nocreate-missing')
-                        await new mw.Api().create(title, { summary }, text).catch((error, data) => {
+                        await new mw.Api().create(title, { summary, watchlist: 'watch' }, text).catch((error, data) => {
                             console.error(error); // eslint-disable-line no-console
                             mw.notify(`Error creating ${title}: ${data.error.info} (${error})`, { type: 'error' });
                             return;

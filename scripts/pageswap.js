@@ -11,7 +11,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
     const pageInfo = await new mw.Api().get({ action: 'query', prop: 'info', titles: currentTitle });
     if (pageInfo.query.pages[-1]) return;
 
-    mw.util.addPortletLink('p-cactions', '#', 'Swap (new)', 'eejit-pageswap');
+    mw.util.addPortletLink('p-cactions', '#', 'Swap', 'eejit-pageswap');
 
     document.getElementById('eejit-pageswap').addEventListener('click', () => {
         event.preventDefault();

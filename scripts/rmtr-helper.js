@@ -1,7 +1,7 @@
 /* global mw, importStylesheet */
 
 mw.loader.using(['mediawiki.util'], () => {
-    const devMode = false;
+    const devMode = true;
 
     if (mw.config.get('wgPageName') !== (devMode ? 'User:Eejit43/sandbox' : 'Wikipedia:Requested_moves/Technical_requests')) return;
 
@@ -281,6 +281,8 @@ mw.loader.using(['mediawiki.util'], () => {
                 return mw.notify('No changes to make!', { type: 'error' });
             }
 
+            const noRemaining = Object.values(allRequests).every((section) => section.every((request) => request.result.remove));
+
             const editSummary = `Handled ${changes.total} request${changes.total > 1 ? 's' : ''}: ${
                 Object.entries(changes.remove).length > 0
                     ? `Removed ${Object.entries(changes.remove)
@@ -293,7 +295,7 @@ mw.loader.using(['mediawiki.util'], () => {
                         .map(([destination, pages]) => `${pages.map((page) => `[[${page.original}]]`).join(', ')} to "${destination}"`)
                         .join(', ')}`
                     : ''
-            } (via [[User:Eejit43/scripts/rmtr-helper|script]])`;
+            } ${noRemaining ? '(no requests remain)' : ''} (via [[User:Eejit43/scripts/rmtr-helper|script]])`;
 
             if (devMode) showEditPreview(mw.config.get('wgPageName'), endResult, editSummary);
             else {

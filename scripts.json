@@ -40,14 +40,14 @@
         "short-description": "User script to easily make [[WP:ROUNDROBIN|round-robin]] moves (history swaps)",
         "description": "This user script allows [[WP:Page mover|page movers]] to easily make [[WP:ROUNDROBIN|round-robin]]/history swap moves (swapping one page with another). This script is a majorly modified fork of [[User:Andy M. Wang/pageswap|Andy M. Wang's version]], except with a UI for making moves instead of using browser popups.",
         "released": "2023|03|29",
-        "updated": "2023|03|29"
+        "updated": "2023|04|05"
     },
     {
         "name": "rmtr-helper",
         "short-description": "User script to help handle requests at [[WP:RM/TR]]",
         "description": "This user script helps handle requests at [[WP:RM/TR]] (technical move requests). A link is added to the \"More\"/\"Tools\" dropdown menu (or sidebar), which creates a UI at the top of the page, allowing requests to be removed and moved between sections with comments.\n\n'''The script does not currently actually move pages!'''",
         "released": "2023|02|14",
-        "updated": "2023|03|05",
+        "updated": "2023|04|05",
         "css": true
     },
     {

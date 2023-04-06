@@ -25,8 +25,21 @@ mw.loader.using(['mediawiki.util'], () => {
                     '}}'
                 ];
 
-                const scriptContent = await (await fetch(`https://raw.githubusercontent.com/Eejit43/wikipedia-scripts/main/scripts/${script.name}.js`)).text();
-                const styleContent = script.css ? await (await fetch(`https://raw.githubusercontent.com/Eejit43/wikipedia-scripts/main/styles/${script.name}.css`)).text() : null;
+                const scriptContent = await (await fetch(`https://raw.githubusercontent.com/Eejit43/wikipedia-scripts/main/scripts/${script.name}.js`)).text().catch((error) => {
+                    console.error(error); // eslint-disable-line no-console
+                    return false;
+                });
+                const styleContent = script.css
+                    ? await (await fetch(`https://raw.githubusercontent.com/Eejit43/wikipedia-scripts/main/styles/${script.name}.css`)).text().catch((error) => {
+                        console.error(error); // eslint-disable-line no-console
+                        return false;
+                    })
+                    : null;
+
+                if (!scriptContent || (script.css && !styleContent)) {
+                    mw.notify(`Error syncing "${script.name}" from GitHub, skipping...`, { type: 'error' });
+                    return;
+                }
 
                 if (script.subpage) {
                     await editOrCreate(subpageName, fullSubpageInfo.join('\n'), 'Syncing script documentation from GitHub');

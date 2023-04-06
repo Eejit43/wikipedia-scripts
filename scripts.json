@@ -4,21 +4,21 @@
         "short-description": "User script to help handle requests at [[WP:AFC/RC]]",
         "description": "This user script is a fork of [[User:Enterprisey/AFCRHS|Enterprisey's script]], and helps handle requests at [[WP:AFC/RC]] (redirects and categories creation requests).\n\n\nThis fork makes some changes from the original script:\n* Automatically uses {{tl|Redirect category shell}} in created redirects\n* Doesn't add erroneous newlines when closing requests\n* Correctly handles partially accepted requests (instead of just using the accepted or declined headers)",
         "released": "2023|02|27",
-        "updated": "2023|02|27"
+        "updated": "2023|04|05"
     },
     {
         "name": "ajax-undo",
         "short-description": "User script to easily undo edits",
         "description": "This user script adds a link following \"undo\" on page histories, allowing the edit to be undone without leaving the history page. It allows for an optional comment to add to the edit summary.",
         "released": "2023|02|16",
-        "updated": "2023|03|05"
+        "updated": "2023|04|05"
     },
     {
         "name": "aligner",
         "short-description": "User script to align infobox template parameters",
         "description": "This user script is a fork of [[User:Taavi/Aligner.js|Taavi's script]], and adds the ability to align infobox (and similar) templates parameters (using a link in the \"More\"/\"Tools\" menu).",
         "released": "2023|01|02",
-        "updated": "2023|02|23"
+        "updated": "2023|04|05"
     },
     {
         "name": "capricorn",
@@ -77,8 +77,8 @@
         "name": "script-updater",
         "short-description": null,
         "description": "A user script for ''personal'' use that updates on-wiki scripts from GitHub",
-        "released": "2023|04|02",
-        "updated": "2023|04|02",
+        "released": "2023|04|05",
+        "updated": "2023|04|05",
         "subpage": false
     }
 ]

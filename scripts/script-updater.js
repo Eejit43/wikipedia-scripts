@@ -41,7 +41,7 @@ mw.loader.using(['mediawiki.util'], () => {
                     return;
                 }
 
-                if (script.subpage) {
+                if (script.subpage !== false) {
                     await editOrCreate(subpageName, fullSubpageInfo.join('\n'), 'Syncing script documentation from GitHub');
                     await editOrCreate(subpageTalkName, '#REDIRECT [[User talk:Eejit43]]', 'Redirecting script documentation talk page to main user talk page');
                 }

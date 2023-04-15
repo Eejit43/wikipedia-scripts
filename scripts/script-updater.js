@@ -6,7 +6,7 @@ mw.loader.using(['mediawiki.util'], async () => {
     const repoOwner = 'Eejit43';
     const repoName = 'wikipedia-scripts';
 
-    const latestCommitHash = await (await fetch(`https://api.github.com/repos/${repoOwner}/${repoName}/commits`)).json()[0].sha;
+    const latestCommitHash = (await (await fetch(`https://api.github.com/repos/${repoOwner}/${repoName}/commits`)).json())[0].sha;
 
     mw.util.addPortletLink('p-cactions', '#', 'Sync user scripts from GitHub', 'sync-scripts');
     document.getElementById('sync-scripts').addEventListener('click', async () => {

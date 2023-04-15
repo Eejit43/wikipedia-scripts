@@ -10,6 +10,8 @@ mw.loader.using(['mediawiki.util'], async () => {
 
     mw.util.addPortletLink('p-cactions', '#', 'Sync user scripts from GitHub', 'sync-scripts');
     document.getElementById('sync-scripts').addEventListener('click', async () => {
+        mw.notify('Fetching script data...', { tag: 'sync-scripts-notification' });
+
         const scriptData = await (await fetch(`https://raw.githubusercontent.com/${repoOwner}/${repoName}/${latestCommitHash}/scripts.json`)).json();
 
         mw.notify('Syncing scripts...', { autoHide: false, tag: 'sync-scripts-notification' });

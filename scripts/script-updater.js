@@ -1,11 +1,16 @@
 /* global mw */
 
-mw.loader.using(['mediawiki.util'], () => {
+mw.loader.using(['mediawiki.util'], async () => {
     if (mw.config.get('wgUserName') !== 'Eejit43' || mw.config.get('wgPageName') !== 'User:Eejit43') return;
+
+    const repoOwner = 'Eejit43';
+    const repoName = 'wikipedia-scripts';
+
+    const latestCommitHash = await (await fetch(`https://api.github.com/repos/${repoOwner}/${repoName}/commits`)).json()[0].sha;
 
     mw.util.addPortletLink('p-cactions', '#', 'Sync user scripts from GitHub', 'sync-scripts');
     document.getElementById('sync-scripts').addEventListener('click', async () => {
-        const scriptData = await (await fetch('https://raw.githubusercontent.com/Eejit43/wikipedia-scripts/main/scripts.json')).json();
+        const scriptData = await (await fetch(`https://raw.githubusercontent.com/${repoOwner}/${repoName}/${latestCommitHash}/scripts.json`)).json();
 
         mw.notify('Syncing scripts...', { autoHide: false, tag: 'sync-scripts-notification' });
 
@@ -25,12 +30,12 @@ mw.loader.using(['mediawiki.util'], () => {
                     '}}'
                 ];
 
-                const scriptContent = await (await fetch(`https://raw.githubusercontent.com/Eejit43/wikipedia-scripts/main/scripts/${script.name}.js`)).text().catch((error) => {
+                const scriptContent = await (await fetch(`https://raw.githubusercontent.com/${repoOwner}/${repoName}/${latestCommitHash}/scripts/${script.name}.js`)).text().catch((error) => {
                     console.error(error); // eslint-disable-line no-console
                     return false;
                 });
                 const styleContent = script.css
-                    ? await (await fetch(`https://raw.githubusercontent.com/Eejit43/wikipedia-scripts/main/styles/${script.name}.css`)).text().catch((error) => {
+                    ? await (await fetch(`https://raw.githubusercontent.com/${repoOwner}/${repoName}/${latestCommitHash}/styles/${script.name}.css`)).text().catch((error) => {
                         console.error(error); // eslint-disable-line no-console
                         return false;
                     })

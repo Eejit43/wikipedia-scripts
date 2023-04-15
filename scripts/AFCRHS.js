@@ -576,7 +576,7 @@
                     }
                     editPage(sub.title, categoryText, 'Created via [[WP:AFC|Articles for Creation]]', true);
                     const talkText = '{{subst:WPAFC/article|class=Cat}}';
-                    const talkTitle = sub.title.replace(/Category:/gi, 'Category talk:');
+                    const talkTitle = new mw.Title(sub.title).getTalkPage().toText();
                     editPage(talkTitle, talkText, 'Placing WPAFC project banner', true);
                     const header = text.match(/==[^=]*==/)[0];
                     text = header + '\n{{AfC-c|a}}\n' + text.substring(header.length);
@@ -616,19 +616,13 @@
                     if (redirect.action === 'accept') {
                         const redirectText = `#REDIRECT [[${redirect.to}]]${redirect.append ? `\n\n{{Redirect category shell|\n${redirect.append}\n}}` : ''}`;
                         editPage(redirect.title, redirectText, 'Redirected page to [[' + redirect.to + ']] via [[WP:AFC|Articles for Creation]]', true);
-                        if (redirect.title.toLowerCase().indexOf('talk:') < 0 && redirect.title.indexOf('WT:') < 0) {
+
+                        const mwTitle = new mw.Title(redirect.title);
+                        if (!mwTitle.isTalkPage()) {
+                            const mwTalkTitle = mwTitle.getTalkPage().toText();
                             const talkText = '{{subst:WPAFC/redirect}}';
-                            let talkTitle;
-                            if (redirect.title.indexOf(':') >= 0) {
-                                if (redirect.title.indexOf('WP:') === 0) {
-                                    talkTitle = redirect.title.replace('WP:', 'WT:');
-                                } else {
-                                    talkTitle = redirect.title.replace(':', ' talk:');
-                                }
-                            } else {
-                                talkTitle = 'Talk:' + redirect.title;
-                            }
-                            editPage(talkTitle, talkText, 'Placing WPAFC project banner', true);
+
+                            editPage(mwTalkTitle, talkText, 'Placing WPAFC project banner', true);
                         }
                         acceptComment += redirect.title + ' &rarr; ' + redirect.to;
                         if (redirect.comment !== '') {

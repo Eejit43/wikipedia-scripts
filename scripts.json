@@ -60,7 +60,7 @@
     {
         "name": "talk-page-helper",
         "short-description": null,
-        "description": "Some helpful buttons added to talk pages\n** Adds a button to blank a page if it is a talk page redirect not synced with its article (with reasoning of \"pending speedy deletion\", yet doesn't actually detect if main page is pending speedy deletion, so use carefully!)\n** Adds a button to mark a talk page of a disambiguation page with {{tl|WikiProject Disambiguation}}",
+        "description": "Adds some helpful buttons added to talk pages.\n* Adds a button to blank a page if it is a talk page redirect not synced with its article (with reasoning of \"pending speedy deletion\", yet doesn't actually detect if main page is pending speedy deletion, so use carefully!)\n* Adds a button to mark a talk page of a disambiguation page with {{tl|WikiProject Disambiguation}}",
         "released": "2023|01|28",
         "updated": "2023|03|05",
         "subpage": false
@@ -68,7 +68,7 @@
     {
         "name": "to-monitor-list",
         "short-description": null,
-        "description": "A user script for ''personal'' use that loads data that can't be parsed with wikitext in [[User:Eejit43#Stuff to monitor|§ Stuff to monitor]]",
+        "description": "A user script for ''personal'' use that loads data that can't be parsed with wikitext in [[User:Eejit43#Stuff to monitor|§ Stuff to monitor]].",
         "released": "2023|03|05",
         "updated": "2023|03|22",
         "subpage": false
@@ -76,14 +76,14 @@
     {
         "name": "search-links",
         "short-description": "User script that adds helpful links on [[Special:Search]]",
-        "description": "This user script adds edit and history links to search results on [[Special:Search]]",
+        "description": "This user script adds edit and history links to search results on [[Special:Search]].",
         "released": "2023|04|27",
         "updated": "2023|04|27"
     },
     {
         "name": "script-updater",
         "short-description": null,
-        "description": "A user script for ''personal'' use that updates on-wiki scripts from GitHub",
+        "description": "A user script for ''personal'' use that updates on-wiki scripts from GitHub.",
         "released": "2023|04|05",
         "updated": "2023|04|27",
         "subpage": false

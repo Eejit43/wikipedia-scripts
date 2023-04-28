@@ -74,6 +74,13 @@
         "subpage": false
     },
     {
+        "name": "search-links",
+        "short-description": "User script that adds helpful links on [[Special:Search]]",
+        "description": "This user script adds edit and history links to search results on [[Special:Search]]",
+        "released": "2023|04|27",
+        "updated": "2023|04|27"
+    },
+    {
         "name": "script-updater",
         "short-description": null,
         "description": "A user script for ''personal'' use that updates on-wiki scripts from GitHub",

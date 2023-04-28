@@ -9,7 +9,7 @@ const toCheck = {
     searches: [
         { id: 'wp-list-article', search: 'insource:"Wikipedia list article"' },
         { id: 'wm-list-article', search: 'insource:"Wikimedia list article"' },
-        { id: 'template-incorrect-namespace', search: 'incategory:"Pages with templates in the wrong namespace" -intitle:"Contactpage-arbcom-block-appeal-prior-onwiki" -subpageof:"SDZeroBot"' },
+        { id: 'template-incorrect-namespace', search: 'incategory:"Pages with templates in the wrong namespace" -intitle:"Contactpage-arbcom-block-appeal-prior-onwiki" -subpageof:"SDZeroBot"', notNamespace: 'Category' },
         { id: 'draft-displaytitles', search: 'insource:"Draft" insource:/\\{\\{DISPLAYTITLE:Draft:/i' },
         { id: 'draft-defaultsorts', search: 'insource:"Draft" insource:/\\{\\{DEFAULTSORT:Draft:/i' },
         { id: 'mainspace-category-links', search: 'insource:"Category" insource:/((\\]{2}|\\}{2})[^ -�,]|[^ -�,]{2,})\\[\\[:[Cc]ategory:[A-Za-z0-9_\\-–\' ]*\\|? ?\\]\\]/' },

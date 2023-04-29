@@ -29,6 +29,13 @@
         "css": true
     },
     {
+        "name": "displaytitle-editor",
+        "short-description": "User script to modify DISPLAYTITLEs",
+        "description": "This user script adds an icon following the article title, which, when clicked, allows a [[WP:DISPLAYTITLE|DISPLAYTITLE]] to be added, modified, or removed.",
+        "released": "2023|04|28",
+        "updated": "2023|04|28"
+    },
+    {
         "name": "null-edit",
         "short-description": "User script to null edit the current page",
         "description": "This user script adds a link to the \"More\"/\"Tools\" menu which allows the current page to be null edited.",

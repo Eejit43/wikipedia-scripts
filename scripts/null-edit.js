@@ -2,6 +2,7 @@
 
 mw.loader.using(['mediawiki.util'], () => {
     if (mw.config.get('wgNamespaceNumber') < 0) return; // Don't run in virtual namespaces
+    if (!mw.config.get('wgIsProbablyEditable')) return; // Don't run if user can't edit page
 
     mw.util.addPortletLink('p-cactions', '#', 'Null edit', 'null-edit');
 

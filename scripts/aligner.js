@@ -2,6 +2,7 @@
 
 (() => {
     if (mw.config.get('wgNamespaceNumber') < 0) return; // Don't run in virtual namespaces
+    if (!mw.config.get('wgIsProbablyEditable')) return; // Don't run if user can't edit page
 
     const searches = ['infobox', 'speciesbox', 'taxobox', 'automatic taxobox', 'osm location map', 'motorsport season'];
 

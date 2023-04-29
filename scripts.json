@@ -18,7 +18,7 @@
         "short-description": "User script to align infobox template parameters",
         "description": "This user script is a fork of [[User:Taavi/Aligner.js|Taavi's script]], and adds the ability to align infobox (and similar) templates parameters (using a link in the \"More\"/\"Tools\" menu).",
         "released": "2023|01|02",
-        "updated": "2023|04|05"
+        "updated": "2023|04|28"
     },
     {
         "name": "capricorn",
@@ -33,7 +33,7 @@
         "short-description": "User script to null edit the current page",
         "description": "This user script adds a link to the \"More\"/\"Tools\" menu which allows the current page to be null edited.",
         "released": "2023|02|14",
-        "updated": "2023|03|05"
+        "updated": "2023|04|28"
     },
     {
         "name": "pageswap",

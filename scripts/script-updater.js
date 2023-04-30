@@ -1,15 +1,15 @@
 /* global mw */
 
-mw.loader.using(['mediawiki.util'], async () => {
+mw.loader.using(['mediawiki.util'], () => {
     if (mw.config.get('wgUserName') !== 'Eejit43' || mw.config.get('wgPageName') !== 'User:Eejit43') return;
 
     const repoOwner = 'Eejit43';
     const repoName = 'wikipedia-scripts';
 
-    const latestCommitHash = (await (await fetch(`https://api.github.com/repos/${repoOwner}/${repoName}/commits`)).json())[0].sha;
-
     mw.util.addPortletLink('p-cactions', '#', 'Sync user scripts from GitHub', 'sync-scripts');
     document.getElementById('sync-scripts').addEventListener('click', async () => {
+        const latestCommitHash = (await (await fetch(`https://api.github.com/repos/${repoOwner}/${repoName}/commits`)).json())[0].sha;
+
         const scriptData = await (await fetch(`https://raw.githubusercontent.com/${repoOwner}/${repoName}/${latestCommitHash}/scripts.json`)).json();
 
         mw.notify('Syncing scripts...', { autoHide: false, tag: 'sync-scripts-notification' });

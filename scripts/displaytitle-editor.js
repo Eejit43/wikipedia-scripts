@@ -18,7 +18,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui.styles.icons-editing
     display: inline-block;
 }`);
 
-    const editButton = new OO.ui.ButtonWidget({ label: 'Edit', icon: 'edit', framed: false, invisibleLabel: true, id: 'displaytitle-edit-button' });
+    const editButton = new OO.ui.ButtonWidget({ icon: 'edit', framed: false, id: 'displaytitle-edit-button' });
     editButton.on('click', async () => {
         editButton.setDisabled(true);
 

@@ -9,6 +9,7 @@ const toCheck = {
     searches: [
         { id: 'wp-list-article', search: 'insource:"Wikipedia list article"' },
         { id: 'wm-list-article', search: 'insource:"Wikimedia list article"' },
+        { id: 'moved-to-draft-mainspace', search: '"Drafts moved from mainspace"' },
         { id: 'template-incorrect-namespace', search: 'incategory:"Pages with templates in the wrong namespace" -intitle:"Contactpage-arbcom-block-appeal-prior-onwiki" -subpageof:"SDZeroBot"', notNamespace: 'Category' },
         { id: 'draft-displaytitles', search: 'insource:"Draft" insource:/\\{\\{DISPLAYTITLE:Draft:/i' },
         { id: 'draft-defaultsorts', search: 'insource:"Draft" insource:/\\{\\{DEFAULTSORT:Draft:/i' },

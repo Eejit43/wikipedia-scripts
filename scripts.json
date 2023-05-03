@@ -3,6 +3,7 @@
         "name": "AFCRHS",
         "short-description": "User script to help handle requests at [[WP:AFC/RC]]",
         "description": "This user script is a fork of [[User:Enterprisey/AFCRHS|Enterprisey's script]], and helps handle requests at [[WP:AFC/RC]] (redirects and categories creation requests).\n\n\nThis fork fixes many bugs, and makes some changes from the original script, such as:\n* Automatically uses {{tl|Redirect category shell}} in created redirects\n* Correctly handles partially accepted requests (instead of just using the accepted or declined headers)",
+        "other-authors": ["Enterprisey"],
         "released": "2023|02|27",
         "updated": "2023|04|15"
     },
@@ -17,6 +18,7 @@
         "name": "aligner",
         "short-description": "User script to align infobox template parameters",
         "description": "This user script is a fork of [[User:Taavi/Aligner.js|Taavi's script]], and adds the ability to align infobox (and similar) templates parameters (using a link in the \"More\"/\"Tools\" menu).",
+        "other-authors": ["Taavi"],
         "released": "2023|01|02",
         "updated": "2023|04|28"
     },
@@ -24,6 +26,7 @@
         "name": "capricorn",
         "short-description": "User script to create and manage redirects",
         "description": "This user script is a fork of [[User:Wugapodes/Capricorn|Wugapodes's \"Capricorn\"]], which fixes running on non-existent pages and adds a link to redirected article in the UI.",
+        "other-authors": ["Wugapodes"],
         "released": "2023|01|21",
         "updated": "2023|02|16",
         "css": true
@@ -46,6 +49,7 @@
         "name": "pageswap",
         "short-description": "User script to easily make [[WP:ROUNDROBIN|round-robin]] moves (history swaps)",
         "description": "This user script allows [[WP:Page mover|page movers]] to easily make [[WP:ROUNDROBIN|round-robin]]/history swap moves (swapping one page with another). This script is a majorly modified fork of [[User:Andy M. Wang/pageswap|Andy M. Wang's version]], except with a UI for making moves instead of using browser popups.",
+        "other-authors": ["Andy M. Wang"],
         "released": "2023|03|29",
         "updated": "2023|04|05"
     },

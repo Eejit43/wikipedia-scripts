@@ -23,12 +23,13 @@ mw.loader.using(['mediawiki.util'], () => {
 
                 const fullSubpageInfo = [
                     '{{User:Eejit43/script-documentation', //
+                    script['other-authors'] ? `| other-authors     = ${script['other-authors'].map((author) => `[[User:${author}|${author}]]`).join(', ')}` : null,
                     `| description-short = ${script['short-description']}`,
                     `| description       = ${script.description}`,
                     `| released          = {{start date and age|${script.released}}}`,
                     `| updated           = {{start date and age|${script.updated}}}`,
                     '}}'
-                ];
+                ].filter(Boolean);
 
                 const scriptContent = await (await fetch(`https://raw.githubusercontent.com/${repoOwner}/${repoName}/${latestCommitHash}/scripts/${script.name}.js`)).text().catch((error) => {
                     console.error(error); // eslint-disable-line no-console

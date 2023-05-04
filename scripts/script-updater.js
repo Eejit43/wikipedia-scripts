@@ -26,6 +26,9 @@ mw.loader.using(['mediawiki.util'], () => {
                     script['other-authors'] ? `| other-authors     = ${script['other-authors'].map((author) => `[[User:${author}|${author}]]`).join(', ')}` : null,
                     `| description-short = ${script['short-description']}`,
                     `| description       = ${script.description}`,
+                    `| skin-support      = {{User:Eejit43/skin-support|${Object.entries(script['skin-support'])
+                        .map(([skin, status]) => `${skin}=${status}`)
+                        .join('|')}}}`,
                     `| released          = {{start date and age|${script.released}}}`,
                     `| updated           = {{start date and age|${script.updated}}}`,
                     '}}'

@@ -4,6 +4,15 @@
         "short-description": "User script to help handle requests at [[WP:AFC/RC]]",
         "description": "This user script is a fork of [[User:Enterprisey/AFCRHS|Enterprisey's script]], and helps handle requests at [[WP:AFC/RC]] (redirects and categories creation requests).\n\n\nThis fork fixes many bugs, and makes some changes from the original script, such as:\n* Automatically uses {{tl|Redirect category shell}} in created redirects\n* Correctly handles partially accepted requests (instead of just using the accepted or declined headers)",
         "other-authors": ["Enterprisey"],
+        "skin-support": {
+            "vector-2022": "yes",
+            "vector": "unknown",
+            "timeless": "unknown",
+            "monobook": "unknown",
+            "modern": "unknown",
+            "minerva": "unknown",
+            "cologne-blue": "unknown"
+        },
         "released": "2023|02|27",
         "updated": "2023|04|15"
     },
@@ -11,6 +20,15 @@
         "name": "ajax-undo",
         "short-description": "User script to easily undo edits",
         "description": "This user script adds a link following \"undo\" on page histories, allowing the edit to be undone without leaving the history page. It allows for an optional comment to add to the edit summary.",
+        "skin-support": {
+            "vector-2022": "yes",
+            "vector": "unknown",
+            "timeless": "unknown",
+            "monobook": "unknown",
+            "modern": "unknown",
+            "minerva": "unknown",
+            "cologne-blue": "unknown"
+        },
         "released": "2023|02|16",
         "updated": "2023|04|05"
     },
@@ -19,6 +37,15 @@
         "short-description": "User script to align infobox template parameters",
         "description": "This user script is a fork of [[User:Taavi/Aligner.js|Taavi's script]], and adds the ability to align infobox (and similar) templates parameters (using a link in the \"More\"/\"Tools\" menu).",
         "other-authors": ["Taavi"],
+        "skin-support": {
+            "vector-2022": "yes",
+            "vector": "unknown",
+            "timeless": "unknown",
+            "monobook": "unknown",
+            "modern": "unknown",
+            "minerva": "unknown",
+            "cologne-blue": "unknown"
+        },
         "released": "2023|01|02",
         "updated": "2023|04|28"
     },
@@ -27,6 +54,15 @@
         "short-description": "User script to create and manage redirects",
         "description": "This user script is a fork of [[User:Wugapodes/Capricorn|Wugapodes's \"Capricorn\"]], which fixes running on non-existent pages and adds a link to redirected article in the UI.",
         "other-authors": ["Wugapodes"],
+        "skin-support": {
+            "vector-2022": "yes",
+            "vector": "unknown",
+            "timeless": "unknown",
+            "monobook": "unknown",
+            "modern": "unknown",
+            "minerva": "unknown",
+            "cologne-blue": "unknown"
+        },
         "released": "2023|01|21",
         "updated": "2023|02|16",
         "css": true
@@ -35,6 +71,15 @@
         "name": "displaytitle-editor",
         "short-description": "User script to modify DISPLAYTITLEs",
         "description": "This user script adds an icon following the article title, which, when clicked, allows a [[WP:DISPLAYTITLE|DISPLAYTITLE]] to be added, modified, or removed.",
+        "skin-support": {
+            "vector-2022": "yes",
+            "vector": "unknown",
+            "timeless": "unknown",
+            "monobook": "unknown",
+            "modern": "unknown",
+            "minerva": "unknown",
+            "cologne-blue": "unknown"
+        },
         "released": "2023|04|28",
         "updated": "2023|04|30"
     },
@@ -42,6 +87,15 @@
         "name": "null-edit",
         "short-description": "User script to null edit the current page",
         "description": "This user script adds a link to the \"More\"/\"Tools\" menu which allows the current page to be null edited.",
+        "skin-support": {
+            "vector-2022": "yes",
+            "vector": "unknown",
+            "timeless": "unknown",
+            "monobook": "unknown",
+            "modern": "unknown",
+            "minerva": "unknown",
+            "cologne-blue": "unknown"
+        },
         "released": "2023|02|14",
         "updated": "2023|04|28"
     },
@@ -50,6 +104,15 @@
         "short-description": "User script to easily make [[WP:ROUNDROBIN|round-robin]] moves (history swaps)",
         "description": "This user script allows [[WP:Page mover|page movers]] to easily make [[WP:ROUNDROBIN|round-robin]]/history swap moves (swapping one page with another). This script is a majorly modified fork of [[User:Andy M. Wang/pageswap|Andy M. Wang's version]], except with a UI for making moves instead of using browser popups.",
         "other-authors": ["Andy M. Wang"],
+        "skin-support": {
+            "vector-2022": "yes",
+            "vector": "unknown",
+            "timeless": "unknown",
+            "monobook": "unknown",
+            "modern": "unknown",
+            "minerva": "unknown",
+            "cologne-blue": "unknown"
+        },
         "released": "2023|03|29",
         "updated": "2023|04|05"
     },
@@ -57,6 +120,15 @@
         "name": "rmtr-helper",
         "short-description": "User script to help handle requests at [[WP:RM/TR]]",
         "description": "This user script helps handle requests at [[WP:RM/TR]] (technical move requests). A link is added to the \"More\"/\"Tools\" dropdown menu (or sidebar), which creates a UI at the top of the page, allowing requests to be removed and moved between sections with comments.\n\n'''The script does not currently actually move pages!'''",
+        "skin-support": {
+            "vector-2022": "yes",
+            "vector": "unknown",
+            "timeless": "unknown",
+            "monobook": "unknown",
+            "modern": "unknown",
+            "minerva": "unknown",
+            "cologne-blue": "unknown"
+        },
         "released": "2023|02|14",
         "updated": "2023|04|05",
         "css": true
@@ -65,6 +137,15 @@
         "name": "sync-redirect",
         "short-description": "User script to sync talk page redirects with their main page",
         "description": "This user script allows talk pages to be synced to their corresponding main page redirect. If the main page ''is'' a redirect, a link is added to the \"More\"/\"Tools\" dropdown menu (or sidebar), which, when clicked, automatically update the page. If it exists on the main page, {{tl|R from move}} is added in {{tl|Redirect category shell}} as well.",
+        "skin-support": {
+            "vector-2022": "yes",
+            "vector": "unknown",
+            "timeless": "unknown",
+            "monobook": "unknown",
+            "modern": "unknown",
+            "minerva": "unknown",
+            "cologne-blue": "unknown"
+        },
         "released": "2023|02|09",
         "updated": "2023|03|05"
     },
@@ -72,6 +153,15 @@
         "name": "talk-page-helper",
         "short-description": null,
         "description": "Adds some helpful buttons added to talk pages.\n* Adds a button to blank a page if it is a talk page redirect not synced with its article (with reasoning of \"pending speedy deletion\", yet doesn't actually detect if main page is pending speedy deletion, so use carefully!)\n* Adds a button to mark a talk page of a disambiguation page with {{tl|WikiProject Disambiguation}}",
+        "skin-support": {
+            "vector-2022": "yes",
+            "vector": "unknown",
+            "timeless": "unknown",
+            "monobook": "unknown",
+            "modern": "unknown",
+            "minerva": "unknown",
+            "cologne-blue": "unknown"
+        },
         "released": "2023|01|28",
         "updated": "2023|03|05",
         "subpage": false
@@ -80,6 +170,15 @@
         "name": "to-monitor-list",
         "short-description": null,
         "description": "A user script for ''personal'' use that loads data that can't be parsed with wikitext in [[User:Eejit43#Stuff to monitor|§ Stuff to monitor]].",
+        "skin-support": {
+            "vector-2022": "yes",
+            "vector": "unknown",
+            "timeless": "unknown",
+            "monobook": "unknown",
+            "modern": "unknown",
+            "minerva": "unknown",
+            "cologne-blue": "unknown"
+        },
         "released": "2023|03|05",
         "updated": "2023|04|28",
         "subpage": false
@@ -88,6 +187,15 @@
         "name": "search-links",
         "short-description": "User script that adds helpful links on [[Special:Search]]",
         "description": "This user script adds edit and history links to search results on [[Special:Search]].",
+        "skin-support": {
+            "vector-2022": "yes",
+            "vector": "unknown",
+            "timeless": "unknown",
+            "monobook": "unknown",
+            "modern": "unknown",
+            "minerva": "unknown",
+            "cologne-blue": "unknown"
+        },
         "released": "2023|04|27",
         "updated": "2023|04|27"
     },
@@ -95,6 +203,15 @@
         "name": "script-updater",
         "short-description": null,
         "description": "A user script for ''personal'' use that updates on-wiki scripts from GitHub.",
+        "skin-support": {
+            "vector-2022": "yes",
+            "vector": "unknown",
+            "timeless": "unknown",
+            "monobook": "unknown",
+            "modern": "unknown",
+            "minerva": "unknown",
+            "cologne-blue": "unknown"
+        },
         "released": "2023|04|05",
         "updated": "2023|04|30",
         "subpage": false

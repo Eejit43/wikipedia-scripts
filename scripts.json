@@ -122,12 +122,12 @@
         "description": "This user script helps handle requests at [[WP:RM/TR]] (technical move requests). A link is added to the \"More\"/\"Tools\" dropdown menu (or sidebar), which creates a UI at the top of the page, allowing requests to be removed and moved between sections with comments.\n\n'''The script does not currently actually move pages!'''",
         "skin-support": {
             "vector-2022": "yes",
-            "vector": "no",
-            "timeless": "no",
-            "monobook": "no",
-            "modern": "no",
+            "vector": "yes",
+            "timeless": "yes",
+            "monobook": "yes",
+            "modern": "yes",
             "minerva": "no",
-            "cologne-blue": "no"
+            "cologne-blue": "yes"
         },
         "released": "2023|02|14",
         "updated": "2023|04|05",

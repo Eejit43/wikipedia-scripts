@@ -10,7 +10,9 @@
         mw.notification.autoHideSeconds.veryShort = 2;
 
         mw.util.addPortletLink('p-cactions', '#', 'Align template params', 'align-params');
-        document.getElementById('align-params').addEventListener('click', () => {
+        document.getElementById('align-params').addEventListener('click', (event) => {
+            event.preventDefault();
+
             const splitParam = (string) => {
                 const split = string.split('=');
                 if (split.length <= 2) {

@@ -6,12 +6,12 @@
         "other-authors": ["Enterprisey"],
         "skin-support": {
             "vector-2022": "yes",
-            "vector": "unknown",
-            "timeless": "unknown",
-            "monobook": "unknown",
-            "modern": "unknown",
-            "minerva": "unknown",
-            "cologne-blue": "unknown"
+            "vector": "yes",
+            "timeless": "yes",
+            "monobook": "yes",
+            "modern": "yes",
+            "minerva": "no",
+            "cologne-blue": "yes"
         },
         "released": "2023|02|27",
         "updated": "2023|04|15"
@@ -22,12 +22,12 @@
         "description": "This user script adds a link following \"undo\" on page histories, allowing the edit to be undone without leaving the history page. It allows for an optional comment to add to the edit summary.",
         "skin-support": {
             "vector-2022": "yes",
-            "vector": "unknown",
-            "timeless": "unknown",
-            "monobook": "unknown",
-            "modern": "unknown",
-            "minerva": "unknown",
-            "cologne-blue": "unknown"
+            "vector": "yes",
+            "timeless": "yes",
+            "monobook": "yes",
+            "modern": "yes",
+            "minerva": "yes-weird",
+            "cologne-blue": "yes"
         },
         "released": "2023|02|16",
         "updated": "2023|04|05"
@@ -39,15 +39,15 @@
         "other-authors": ["Taavi"],
         "skin-support": {
             "vector-2022": "yes",
-            "vector": "unknown",
-            "timeless": "unknown",
-            "monobook": "unknown",
-            "modern": "unknown",
-            "minerva": "unknown",
-            "cologne-blue": "unknown"
+            "vector": "yes",
+            "timeless": "yes",
+            "monobook": "yes",
+            "modern": "yes",
+            "minerva": "no",
+            "cologne-blue": "yes"
         },
         "released": "2023|01|02",
-        "updated": "2023|04|28"
+        "updated": "2023|05|04"
     },
     {
         "name": "capricorn",
@@ -56,12 +56,12 @@
         "other-authors": ["Wugapodes"],
         "skin-support": {
             "vector-2022": "yes",
-            "vector": "unknown",
-            "timeless": "unknown",
-            "monobook": "unknown",
-            "modern": "unknown",
-            "minerva": "unknown",
-            "cologne-blue": "unknown"
+            "vector": "yes",
+            "timeless": "yes",
+            "monobook": "yes",
+            "modern": "yes",
+            "minerva": "yes-weird",
+            "cologne-blue": "yes"
         },
         "released": "2023|01|21",
         "updated": "2023|02|16",
@@ -73,12 +73,12 @@
         "description": "This user script adds an icon following the article title, which, when clicked, allows a [[WP:DISPLAYTITLE|DISPLAYTITLE]] to be added, modified, or removed.",
         "skin-support": {
             "vector-2022": "yes",
-            "vector": "unknown",
-            "timeless": "unknown",
-            "monobook": "unknown",
-            "modern": "unknown",
-            "minerva": "unknown",
-            "cologne-blue": "unknown"
+            "vector": "yes",
+            "timeless": "yes",
+            "monobook": "yes",
+            "modern": "yes-weird",
+            "minerva": "yes",
+            "cologne-blue": "yes"
         },
         "released": "2023|04|28",
         "updated": "2023|04|30"
@@ -89,12 +89,12 @@
         "description": "This user script adds a link to the \"More\"/\"Tools\" menu which allows the current page to be null edited.",
         "skin-support": {
             "vector-2022": "yes",
-            "vector": "unknown",
-            "timeless": "unknown",
-            "monobook": "unknown",
-            "modern": "unknown",
-            "minerva": "unknown",
-            "cologne-blue": "unknown"
+            "vector": "yes",
+            "timeless": "yes",
+            "monobook": "yes",
+            "modern": "yes",
+            "minerva": "no",
+            "cologne-blue": "yes"
         },
         "released": "2023|02|14",
         "updated": "2023|04|28"
@@ -106,15 +106,15 @@
         "other-authors": ["Andy M. Wang"],
         "skin-support": {
             "vector-2022": "yes",
-            "vector": "unknown",
-            "timeless": "unknown",
-            "monobook": "unknown",
-            "modern": "unknown",
-            "minerva": "unknown",
-            "cologne-blue": "unknown"
+            "vector": "yes",
+            "timeless": "yes",
+            "monobook": "yes",
+            "modern": "yes",
+            "minerva": "no",
+            "cologne-blue": "yes"
         },
         "released": "2023|03|29",
-        "updated": "2023|04|05"
+        "updated": "2023|05|04"
     },
     {
         "name": "rmtr-helper",
@@ -122,12 +122,12 @@
         "description": "This user script helps handle requests at [[WP:RM/TR]] (technical move requests). A link is added to the \"More\"/\"Tools\" dropdown menu (or sidebar), which creates a UI at the top of the page, allowing requests to be removed and moved between sections with comments.\n\n'''The script does not currently actually move pages!'''",
         "skin-support": {
             "vector-2022": "yes",
-            "vector": "unknown",
-            "timeless": "unknown",
-            "monobook": "unknown",
-            "modern": "unknown",
-            "minerva": "unknown",
-            "cologne-blue": "unknown"
+            "vector": "no",
+            "timeless": "no",
+            "monobook": "no",
+            "modern": "no",
+            "minerva": "no",
+            "cologne-blue": "no"
         },
         "released": "2023|02|14",
         "updated": "2023|04|05",
@@ -139,12 +139,12 @@
         "description": "This user script allows talk pages to be synced to their corresponding main page redirect. If the main page ''is'' a redirect, a link is added to the \"More\"/\"Tools\" dropdown menu (or sidebar), which, when clicked, automatically update the page. If it exists on the main page, {{tl|R from move}} is added in {{tl|Redirect category shell}} as well.",
         "skin-support": {
             "vector-2022": "yes",
-            "vector": "unknown",
-            "timeless": "unknown",
-            "monobook": "unknown",
-            "modern": "unknown",
-            "minerva": "unknown",
-            "cologne-blue": "unknown"
+            "vector": "yes",
+            "timeless": "yes",
+            "monobook": "yes",
+            "modern": "yes",
+            "minerva": "no",
+            "cologne-blue": "yes"
         },
         "released": "2023|02|09",
         "updated": "2023|03|05"
@@ -155,12 +155,12 @@
         "description": "Adds some helpful buttons added to talk pages.\n* Adds a button to blank a page if it is a talk page redirect not synced with its article (with reasoning of \"pending speedy deletion\", yet doesn't actually detect if main page is pending speedy deletion, so use carefully!)\n* Adds a button to mark a talk page of a disambiguation page with {{tl|WikiProject Disambiguation}}",
         "skin-support": {
             "vector-2022": "yes",
-            "vector": "unknown",
-            "timeless": "unknown",
-            "monobook": "unknown",
-            "modern": "unknown",
-            "minerva": "unknown",
-            "cologne-blue": "unknown"
+            "vector": "yes",
+            "timeless": "yes",
+            "monobook": "yes",
+            "modern": "yes",
+            "minerva": "no",
+            "cologne-blue": "yes"
         },
         "released": "2023|01|28",
         "updated": "2023|03|05",
@@ -172,12 +172,12 @@
         "description": "A user script for ''personal'' use that loads data that can't be parsed with wikitext in [[User:Eejit43#Stuff to monitor|§ Stuff to monitor]].",
         "skin-support": {
             "vector-2022": "yes",
-            "vector": "unknown",
-            "timeless": "unknown",
-            "monobook": "unknown",
-            "modern": "unknown",
-            "minerva": "unknown",
-            "cologne-blue": "unknown"
+            "vector": "yes",
+            "timeless": "yes",
+            "monobook": "yes",
+            "modern": "yes",
+            "minerva": "no",
+            "cologne-blue": "yes"
         },
         "released": "2023|03|05",
         "updated": "2023|04|28",
@@ -189,12 +189,12 @@
         "description": "This user script adds edit and history links to search results on [[Special:Search]].",
         "skin-support": {
             "vector-2022": "yes",
-            "vector": "unknown",
-            "timeless": "unknown",
-            "monobook": "unknown",
-            "modern": "unknown",
-            "minerva": "unknown",
-            "cologne-blue": "unknown"
+            "vector": "yes",
+            "timeless": "yes",
+            "monobook": "yes",
+            "modern": "yes",
+            "minerva": "yes",
+            "cologne-blue": "yes"
         },
         "released": "2023|04|27",
         "updated": "2023|04|27"
@@ -205,12 +205,12 @@
         "description": "A user script for ''personal'' use that updates on-wiki scripts from GitHub.",
         "skin-support": {
             "vector-2022": "yes",
-            "vector": "unknown",
-            "timeless": "unknown",
-            "monobook": "unknown",
-            "modern": "unknown",
-            "minerva": "unknown",
-            "cologne-blue": "unknown"
+            "vector": "yes",
+            "timeless": "yes",
+            "monobook": "yes",
+            "modern": "yes",
+            "minerva": "no",
+            "cologne-blue": "yes"
         },
         "released": "2023|04|05",
         "updated": "2023|04|30",

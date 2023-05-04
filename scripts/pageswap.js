@@ -109,7 +109,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
         };
 
         SwapDialog.prototype.updateActionState = function () {
-            const isValid = this.destinationInput.getValidity() && this.summaryInput.getValue() !== '';
+            const isValid = this.destinationInput.getValue() !== '' && this.destinationInput.getValidity() && this.summaryInput.getValue() !== '';
             this.actions.setAbilities({ swap: isValid });
         };
 

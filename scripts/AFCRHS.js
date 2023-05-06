@@ -1,7 +1,7 @@
 /* global mw, $ */
 
 (function () {
-    if (mw.config.get('wgPageName') !== 'Wikipedia:Articles_for_creation/Redirects_and_categories') return;
+    // if (mw.config.get('wgPageName') !== 'Wikipedia:Articles_for_creation/Redirects_and_categories') return;
 
     const redirectPageName = mw.config.get('wgPageName').replace(/_/g, ' ');
     const redirectSubmissions = [];
@@ -249,10 +249,10 @@
                         .attr('type', 'text')
                         .attr('name', 'afcHelper_redirect_from_' + id)
                         .attr('id', 'afcHelper_redirect_from_' + id)
-                        .attr('value', escapeHtmlCharacters(submissions[id].title))
+                        .attr('value', submissions[id].title)
                 );
 
-                $extra.html($extra.html() + '&nbsp;<br /><label for="afcHelper_redirect_to_' + id + '">To: </label><input type="text" name="afcHelper_redirect_to_' + id + '" id="afcHelper_redirect_to_' + id + '" value="' + escapeHtmlCharacters(submissions[id].to) + '" />');
+                $extra.html($extra.html() + '&nbsp;<br /><label for="afcHelper_redirect_to_' + id + '">To: </label><input type="text" name="afcHelper_redirect_to_' + id + '" id="afcHelper_redirect_to_' + id + '" value="' + submissions[id].to + '" />');
                 $extra.html($extra.html() + '<br /><label for="afcHelper_redirect_append_' + id + '">Template to append: (<a href="https://en.wikipedia.org/wiki/Wikipedia:TMR" target="_blank">Help</a>)</label>');
                 $extra.html(
                     $extra.html() +
@@ -428,8 +428,8 @@
                 );
             } else {
                 // Now categories
-                $extra.html('<label for="afcHelper_redirect_name_' + id + '">Category name: </label><input type="text" size="100" name="afcHelper_redirect_name_' + id + '" id="afcHelper_redirect_name_' + id + '" value="' + escapeHtmlCharacters(submissions[id].title) + '" />');
-                $extra.html($extra.html() + '<br /><label for="afcHelper_redirect_parents_' + id + '">Parent categories (comma-separated):</label><input type="text" size="100" id="afcHelper_redirect_parents_' + id + '" name="afcHelper_redirect_parents_' + id + '" value="' + escapeHtmlCharacters(submissions[id].parents) + '" />');
+                $extra.html('<label for="afcHelper_redirect_name_' + id + '">Category name: </label><input type="text" size="100" name="afcHelper_redirect_name_' + id + '" id="afcHelper_redirect_name_' + id + '" value="' + submissions[id].title + '" />');
+                $extra.html($extra.html() + '<br /><label for="afcHelper_redirect_parents_' + id + '">Parent categories (comma-separated):</label><input type="text" size="100" id="afcHelper_redirect_parents_' + id + '" name="afcHelper_redirect_parents_' + id + '" value="' + submissions[id].parents + '" />');
                 $extra.append('<br />');
                 $extra.append($('<input>', { type: 'checkbox', name: 'afcHelper_redirect_container_' + id, id: 'afcHelper_redirect_container_' + id }));
                 $extra.append('<label for="afcHelper_redirect_container_' + id + '">This is a <a href="/wiki/Wikipedia:Container_category" title="Wikipedia:Container category">container category</a></label>');
@@ -759,15 +759,11 @@
                 option.value = option.labelAndValue;
                 option.label = option.labelAndValue;
             }
-            const $option = $('<option>').appendTo($select).val(escapeHtmlCharacters(option.value)).text(option.label);
+            const $option = $('<option>').appendTo($select).val(option.value).text(option.label);
             if (option.selected) $option.attr('selected', 'selected');
             if (option.disabled) $option.attr('disabled', 'disabled');
         });
         return $select;
-    }
-
-    function escapeHtmlCharacters(original) {
-        return original.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
     }
 
     /**

@@ -170,7 +170,7 @@
     },
     {
         "name": "to-monitor-list",
-        "short-description": null,
+        "short-description": "User script that adds counts to [[User:Eejit43#Stuff to monitor|§ Stuff to monitor]]",
         "description": "A user script for ''personal'' use that loads data that can't be parsed with wikitext in [[User:Eejit43#Stuff to monitor|§ Stuff to monitor]].",
         "personal": true,
         "skin-support": {
@@ -203,7 +203,7 @@
     },
     {
         "name": "script-updater",
-        "short-description": null,
+        "short-description": "User script that updates on-wiki scripts from GitHub",
         "description": "A user script for ''personal'' use that updates on-wiki scripts from GitHub.",
         "personal": true,
         "skin-support": {

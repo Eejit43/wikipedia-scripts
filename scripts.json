@@ -4,6 +4,7 @@
         "short-description": "User script to help handle requests at [[WP:AFC/RC]]",
         "description": "This user script is a fork of [[User:Enterprisey/AFCRHS|Enterprisey's script]], and helps handle requests at [[WP:AFC/RC]] (redirects and categories creation requests).\n\n\nThis fork fixes many bugs, and makes some changes from the original script, such as:\n* Automatically uses {{tl|Redirect category shell}} in created redirects\n* Correctly handles partially accepted requests (instead of just using the accepted or declined headers)",
         "other-authors": ["Enterprisey"],
+        "fork": true,
         "skin-support": {
             "vector-2022": "yes",
             "vector": "yes",
@@ -37,6 +38,7 @@
         "short-description": "User script to align infobox template parameters",
         "description": "This user script is a fork of [[User:Taavi/Aligner.js|Taavi's script]], and adds the ability to align infobox (and similar) templates parameters (using a link in the \"More\"/\"Tools\" menu).",
         "other-authors": ["Taavi"],
+        "fork": true,
         "skin-support": {
             "vector-2022": "yes",
             "vector": "yes",
@@ -54,6 +56,7 @@
         "short-description": "User script to create and manage redirects",
         "description": "This user script is a fork of [[User:Wugapodes/Capricorn|Wugapodes's \"Capricorn\"]], which fixes running on non-existent pages and adds a link to redirected article in the UI.",
         "other-authors": ["Wugapodes"],
+        "fork": true,
         "skin-support": {
             "vector-2022": "yes",
             "vector": "yes",
@@ -166,26 +169,10 @@
         "updated": "2023|03|05"
     },
     {
-        "name": "talk-page-helper",
-        "short-description": null,
-        "description": "Adds some helpful buttons added to talk pages.\n* Adds a button to blank a page if it is a talk page redirect not synced with its article (with reasoning of \"pending speedy deletion\", yet doesn't actually detect if main page is pending speedy deletion, so use carefully!)\n* Adds a button to mark a talk page of a disambiguation page with {{tl|WikiProject Disambiguation}}",
-        "skin-support": {
-            "vector-2022": "yes",
-            "vector": "yes",
-            "timeless": "yes",
-            "monobook": "yes",
-            "modern": "yes",
-            "minerva": "no",
-            "cologne-blue": "yes"
-        },
-        "released": "2023|01|28",
-        "updated": "2023|03|05",
-        "subpage": false
-    },
-    {
         "name": "to-monitor-list",
         "short-description": null,
         "description": "A user script for ''personal'' use that loads data that can't be parsed with wikitext in [[User:Eejit43#Stuff to monitor|§ Stuff to monitor]].",
+        "personal": true,
         "skin-support": {
             "vector-2022": "yes",
             "vector": "yes",
@@ -196,8 +183,7 @@
             "cologne-blue": "yes"
         },
         "released": "2023|03|05",
-        "updated": "2023|05|06",
-        "subpage": false
+        "updated": "2023|05|06"
     },
     {
         "name": "search-links",
@@ -219,6 +205,7 @@
         "name": "script-updater",
         "short-description": null,
         "description": "A user script for ''personal'' use that updates on-wiki scripts from GitHub.",
+        "personal": true,
         "skin-support": {
             "vector-2022": "yes",
             "vector": "yes",
@@ -229,7 +216,6 @@
             "cologne-blue": "yes"
         },
         "released": "2023|04|05",
-        "updated": "2023|04|30",
-        "subpage": false
+        "updated": "2023|04|30"
     }
 ]

@@ -50,7 +50,7 @@ mw.loader.using(['mediawiki.util'], () => {
                     return;
                 }
 
-                if (script.subpage !== false) {
+                if (script.personal === false) {
                     await editOrCreate(subpageName, fullSubpageInfo.join('\n'), 'Syncing script documentation from GitHub');
                     await editOrCreate(subpageTalkName, '#REDIRECT [[User talk:Eejit43]]', 'Redirecting script documentation talk page to main user talk page');
                 }
@@ -59,7 +59,30 @@ mw.loader.using(['mediawiki.util'], () => {
             })
         );
 
+        await editOrCreate(
+            'User:Eejit43/scripts-info',
+            [
+                mapScripts(scriptData.filter((script) => !script.personal && !script.fork)), //
+                '',
+                '=== Personal-use scripts ===',
+                mapScripts(scriptData.filter((script) => script.personal)),
+                '',
+                '=== Forks ===',
+                mapScripts(scriptData.filter((script) => script.fork))
+            ].join('\n'),
+            'Syncing script list from GitHub'
+        );
+
         mw.notify(`Synced ${scriptData.length} scripts from GitHub!`, { type: 'success', tag: 'sync-scripts-notification' });
+
+        /**
+         * Maps scripts to a bulleted list
+         * @param {object[]} scripts The scripts to map
+         * @returns {string} The mapped scripts
+         */
+        function mapScripts(scripts) {
+            return scripts.map((script) => `* [[<noinclude>User:Eejit43</noinclude>/scripts/${script.name}${script.personal ? '.js' : ''}|${script.name}]] - ${script['short-description'] || script.description}`).join('\n');
+        }
 
         /**
          * Edits a page, or creates it if it doesn't exist

@@ -86,7 +86,7 @@
     {
         "name": "highlight-homographs",
         "short-description": "User script that highlights homographs in page titles",
-        "description": "This user script adds a red background to homograph characters in page titles, which may be used to bypass create protection. While entirely different, this script uses regex from [[User:Þjarkur/Highlight homographs in title|Þjarkur's script]].",
+        "description": "This user script adds a red background to homograph characters in page titles, which may be used to bypass create protection. While entirely rewritten, this script uses regex from [[User:Þjarkur/Highlight homographs in title|Þjarkur's script]].",
         "skin-support": {
             "vector-2022": "yes",
             "vector": "yes",

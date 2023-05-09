@@ -20,7 +20,9 @@ function markHomographs(string) {
                 /* Greek */
                 /[ονɑΑΒΕΗΙΚΜΝΟΡΤΧΥΖ]/.test(char) ||
                 /* Armenian */
-                /[օոսՏԼ]/.test(char)
+                /[օոսՏԼ]/.test(char) ||
+                /* Roman Numerals */
+                /[ⅠⅡⅢⅣⅤⅥⅦⅧⅨⅩⅪⅫⅬⅭⅮⅯ]/i.test(char)
             )
                 return `<abbr title="This character is a homograph!" style="text-decoration: none; background-color: #ff5555">${char}</abbr>`;
             else return char;

@@ -84,6 +84,22 @@
         "updated": "2023|04|30"
     },
     {
+        "name": "highlight-homographs",
+        "short-description": "User script that highlights homographs in page titles",
+        "description": "This user script adds a red background to homograph characters in page titles, which may be used to bypass create protection. While entirely different, this script uses regex from [[User:Þjarkur/Highlight homographs in titles|Þjarkur's script]].",
+        "skin-support": {
+            "vector-2022": "yes",
+            "vector": "yes",
+            "timeless": "yes",
+            "monobook": "yes",
+            "modern": "yes-weird",
+            "minerva": "yes",
+            "cologne-blue": "yes"
+        },
+        "released": "2023|05|09",
+        "updated": "2023|05|09"
+    },
+    {
         "name": "null-edit",
         "short-description": "User script to null edit the current page",
         "description": "This user script adds a link to the \"More\"/\"Tools\" menu which allows the current page to be null edited.",

@@ -40,9 +40,9 @@ mw.loader.using(['mediawiki.util'], () => {
                 });
                 const styleContent = script.css
                     ? await (await fetch(`https://raw.githubusercontent.com/${repoOwner}/${repoName}/${latestCommitHash}/styles/${script.name}.css`)).text().catch((error) => {
-                        console.error(error); // eslint-disable-line no-console
-                        return false;
-                    })
+                          console.error(error); // eslint-disable-line no-console
+                          return false;
+                      })
                     : null;
 
                 if (!scriptContent || (script.css && !styleContent)) {
@@ -81,7 +81,7 @@ mw.loader.using(['mediawiki.util'], () => {
          * @returns {string} The mapped scripts
          */
         function mapScripts(scripts) {
-            return scripts.map((script) => `* [[<noinclude>User:Eejit43</noinclude>/scripts/${script.name}${script.personal ? '.js' : ''}|${script.name}]] - ${script['short-description'] || script.description}`).join('\n');
+            return scripts.map((script) => `* [[User:Eejit43/scripts/${script.name}${script.personal ? '.js' : ''}|${script.name}]] - ${script['short-description'] || script.description}`).join('\n');
         }
 
         /**

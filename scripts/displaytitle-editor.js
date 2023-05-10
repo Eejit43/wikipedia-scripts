@@ -12,10 +12,10 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui.styles.icons-editing
 }
 
 #displaytitle-edit-box {
-    font-size: 15px;
-    width: 200px;
-    max-width: 200px;
     display: inline-block;
+    font-size: 15px;
+    max-width: 200px;
+    width: 200px;
 }`);
 
     const editButton = new OO.ui.ButtonWidget({ icon: 'edit', framed: false, id: 'displaytitle-edit-button' });

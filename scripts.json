@@ -71,6 +71,22 @@
         "css": true
     },
     {
+        "name": "copy-search-results",
+        "short-description": "User script to copy search results on [[Special:Search]]",
+        "description": "This user script adds a link to the \"More\"/\"Tools\" menu on [[Special:Search]] which, when clicked, copies the titles of all visible search results (separated by newlines) to the clipboard.",
+        "skin-support": {
+            "vector-2022": "yes",
+            "vector": "yes",
+            "timeless": "yes",
+            "monobook": "yes",
+            "modern": "yes",
+            "minerva": "no",
+            "cologne-blue": "yes"
+        },
+        "released": "2023|05|12",
+        "updated": "2023|05|12"
+    },
+    {
         "name": "deletion-finder",
         "short-description": "User script that displays if a page has been previously deleted or taken to AfD",
         "description": "This user script adds messages following an article's title if it has been previously deleted or taken to AfD (linking to the deletion log or AfD discussion(s), respectively). It was inspired by [[User:Writ Keeper/Scripts/deletionFinder.js|Writ Keeper's \"deletionFinder\"]].",

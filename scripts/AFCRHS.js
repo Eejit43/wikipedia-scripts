@@ -874,7 +874,7 @@
     }
 
     mw.loader.using(['mediawiki.api', 'mediawiki.util'], () => {
-        const redirectPortletLink = mw.util.addPortletLink('p-cactions', '#', 'Review AFC/RC', 'ca-afcrhs', 'Review', 'a');
+        const redirectPortletLink = mw.util.addPortletLink(mw.config.get('skin') === 'minerva' ? 'p-tb' : 'p-cactions', '#', 'Review AFC/RC', 'ca-afcrhs', 'Review', 'a');
         $(redirectPortletLink).click((event) => {
             event.preventDefault();
             // Clear variables for the case somebody is clicking on "review" multiple times

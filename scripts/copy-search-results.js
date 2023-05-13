@@ -3,7 +3,7 @@
 mw.loader.using(['mediawiki.util'], () => {
     if (mw.config.get('wgPageName') !== 'Special:Search') return;
 
-    mw.util.addPortletLink('p-cactions', '#', 'Copy search result titles', 'copy-search-results');
+    mw.util.addPortletLink(mw.config.get('skin') === 'minerva' ? 'p-navigation' : 'p-cactions', '#', 'Copy search result titles', 'copy-search-results');
     document.getElementById('copy-search-results').addEventListener('click', (event) => {
         event.preventDefault();
 

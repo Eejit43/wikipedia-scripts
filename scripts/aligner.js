@@ -9,7 +9,7 @@
     mw.loader.using(['mediawiki.util', 'mediawiki.notification', 'jquery.textSelection'], () => {
         mw.notification.autoHideSeconds.veryShort = 2;
 
-        mw.util.addPortletLink('p-cactions', '#', 'Align template params', 'align-params');
+        mw.util.addPortletLink(mw.config.get('skin') === 'minerva' ? 'p-navigation' : 'p-cactions', '#', 'Align template params', 'align-params');
         document.getElementById('align-params').addEventListener('click', (event) => {
             event.preventDefault();
 

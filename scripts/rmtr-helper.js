@@ -7,7 +7,7 @@ mw.loader.using(['mediawiki.util'], () => {
 
     importStylesheet('User:Eejit43/scripts/rmtr-helper.css');
 
-    mw.util.addPortletLink('p-cactions', '#', `Review move requests${devMode ? ' (DEV)' : ''}`, `review-rmtr-requests${devMode ? '-dev' : ''}`);
+    mw.util.addPortletLink(mw.config.get('skin') === 'minerva' ? 'p-tb' : 'p-cactions', '#', `Review move requests${devMode ? ' (DEV)' : ''}`, `review-rmtr-requests${devMode ? '-dev' : ''}`);
 
     const namespaces = mw.config.get('wgNamespaceIds');
 
@@ -286,14 +286,14 @@ mw.loader.using(['mediawiki.util'], () => {
             const editSummary = `Handled ${changes.total} request${changes.total > 1 ? 's' : ''}: ${
                 Object.entries(changes.remove).length > 0
                     ? `Removed ${Object.entries(changes.remove)
-                          .map(([reason, pages]) => `${pages.map((page) => `[[${page.original}]]`).join(', ')} as ${reason.toLowerCase()}`)
-                          .join(', ')}`
+                        .map(([reason, pages]) => `${pages.map((page) => `[[${page.original}]]`).join(', ')} as ${reason.toLowerCase()}`)
+                        .join(', ')}`
                     : ''
             }${
                 Object.entries(changes.move).length > 0
                     ? `${Object.entries(changes.remove).length > 0 ? ', ' : ''}Moved ${Object.entries(changes.move)
-                          .map(([destination, pages]) => `${pages.map((page) => `[[${page.original}]]`).join(', ')} to "${destination}"`)
-                          .join(', ')}`
+                        .map(([destination, pages]) => `${pages.map((page) => `[[${page.original}]]`).join(', ')} to "${destination}"`)
+                        .join(', ')}`
                     : ''
             } ${noRemaining ? '(no requests remain)' : ''} (via [[User:Eejit43/scripts/rmtr-helper|script]])`;
 

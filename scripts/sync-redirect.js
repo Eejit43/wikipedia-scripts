@@ -5,7 +5,7 @@ mw.loader.using(['mediawiki.util'], async () => {
     const mainPageInfo = await new mw.Api().get({ action: 'query', format: 'json', prop: 'info|revisions', formatversion: 2, titles: `${mw.config.get('wgFormattedNamespaces')[mw.config.get('wgNamespaceNumber') - 1]}:${mw.config.get('wgTitle')}`, rvprop: 'content', rvslots: '*' });
     if (!mainPageInfo.query.pages[0].redirect) return;
 
-    mw.util.addPortletLink('p-cactions', '#', 'Sync with main page redirect', 'sync-redirect');
+    mw.util.addPortletLink(mw.config.get('skin') === 'minerva' ? 'p-tb' : 'p-cactions', '#', 'Sync with main page redirect', 'sync-redirect');
 
     document.getElementById('sync-redirect').addEventListener('click', async (event) => {
         event.preventDefault();

@@ -3,7 +3,7 @@
 mw.loader.using(['mediawiki.util'], () => {
     if (mw.config.get('wgPageName') !== 'User:Eejit43') return;
 
-    mw.util.addPortletLink('p-cactions', '#', 'Add counts to monitoring list', 'add-monitoring-counts');
+    mw.util.addPortletLink(mw.config.get('skin') === 'minerva' ? 'p-tb' : 'p-cactions', '#', 'Add counts to monitoring list', 'add-monitoring-counts');
 
     document.getElementById('add-monitoring-counts').addEventListener('click', async (event) => {
         event.preventDefault();

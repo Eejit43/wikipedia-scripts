@@ -8,12 +8,6 @@
     "trailingComma": "none",
     "overrides": [
         {
-            "files": ["*.hbs"],
-            "options": {
-                "singleQuote": false
-            }
-        },
-        {
             "files": ["scripts.json"],
             "options": {
                 "printWidth": 100

@@ -13,7 +13,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
 
     mw.util.addPortletLink(mw.config.get('skin') === 'minerva' ? 'p-tb' : 'p-cactions', '#', 'Swap', 'eejit-pageswap');
 
-    document.getElementById('eejit-pageswap').addEventListener('click', () => {
+    document.getElementById('eejit-pageswap').addEventListener('click', (event) => {
         event.preventDefault();
 
         if (!userPermissions.canSwap) return mw.notify('You do not have sufficient permissions to swap pages.', { type: 'error' });

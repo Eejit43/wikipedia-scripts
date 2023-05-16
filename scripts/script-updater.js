@@ -7,7 +7,9 @@ mw.loader.using(['mediawiki.util'], () => {
     const repoName = 'wikipedia-scripts';
 
     mw.util.addPortletLink(mw.config.get('skin') === 'minerva' ? 'p-tb' : 'p-cactions', '#', 'Sync user scripts from GitHub', 'sync-scripts');
-    document.getElementById('sync-scripts').addEventListener('click', async () => {
+    document.getElementById('sync-scripts').addEventListener('click', async (event) => {
+        event.preventDefault();
+
         const latestCommitHash = (await (await fetch(`https://api.github.com/repos/${repoOwner}/${repoName}/commits`)).json())[0].sha;
 
         const scriptData = await (await fetch(`https://raw.githubusercontent.com/${repoOwner}/${repoName}/${latestCommitHash}/scripts.json`)).json();
@@ -40,9 +42,9 @@ mw.loader.using(['mediawiki.util'], () => {
                 });
                 const styleContent = script.css
                     ? await (await fetch(`https://raw.githubusercontent.com/${repoOwner}/${repoName}/${latestCommitHash}/styles/${script.name}.css`)).text().catch((error) => {
-                        console.error(error); // eslint-disable-line no-console
-                        return false;
-                    })
+                          console.error(error); // eslint-disable-line no-console
+                          return false;
+                      })
                     : null;
 
                 if (!scriptContent || (script.css && !styleContent)) {

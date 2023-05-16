@@ -42,9 +42,9 @@ mw.loader.using(['mediawiki.util'], () => {
                 });
                 const styleContent = script.css
                     ? await (await fetch(`https://raw.githubusercontent.com/${repoOwner}/${repoName}/${latestCommitHash}/styles/${script.name}.css`)).text().catch((error) => {
-                          console.error(error); // eslint-disable-line no-console
-                          return false;
-                      })
+                        console.error(error); // eslint-disable-line no-console
+                        return false;
+                    })
                     : null;
 
                 if (!scriptContent || (script.css && !styleContent)) {

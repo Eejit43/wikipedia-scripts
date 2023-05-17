@@ -186,6 +186,7 @@ const contentText = document.getElementById('mw-content-text');
 mw.loader.using(['oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.styles.icons-content'], async () => {
     if (mw.config.get('wgNamespaceNumber') < 0) return; // Don't run in virtual namespaces
     if (!mw.config.get('wgIsProbablyEditable')) return; // Don't run if user can't edit page
+    if (mw.config.get('wgAction') !== 'view') return; // Don't run if not viewing page
 
     const pageTitle = mw.config.get('wgPageName');
 
@@ -354,9 +355,9 @@ mw.loader.using(['oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.styles.icons-conten
                 `#REDIRECT [[${redirectInput.getValue()}]]`, //
                 tagSelect.getValue().length > 0
                     ? `{{Redirect category shell|\n${tagSelect
-                        .getValue()
-                        .map((tag) => `{{${tag}${oldRedirectTagData?.[tag] ? `|${oldRedirectTagData[tag]}` : ''}}}`)
-                        .join('\n')}\n}}`
+                          .getValue()
+                          .map((tag) => `{{${tag}${oldRedirectTagData?.[tag] ? `|${oldRedirectTagData[tag]}` : ''}}}`)
+                          .join('\n')}\n}}`
                     : null,
                 oldStrayText
             ]

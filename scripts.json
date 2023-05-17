@@ -52,25 +52,6 @@
         "updated": "2023|05|12"
     },
     {
-        "name": "capricorn",
-        "short-description": "User script to create and manage redirects",
-        "description": "This user script is a fork of [[User:Wugapodes/Capricorn|Wugapodes's \"Capricorn\"]], which fixes running on non-existent pages and adds a link to redirected article in the UI.",
-        "other-authors": ["Wugapodes"],
-        "fork": true,
-        "skin-support": {
-            "vector-2022": "yes",
-            "vector": "yes",
-            "timeless": "yes",
-            "monobook": "yes",
-            "modern": "yes",
-            "minerva": "yes-weird",
-            "cologne-blue": "yes"
-        },
-        "released": "2023|01|21",
-        "updated": "2023|02|16",
-        "css": true
-    },
-    {
         "name": "copy-search-results",
         "short-description": "User script to copy search results on [[Special:Search]]",
         "description": "This user script adds a link to the \"More\"/\"Tools\" menu on [[Special:Search]] which, when clicked, copies the titles of all visible search results (separated by newlines) to the clipboard.",
@@ -165,7 +146,23 @@
             "cologne-blue": "yes"
         },
         "released": "2023|03|29",
-        "updated": "2023|05|12"
+        "updated": "2023|05|16"
+    },
+    {
+        "name": "redirect-helper",
+        "short-description": "User script to easily manage redirects",
+        "description": "This user script enables convenient editing and creation of redirects. Although it serves a similar purpose to [[User:Wugapodes/Capricorn|Wugapodes' \"Capricorn\"]] and its earlier versions, this script is completely different. It has been redesigned with enhanced user-friendliness and incorporates new features.",
+        "skin-support": {
+            "vector-2022": "yes",
+            "vector": "yes",
+            "timeless": "yes",
+            "monobook": "yes",
+            "modern": "yes",
+            "minerva": "yes",
+            "cologne-blue": "yes"
+        },
+        "released": "2023|05|17",
+        "updated": "2023|05|17"
     },
     {
         "name": "rmtr-helper",
@@ -248,6 +245,6 @@
             "cologne-blue": "yes"
         },
         "released": "2023|04|05",
-        "updated": "2023|05|12"
+        "updated": "2023|05|16"
     }
 ]

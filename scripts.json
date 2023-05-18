@@ -15,7 +15,7 @@
             "cologne-blue": "yes"
         },
         "released": "2023|02|27",
-        "updated": "2023|05|12"
+        "updated": "2023|05|17"
     },
     {
         "name": "ajax-undo",
@@ -97,7 +97,7 @@
             "cologne-blue": "yes"
         },
         "released": "2023|04|28",
-        "updated": "2023|05|10"
+        "updated": "2023|05|17"
     },
     {
         "name": "highlight-homographs",
@@ -178,7 +178,7 @@
             "cologne-blue": "yes"
         },
         "released": "2023|02|14",
-        "updated": "2023|05|12",
+        "updated": "2023|05|17",
         "css": true
     },
     {
@@ -195,7 +195,7 @@
             "cologne-blue": "yes"
         },
         "released": "2023|02|09",
-        "updated": "2023|05|12"
+        "updated": "2023|05|17"
     },
     {
         "name": "to-monitor-list",
@@ -212,7 +212,7 @@
             "cologne-blue": "yes"
         },
         "released": "2023|03|05",
-        "updated": "2023|05|12"
+        "updated": "2023|05|17"
     },
     {
         "name": "search-links",

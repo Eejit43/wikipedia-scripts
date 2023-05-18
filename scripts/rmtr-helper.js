@@ -19,7 +19,7 @@ mw.loader.using(['mediawiki.util'], () => {
         if (displayed) return document.getElementById('rmtr-review-result').scrollIntoView();
         else displayed = true;
 
-        const pageContent = (await new mw.Api().get({ action: 'query', format: 'json', prop: 'revisions', formatversion: 2, titles: mw.config.get('wgPageName'), rvprop: 'content', rvslots: '*' })).query.pages[0].revisions[0].slots.main.content;
+        const pageContent = (await new mw.Api().get({ action: 'query', prop: 'revisions', formatversion: 2, titles: mw.config.get('wgPageName'), rvprop: 'content', rvslots: '*' })).query.pages[0].revisions[0].slots.main.content;
 
         const sections = ['Uncontroversial technical requests', 'Requests to revert undiscussed moves', 'Contested technical requests', 'Administrator needed'];
 
@@ -286,14 +286,14 @@ mw.loader.using(['mediawiki.util'], () => {
             const editSummary = `Handled ${changes.total} request${changes.total > 1 ? 's' : ''}: ${
                 Object.entries(changes.remove).length > 0
                     ? `Removed ${Object.entries(changes.remove)
-                        .map(([reason, pages]) => `${pages.map((page) => `[[${page.original}]]`).join(', ')} as ${reason.toLowerCase()}`)
-                        .join(', ')}`
+                          .map(([reason, pages]) => `${pages.map((page) => `[[${page.original}]]`).join(', ')} as ${reason.toLowerCase()}`)
+                          .join(', ')}`
                     : ''
             }${
                 Object.entries(changes.move).length > 0
                     ? `${Object.entries(changes.remove).length > 0 ? ', ' : ''}Moved ${Object.entries(changes.move)
-                        .map(([destination, pages]) => `${pages.map((page) => `[[${page.original}]]`).join(', ')} to "${destination}"`)
-                        .join(', ')}`
+                          .map(([destination, pages]) => `${pages.map((page) => `[[${page.original}]]`).join(', ')} to "${destination}"`)
+                          .join(', ')}`
                     : ''
             } ${noRemaining ? '(no requests remain)' : ''} (via [[User:Eejit43/scripts/rmtr-helper|script]])`;
 

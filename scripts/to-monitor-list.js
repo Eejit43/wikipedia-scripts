@@ -12,7 +12,6 @@ mw.loader.using(['mediawiki.util'], () => {
             (
                 await new mw.Api().get({
                     action: 'query',
-                    format: 'json',
                     prop: 'revisions',
                     formatversion: 2,
                     titles: 'User:Eejit43/scripts/to-monitor-list.json',

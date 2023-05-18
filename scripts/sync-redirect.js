@@ -2,7 +2,7 @@
 
 mw.loader.using(['mediawiki.util'], async () => {
     if (!mw.Title.isTalkNamespace(mw.config.get('wgNamespaceNumber'))) return;
-    const mainPageInfo = await new mw.Api().get({ action: 'query', format: 'json', prop: 'info|revisions', formatversion: 2, titles: `${mw.config.get('wgFormattedNamespaces')[mw.config.get('wgNamespaceNumber') - 1]}:${mw.config.get('wgTitle')}`, rvprop: 'content', rvslots: '*' });
+    const mainPageInfo = await new mw.Api().get({ action: 'query', prop: 'info|revisions', formatversion: 2, titles: `${mw.config.get('wgFormattedNamespaces')[mw.config.get('wgNamespaceNumber') - 1]}:${mw.config.get('wgTitle')}`, rvprop: 'content', rvslots: '*' });
     if (!mainPageInfo.query.pages[0].redirect) return;
 
     mw.util.addPortletLink(mw.config.get('skin') === 'minerva' ? 'p-tb' : 'p-cactions', '#', 'Sync with main page redirect', 'sync-redirect');

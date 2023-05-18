@@ -707,7 +707,6 @@
             action: 'query',
             prop: 'revisions',
             rvprop: 'content',
-            format: 'json',
             indexpageids: true,
             titles: title
         };
@@ -853,7 +852,6 @@
                     $('#afcHelper_status').html($('#afcHelper_status').html() + '<li id="afcHelper_patrol' + jqEscape(title) + '">Marking <a href="' + wgArticlePath.replace('$1', encodeURI(title)) + '" title="' + title + '">' + title + ' as patrolled</a></li>');
                     const patrolRequest = {
                         action: 'patrol',
-                        format: 'json',
                         rcid: rcId
                     };
                     api.postWithToken('patrol', patrolRequest)

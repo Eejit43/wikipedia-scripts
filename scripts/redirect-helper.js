@@ -181,7 +181,7 @@ mw.loader.using(['oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.styles.icons-conten
                 }
 
                 if (destination.split('#').length > 1) {
-                    const validSection = destinationResult.parse.sections.find((section) => section.anchor === destination.split('#')[1]);
+                    const validSection = destinationResult.parse.sections.find((section) => section.line === destination.split('#')[1]);
                     if (!validSection) return promptError(null, `is a redirect to <a href="${mw.util.getUrl(destination)}" target="_blank">${destination}</a>, but that section does not exist!`);
                 }
             }

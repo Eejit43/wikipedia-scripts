@@ -82,7 +82,7 @@ mw.loader.using(['oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.styles.icons-conten
                                     ? Object.values(result.query.pages)
                                         .filter((page) => page.title !== pageTitleParsed.toString())
                                         .map((page) => ({ data: page.title, label: new OO.ui.HtmlSnippet(`${page.title}${page.pageprops && 'disambiguation' in page.pageprops ? ' <i>(disambiguation)</i>' : ''}${'redirect' in page ? ' <i>(redirect)</i>' : ''}`) }))
-                                    : []
+                                    : [] // prettier-ignore
                             );
                         }
                     });
@@ -192,11 +192,11 @@ mw.loader.using(['oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.styles.icons-conten
             const output = [
                 `#REDIRECT [[${redirectInput.getValue().trim()}]]`, //
                 tagSelect.getValue().length > 0
-                    ? `{{Redirect category shell|\n${tagSelect
+                    ? `{{Redirect category shell|\n${tagSelect 
                         .getValue()
                         .map((tag) => `{{${tag}${oldRedirectTagData?.[tag] ? `|${oldRedirectTagData[tag]}` : ''}}}`)
                         .join('\n')}\n}}`
-                    : null,
+                    : null, // prettier-ignore
                 oldStrayText
             ]
                 .filter(Boolean)

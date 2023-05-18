@@ -860,7 +860,7 @@
                                 $('#afcHelper_patrol' + jqEscape(title)).html('Marked <a href="' + wgArticlePath.replace('$1', encodeURI(title)) + '" title="' + title + '">' + title + '</a> as patrolled');
                             } else {
                                 $('#afcHelper_patrol' + jqEscape(title)).html('<span class="afcHelper_notice"><b>Patrolling failed on <a href="' + wgArticlePath.replace('$1', encodeURI(title)) + '" title="' + title + '">' + title + '</a></b></span> with an unknown error');
-                                console.error('Patrolling failed on %s (%s) with an unknown error.', wgArticlePath.replace('$1', encodeURI(title)), title);
+                                console.error('Patrolling failed on %s (%s) with an unknown error.', wgArticlePath.replace('$1', encodeURI(title)), title); // eslint-disable-line no-console
                             }
                         })
                         .fail((error) => {

@@ -286,15 +286,15 @@ mw.loader.using(['mediawiki.util'], () => {
             const editSummary = `Handled ${changes.total} request${changes.total > 1 ? 's' : ''}: ${
                 Object.entries(changes.remove).length > 0
                     ? `Removed ${Object.entries(changes.remove)
-                          .map(([reason, pages]) => `${pages.map((page) => `[[${page.original}]]`).join(', ')} as ${reason.toLowerCase()}`)
-                          .join(', ')}`
-                    : ''
+                        .map(([reason, pages]) => `${pages.map((page) => `[[${page.original}]]`).join(', ')} as ${reason.toLowerCase()}`)
+                        .join(', ')}`
+                    : '' // prettier-ignore
             }${
                 Object.entries(changes.move).length > 0
                     ? `${Object.entries(changes.remove).length > 0 ? ', ' : ''}Moved ${Object.entries(changes.move)
-                          .map(([destination, pages]) => `${pages.map((page) => `[[${page.original}]]`).join(', ')} to "${destination}"`)
-                          .join(', ')}`
-                    : ''
+                        .map(([destination, pages]) => `${pages.map((page) => `[[${page.original}]]`).join(', ')} to "${destination}"`)
+                        .join(', ')}`
+                    : '' // prettier-ignore
             } ${noRemaining ? '(no requests remain)' : ''} (via [[User:Eejit43/scripts/rmtr-helper|script]])`;
 
             if (devMode) showEditPreview(mw.config.get('wgPageName'), endResult, editSummary);

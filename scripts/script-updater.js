@@ -45,7 +45,7 @@ mw.loader.using(['mediawiki.util'], () => {
                         console.error(error); // eslint-disable-line no-console
                         return false;
                     })
-                    : null;
+                    : null; // prettier-ignore
 
                 if (!scriptContent || (script.css && !styleContent)) {
                     mw.notify(`Error syncing "${script.name}" from GitHub, skipping...`, { type: 'error' });

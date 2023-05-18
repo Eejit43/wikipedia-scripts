@@ -27,6 +27,9 @@
         custom: ''
     };
 
+    /**
+     * Initializes the redirect handler
+     */
     function redirectInit() {
         let pageText = getPageText(redirectPageName);
         // Cleanup the wikipedia links for preventing stuff like https://en.wikipedia.org/w/index.php?diff=576244067&oldid=576221437
@@ -231,12 +234,21 @@
         }
     }
 
+    /**
+     * Alias of redirectOnActionChange
+     * @param {number} id the request id
+     * @returns {Function} the function
+     */
     function redirectMakeActionChange(id) {
         return function () {
             redirectOnActionChange(id);
         };
     }
 
+    /**
+     * Perform actions on change
+     * @param {number} id the request id
+     */
     function redirectOnActionChange(id) {
         const $extra = $('#afcHelper_redirect_extra_' + id);
         const selectValue = $('#afcHelper_redirect_action_' + id).val();
@@ -510,6 +522,9 @@
         }
     }
 
+    /**
+     * Perform the redirect actions specified by the user
+     */
     function redirectPerformActions() {
         // Load all of the data
         for (let i = 0; i < submissions.length; i++) {
@@ -695,9 +710,10 @@
     }
 
     /**
-     * Gets the text of a page.
-     * @param {string} title The title of the page to get.
-     * @param {Function} addStatus A function that takes a HTML string to report status.
+     * Gets the text of a page
+     * @param {string} title the title of the page to get
+     * @param {Function} addStatus a function that takes a HTML string to report status
+     * @returns {string} the text of the page
      */
     function getPageText(title, addStatus) {
         addStatus = typeof addStatus !== 'undefined' ? addStatus : function () {}; // eslint-disable-line no-empty-function
@@ -729,6 +745,11 @@
         return newText;
     }
 
+    /**
+     * Cleans up the links in a page
+     * @param {string} text the page content
+     * @returns {string} the page content with the links cleaned up
+     */
     function cleanupLinks(text) {
         // Convert external links to Wikipedia articles to proper wikilinks
         const wikilinkRegex = /(\[){1,2}(?:https?:)?\/\/(en.wikipedia.org\/wiki|enwp.org)\/([^\s|\][]+)(\s|\|)?((?:\[\[[^[\]]*\]\]|[^\][])*)(\]){1,2}/gi;
@@ -744,10 +765,23 @@
         return text;
     }
 
+    /**
+     * Generates the select element outer HTML for a request
+     * @param {string} title the page title
+     * @param {object[]} options the select element options
+     * @returns {string} the select element outer HTML
+     */
     function generateSelect(title, options) {
         return generateSelectObject(title, options).prop('outerHTML');
     }
 
+    /**
+     * Generates a select element for a request
+     * @param {string} title the page title
+     * @param {object[]} options the select element options
+     * @param {Function} onchange the onchange function
+     * @returns {*} the select jQuery element
+     */
     function generateSelectObject(title, options, onchange) {
         const $select = $('<select>').attr('name', title).attr('id', title);
         if (onchange !== null) {
@@ -773,8 +807,7 @@
      * Calling with no arguments, with an empty string or null will hide the message
      * Taken from [[User:Timotheus Canens/displaymessage.js]]
      * @param {*} message The DOM-element, jQuery object or HTML-string to be put inside the message box.
-     * @param {string} className Used in adding a class; should be different for each call
-     * to allow CSS/JS to hide different boxes. null = no class used.
+     * @param {string} className Used in adding a class; should be different for each call to allow CSS/JS to hide different boxes. null = no class used.
      * @returns {boolean} True on success, false on failure.
      */
     function displayMessage(message, className) {
@@ -804,10 +837,23 @@
         }
     }
 
+    /**
+     * Escapes a string for use in jQuery selectors
+     * @param {string} expression the expression to escape
+     * @returns {string} the escaped expression
+     */
     function jqEscape(expression) {
         return expression.replace(/[!"#$%&'()*+,./:;<=>?@[\\\]^`{|}~ ]/g, '');
     }
 
+    /**
+     * Edits a given page, and updates the UI
+     * @param {string} title the page title to edit
+     * @param {string} newText the new text to insert
+     * @param {string} summary the edit summary
+     * @param {boolean} createOnly whether or not to only create the page if it doesn't exist
+     * @param {boolean} noPatrol whether or not to not mark the edit as patrolled
+     */
     function editPage(title, newText, summary, createOnly, noPatrol) {
         const wgArticlePath = mw.config.get('wgArticlePath');
         summary += summaryAdvert;

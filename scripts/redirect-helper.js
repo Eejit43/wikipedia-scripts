@@ -10,6 +10,7 @@ mw.loader.using(['oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.styles.icons-conten
     const redirectTemplates = JSON.parse((await new mw.Api().get({ action: 'query', prop: 'revisions', formatversion: 2, titles: 'User:Eejit43/scripts/redirect-helper.json', rvprop: 'content', rvslots: '*' })).query.pages[0].revisions[0].slots.main.content);
 
     const pageTitle = mw.config.get('wgPageName');
+    const pageTitleParsed = mw.Title.newFromText(pageTitle);
 
     const pageInfo = await new mw.Api().get({ action: 'query', prop: 'info', formatversion: 2, titles: pageTitle });
 
@@ -68,13 +69,20 @@ mw.loader.using(['oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.styles.icons-conten
                         }
                     });
             } else {
+                const parsedTitle = mw.Title.newFromText(value);
                 new mw.Api()
-                    .get({ action: 'query', generator: 'allpages', gapprefix: value, gaplimit: 20, prop: 'info|pageprops' })
+                    .get({ action: 'query', generator: 'allpages', gapprefix: parsedTitle?.title ?? value, gapnamespace: parsedTitle?.namespace ?? 'e', gaplimit: 20, prop: 'info|pageprops' })
                     .catch(() => null)
                     .then((result) => {
                         if (!result) deferred.resolve([]);
                         else {
-                            deferred.resolve(result.query?.pages ? Object.values(result.query.pages).map((page) => ({ data: page.title, label: new OO.ui.HtmlSnippet(`${page.title}${page.pageprops && 'disambiguation' in page.pageprops ? ' <i>(disambiguation)</i>' : ''}${'redirect' in page ? ' <i>(redirect)</i>' : ''}`) })) : []);
+                            deferred.resolve(
+                                result.query?.pages
+                                    ? Object.values(result.query.pages)
+                                        .filter((page) => page.title !== pageTitleParsed.toString())
+                                        .map((page) => ({ data: page.title, label: new OO.ui.HtmlSnippet(`${page.title}${page.pageprops && 'disambiguation' in page.pageprops ? ' <i>(disambiguation)</i>' : ''}${'redirect' in page ? ' <i>(redirect)</i>' : ''}`) }))
+                                    : []
+                            );
                         }
                     });
             }
@@ -88,6 +96,7 @@ mw.loader.using(['oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.styles.icons-conten
         redirectInput.on('change', () => {
             let value = redirectInput.getValue();
             value = value.replace(new RegExp(`^(https?:)?/{2}?${mw.config.get('wgServer').replace(/^\/{2}/, '')}/wiki/`), '');
+            value = value.replace(/^:/, '');
 
             if (value.length > 0) {
                 redirectInput.setValue(value[0].toUpperCase() + value.slice(1).replace(/_/g, ' '));
@@ -139,17 +148,22 @@ mw.loader.using(['oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.styles.icons-conten
             [redirectInput, tagSelect, summaryInput, submitButton].forEach((element) => element.setDisabled(true));
             submitButton.setLabel('Checking target validity...');
 
+            let parsedDestination;
+
             /* Title validation */
             if (needsCheck) {
-                const destination = redirectInput.getValue();
+                const destination = redirectInput.getValue().trim();
 
                 if (!/^\s*[^|{}[\]]+\s*$/.exec(destination)) return promptError(destination, 'is not a valid page title!');
 
                 try {
-                    new mw.Title(destination);
+                    parsedDestination = new mw.Title(destination);
                 } catch {
                     return promptError(destination, 'is not a valid page title!');
                 }
+                if (!parsedDestination) return promptError(destination, 'is not a valid page title!');
+
+                if (parsedDestination.toString() === pageTitleParsed.toString()) return promptError(null, 'cannot redirect to itself!');
 
                 const destinationResult = await new mw.Api().get({ action: 'parse', page: destination, prop: 'sections', redirects: '1' }).catch((_, data) => {
                     if (data.error.code === 'missingtitle') promptError(destination, 'does not exist!');
@@ -173,12 +187,12 @@ mw.loader.using(['oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.styles.icons-conten
             submitButton.setLabel(`${exists ? 'Editing' : 'Creating'} redirect...`);
 
             const output = [
-                `#REDIRECT [[${redirectInput.getValue()}]]`, //
+                `#REDIRECT [[${redirectInput.getValue().trim()}]]`, //
                 tagSelect.getValue().length > 0
                     ? `{{Redirect category shell|\n${tagSelect
-                          .getValue()
-                          .map((tag) => `{{${tag}${oldRedirectTagData?.[tag] ? `|${oldRedirectTagData[tag]}` : ''}}}`)
-                          .join('\n')}\n}}`
+                        .getValue()
+                        .map((tag) => `{{${tag}${oldRedirectTagData?.[tag] ? `|${oldRedirectTagData[tag]}` : ''}}}`)
+                        .join('\n')}\n}}`
                     : null,
                 oldStrayText
             ]
@@ -239,15 +253,16 @@ mw.loader.using(['oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.styles.icons-conten
          * Updates the summary input placeholder
          */
         function updateSummary() {
+            const redirectValue = redirectInput.getValue().trim();
             if (!exists) {
-                if (!redirectInput.getValue()) summaryInput.$tabIndexed[0].placeholder = '';
-                else summaryInput.$tabIndexed[0].placeholder = `Creating redirect to [[${redirectInput.getValue()}]]`;
+                if (!redirectValue) summaryInput.$tabIndexed[0].placeholder = '';
+                else summaryInput.$tabIndexed[0].placeholder = `Creating redirect to [[${redirectValue}]]`;
             } else {
-                const targetChanged = redirectInput.getValue() !== oldRedirectTarget;
+                const targetChanged = redirectValue !== oldRedirectTarget;
                 const tagsChanged = tagSelect.getValue().join(';') !== oldRedirectTags.join(';');
 
-                if (targetChanged && tagsChanged) summaryInput.$tabIndexed[0].placeholder = `Changing redirect to [[${redirectInput.getValue()}]] and changing categorization templates`;
-                else if (targetChanged) summaryInput.$tabIndexed[0].placeholder = `Changing redirect to [[${redirectInput.getValue()}]]`;
+                if (targetChanged && tagsChanged) summaryInput.$tabIndexed[0].placeholder = `Changing redirect to [[${redirectValue}]] and changing categorization templates`;
+                else if (targetChanged) summaryInput.$tabIndexed[0].placeholder = `Changing redirect to [[${redirectValue}]]`;
                 else if (tagsChanged) summaryInput.$tabIndexed[0].placeholder = 'Changing categorization templates';
                 else summaryInput.$tabIndexed[0].placeholder = 'Redirect cleanup';
             }

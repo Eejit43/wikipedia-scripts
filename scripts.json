@@ -20,7 +20,7 @@
     {
         "name": "ajax-undo",
         "short-description": "User script to easily undo edits",
-        "description": "This user script adds a link following \"undo\" on page histories, allowing the edit to be undone without leaving the history page. It allows for an optional comment to add to the edit summary.",
+        "description": "This user script adds a link following \"undo\" on page histories and diff views, allowing the edit to be undone without leaving the history/diff page. It allows for an optional comment to add to the edit summary.",
         "skin-support": {
             "vector-2022": "yes",
             "vector": "yes",
@@ -31,7 +31,7 @@
             "cologne-blue": "yes"
         },
         "released": "2023|02|16",
-        "updated": "2023|04|05"
+        "updated": "2023|05|18"
     },
     {
         "name": "aligner",

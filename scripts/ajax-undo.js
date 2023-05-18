@@ -1,7 +1,9 @@
 /* global mw */
 
 mw.loader.using(['mediawiki.util'], () => {
-    if (mw.config.get('wgAction') !== 'history') return;
+    if (mw.config.get('wgAction') !== 'history' && !mw.config.get('wgDiffOldId')) return;
+
+    const isDiff = mw.config.get('wgDiffOldId');
 
     const stages = {
         AWAITING_CLICK: 0,
@@ -13,9 +15,9 @@ mw.loader.using(['mediawiki.util'], () => {
 /* Modified from Max Beier's "text-spinners" (https://github.com/maxbeier/text-spinners) */
 #ajax-undo-loading {
     display: inline-block;
-    height: 1.3em;
+    height: ${isDiff ? '1.55' : '1.3'}em;
     line-height: 1.5em;
-    margin: -0.3em 3px 0 2px;
+    ${!isDiff ? 'margin: -0.3em 3px 0 2px;' : ''}
     overflow: hidden;
     vertical-align: text-bottom;
 }
@@ -41,7 +43,7 @@ mw.loader.using(['mediawiki.util'], () => {
 }
 `);
 
-    document.querySelectorAll('.mw-history-undo').forEach((undoSpan) => {
+    document.querySelectorAll('.mw-history-undo, .mw-diff-undo').forEach((undoSpan) => {
         const undoUrl = new URL(undoSpan.querySelector('a').href);
 
         const span = document.createElement('span');
@@ -70,7 +72,7 @@ mw.loader.using(['mediawiki.util'], () => {
                 const undoId = undoUrl.searchParams.get('undo');
                 const undoAfter = undoUrl.searchParams.get('undoafter');
 
-                const revisionUser = undoSpan.closest('li').querySelector('.mw-userlink bdi').textContent;
+                const revisionUser = undoSpan.closest('td').querySelector('.mw-userlink bdi').textContent;
 
                 const success = await new mw.Api()
                     .postWithEditToken({
@@ -93,6 +95,7 @@ mw.loader.using(['mediawiki.util'], () => {
             }
         });
 
+        if (isDiff) span.appendChild(document.createTextNode('('));
         span.appendChild(ajaxUndoLink);
 
         const loadingSpinner = document.createElement('span');
@@ -111,6 +114,11 @@ mw.loader.using(['mediawiki.util'], () => {
 
         span.appendChild(reasonInput);
 
-        undoSpan.parentElement.after(span);
+        if (isDiff) span.appendChild(document.createTextNode(')'));
+
+        if (isDiff) {
+            undoSpan.after(span);
+            undoSpan.after(document.createTextNode(' '));
+        } else undoSpan.parentElement.after(span);
     });
 });

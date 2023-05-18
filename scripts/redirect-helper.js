@@ -104,6 +104,7 @@ mw.loader.using(['oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.styles.icons-conten
             } else submitButton.setDisabled(true);
 
             updateSummary();
+            submitButton.setLabel('Submit');
             needsCheck = true;
         });
 
@@ -123,6 +124,7 @@ mw.loader.using(['oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.styles.icons-conten
             if (tagSelect.getValue().join(';') !== sortedTags.join(';')) tagSelect.setValue(sortedTags);
 
             updateSummary();
+            submitButton.setLabel('Submit');
             needsCheck = true;
         });
 
@@ -241,6 +243,7 @@ mw.loader.using(['oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.styles.icons-conten
             }
             [redirectInput, tagSelect, summaryInput, submitButton].forEach((element) => element.setDisabled(false));
 
+            submitButton.setLabel('Submit anyway');
             needsCheck = false;
         }
 

@@ -6,7 +6,7 @@ mw.loader.using(['oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.styles.icons-conten
     if (mw.config.get('wgNamespaceNumber') < 0) return; // Don't run in virtual namespaces
     if (!mw.config.get('wgIsProbablyEditable')) return; // Don't run if user can't edit page
     if (mw.config.get('wgAction') !== 'view' || !mw.config.get('wgIsArticle')) return; // Don't run if not viewing page
-    if (mw.config.get('wgDiffOldId') || mw.config.get('wgDiffNewId')) return; // Don't run if viewing a diff
+    if (mw.util.getParamValue('oldid')) return; // Don't run if viewing old revision
 
     const redirectTemplates = JSON.parse((await new mw.Api().get({ action: 'query', prop: 'revisions', formatversion: 2, titles: 'User:Eejit43/scripts/redirect-helper.json', rvprop: 'content', rvslots: '*' })).query.pages[0].revisions[0].slots.main.content);
 

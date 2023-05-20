@@ -72,7 +72,7 @@ mw.loader.using(['mediawiki.util'], () => {
                 const undoId = undoUrl.searchParams.get('undo');
                 const undoAfter = undoUrl.searchParams.get('undoafter');
 
-                const revisionUser = undoSpan.closest('td').querySelector('.mw-userlink bdi').textContent;
+                const revisionUser = undoSpan.closest(isDiff ? 'td' : 'li').querySelector('.mw-userlink bdi').textContent;
 
                 const success = await new mw.Api()
                     .postWithEditToken({

@@ -144,7 +144,7 @@ mw.loader.using(['oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.styles.icons-conten
 
         /* Submit button */
         const submitButton = new OO.ui.ButtonWidget({ label: 'Submit', disabled: true, flags: ['progressive'] });
-        submitButton.$element[0].style.marginTop = '5px';
+        submitButton.$element[0].style.marginBottom = '0';
 
         let needsCheck = true;
         submitButton.on('click', async () => {
@@ -223,8 +223,35 @@ mw.loader.using(['oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.styles.icons-conten
 
             mw.notify(`Redirect ${exists ? 'edited' : 'created'} successfully!`, { type: 'success' });
 
+            if (patrolCheckbox?.isSelected()) {
+                submitButton.setLabel('Patrolling redirect...');
+
+                await new mw.Api().postWithToken('patrol', { action: 'patrol', rcid: new URL(document.querySelector('.patrollink a').href).searchParams.get('rcid') }).catch((error, data) => {
+                    console.error(error); // eslint-disable-line no-console
+                    mw.notify(`Error patrolling ${pageTitle}: ${data.error.info} (${error})`, { type: 'error' });
+                });
+
+                mw.notify('Redirect patrolled successfully!', { type: 'success' });
+            }
+
+            submitButton.setLabel('Complete, reloading...');
+
             window.location.href = mw.util.getUrl(pageTitle, { redirect: 'no' });
         });
+
+        let patrolCheckbox, patrolLabel;
+        if (document.querySelector('.patrollink')) {
+            patrolCheckbox = new OO.ui.CheckboxInputWidget({ selected: true });
+            patrolCheckbox.$element[0].style.marginBottom = '0';
+
+            patrolLabel = new OO.ui.LabelWidget({ id: 'patrol-label', label: 'Mark page as patrolled' });
+            patrolLabel.$element[0].style.marginBottom = '0';
+
+            patrolCheckbox.setLabelledBy('patrol-label');
+        }
+
+        const submitLayout = new OO.ui.HorizontalLayout({ items: [submitButton, patrolCheckbox, patrolLabel].filter(Boolean) });
+        submitLayout.$element[0].style.marginTop = '10px';
 
         let warningMessage;
 
@@ -249,7 +276,7 @@ mw.loader.using(['oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.styles.icons-conten
         }
 
         /* Add elements to screen */
-        editorBox.$element[0].append(redirectInputLayout.$element[0], tagSelectLayout.$element[0], summaryInputLayout.$element[0], submitButton.$element[0]);
+        editorBox.$element[0].append(redirectInputLayout.$element[0], tagSelectLayout.$element[0], summaryInputLayout.$element[0], submitLayout.$element[0]);
 
         contentText.prepend(editorBox.$element[0]);
 

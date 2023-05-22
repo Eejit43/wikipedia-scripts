@@ -1,14 +1,14 @@
 /* global mw, OO, $ */
 
-const contentText = document.getElementById('mw-content-text');
-
 mw.loader.using(['oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.styles.icons-content'], async () => {
     if (mw.config.get('wgNamespaceNumber') < 0) return; // Don't run in virtual namespaces
     if (!mw.config.get('wgIsProbablyEditable')) return; // Don't run if user can't edit page
     if (mw.config.get('wgAction') !== 'view' || !mw.config.get('wgIsArticle')) return; // Don't run if not viewing page
     if (mw.util.getParamValue('oldid')) return; // Don't run if viewing old revision
 
-    const redirectTemplates = JSON.parse((await new mw.Api().get({ action: 'query', prop: 'revisions', formatversion: 2, titles: 'User:Eejit43/scripts/redirect-helper.json', rvprop: 'content', rvslots: '*' })).query.pages[0].revisions[0].slots.main.content);
+    const contentText = document.getElementById('mw-content-text');
+
+    const redirectTemplates = JSON.parse((await new mw.Api().get({ action: 'query', prop: 'revisions', formatversion: 2, titles: 'User:Eejit43/scripts/redirect-helper.json', rvprop: 'content', rvslots: '*' })).query.pages?.[0]?.revisions?.[0]?.slots?.main?.content || '[]');
 
     const pageTitle = mw.config.get('wgPageName');
     const pageTitleParsed = mw.Title.newFromText(pageTitle);
@@ -148,7 +148,7 @@ mw.loader.using(['oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.styles.icons-conten
 
         let needsCheck = true;
         submitButton.on('click', async () => {
-            [redirectInput, tagSelect, summaryInput, submitButton].forEach((element) => element.setDisabled(true));
+            [redirectInput, tagSelect, summaryInput, submitButton, syncTalkCheckbox, patrolCheckbox].filter(Boolean).forEach((element) => element.setDisabled(true));
             submitButton.setLabel('Checking target validity...');
 
             let parsedDestination;
@@ -173,7 +173,7 @@ mw.loader.using(['oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.styles.icons-conten
                     return false;
                 });
 
-                if (!destinationResult) return;
+                if (!destinationResult) return promptError(destination, 'does not exist!');
 
                 if (destinationResult.parse.redirects?.[0]) {
                     const destinationRedirect = destinationResult.parse.redirects[0].to + (destinationResult.parse.redirects[0].tofragment ? `#${destinationResult.parse.redirects[0].tofragment}` : '');
@@ -184,6 +184,8 @@ mw.loader.using(['oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.styles.icons-conten
                     const validSection = destinationResult.parse.sections.find((section) => section.line === destination.split('#')[1]);
                     if (!validSection) return promptError(null, `is a redirect to <a href="${mw.util.getUrl(destination)}" target="_blank">${destination}</a>, but that section does not exist!`);
                 }
+
+                if (syncTalkCheckbox?.isSelected() && !talkData.query.pages[0].missing && !talkData.query.pages[0].redirect) return promptError(pageTitleParsed.getTalkPage().getPrefixedText(), 'exists, but is not a redirect!');
             }
 
             /* Edit/create redirect */
@@ -223,6 +225,42 @@ mw.loader.using(['oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.styles.icons-conten
 
             mw.notify(`Redirect ${exists ? 'edited' : 'created'} successfully!`, { type: 'success' });
 
+            /* Sync talk page checkbox handler */
+            if (syncTalkCheckbox?.isSelected()) {
+                submitButton.setLabel('Editing talk page...');
+
+                const fromMove = tagSelect.getValue().includes('R from move');
+
+                const output = [
+                    `#REDIRECT [[${parsedDestination.getTalkPage().getPrefixedText()}]]`, //
+                    fromMove ? '{{Redirect category shell|\n{{R from move}}\n}}' : null
+                ]
+                    .filter(Boolean)
+                    .join('\n\n');
+
+                const talkPage = pageTitleParsed.getTalkPage().getPrefixedText();
+
+                const talkResult = await new mw.Api()
+                    .edit(talkPage, () => ({ text: output, summary: 'Syncing redirect from main page (via [[User:Eejit43/scripts/redirect-helper|redirect-helper]])' }))
+                    .catch((error, data) => {
+                        if (error === 'nocreate-missing')
+                            return new mw.Api().create(talkPage, { summary: 'Syncing redirect from main page (via [[User:Eejit43/scripts/redirect-helper|redirect-helper]])' }, output).catch((error, data) => {
+                                console.error(error); // eslint-disable-line no-console
+                                mw.notify(`Error creating ${talkPage}: ${data.error.info} (${error})`, { type: 'error' });
+                            });
+                        else {
+                            console.error(error); // eslint-disable-line no-console
+                            mw.notify(`Error editing or creating ${talkPage}: ${data.error.info} (${error})`, { type: 'error' });
+                            return false;
+                        }
+                    });
+
+                if (!talkResult) return;
+
+                mw.notify('Talk page synced successfully!', { type: 'success' });
+            }
+
+            /* Patrol checkbox handler */
             if (patrolCheckbox?.isSelected()) {
                 submitButton.setLabel('Patrolling redirect...');
 
@@ -239,6 +277,20 @@ mw.loader.using(['oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.styles.icons-conten
             window.location.href = mw.util.getUrl(pageTitle, { redirect: 'no' });
         });
 
+        let talkData;
+
+        let syncTalkCheckbox, syncTalkLabel;
+        if (!pageTitleParsed.isTalkPage()) {
+            talkData = await new mw.Api().get({ action: 'query', titles: pageTitleParsed.getTalkPage().getPrefixedText(), prop: 'info', formatversion: 2 });
+            syncTalkCheckbox = new OO.ui.CheckboxInputWidget({ selected: !!talkData.query.pages[0].redirect });
+            syncTalkCheckbox.$element[0].style.marginBottom = '0';
+
+            syncTalkLabel = new OO.ui.LabelWidget({ id: 'sync-talk-label', label: 'Sync talk page' });
+            syncTalkLabel.$element[0].style.marginBottom = '0';
+
+            syncTalkCheckbox.setLabelledBy('sync-talk-label');
+        }
+
         let patrolCheckbox, patrolLabel;
         if (document.querySelector('.patrollink')) {
             patrolCheckbox = new OO.ui.CheckboxInputWidget({ selected: true });
@@ -250,14 +302,14 @@ mw.loader.using(['oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.styles.icons-conten
             patrolCheckbox.setLabelledBy('patrol-label');
         }
 
-        const submitLayout = new OO.ui.HorizontalLayout({ items: [submitButton, patrolCheckbox, patrolLabel].filter(Boolean) });
+        const submitLayout = new OO.ui.HorizontalLayout({ items: [submitButton, syncTalkCheckbox, syncTalkLabel, patrolCheckbox, patrolLabel].filter(Boolean) });
         submitLayout.$element[0].style.marginTop = '10px';
 
         let warningMessage;
 
         /**
          * Alerts a user of an issue with the destination title
-         * @param {string} title The destination title
+         * @param {string?} title The destination title
          * @param {string} message The error message
          */
         function promptError(title, message) {
@@ -269,7 +321,7 @@ mw.loader.using(['oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.styles.icons-conten
 
                 editorBox.$element[0].append(warningMessage.$element[0]);
             }
-            [redirectInput, tagSelect, summaryInput, submitButton].forEach((element) => element.setDisabled(false));
+            [redirectInput, tagSelect, summaryInput, submitButton, syncTalkCheckbox, patrolCheckbox].filter(Boolean).forEach((element) => element.setDisabled(false));
 
             submitButton.setLabel('Submit anyway');
             needsCheck = false;
@@ -285,10 +337,10 @@ mw.loader.using(['oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.styles.icons-conten
          */
         function updateSummary() {
             const redirectValue = redirectInput.getValue().trim();
-            if (!exists) {
-                if (!redirectValue) summaryInput.$tabIndexed[0].placeholder = '';
-                else summaryInput.$tabIndexed[0].placeholder = `Creating redirect to [[${redirectValue}]]`;
-            } else {
+
+            if (!redirectValue) summaryInput.$tabIndexed[0].placeholder = '';
+            else if (!exists) summaryInput.$tabIndexed[0].placeholder = `Creating redirect to [[${redirectValue}]]`;
+            else {
                 const targetChanged = redirectValue !== oldRedirectTarget;
                 const tagsChanged = tagSelect.getValue().join(';') !== oldRedirectTags.join(';');
 

@@ -168,7 +168,7 @@ mw.loader.using(['oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.styles.icons-conten
 
                 /* Failed during title parsing */
                 try {
-                    parsedDestination = new mw.Title(destination);
+                    parsedDestination = mw.Title.newFromText(destination);
                 } catch {
                     return promptError(destination, 'is not a valid page title!');
                 }
@@ -207,6 +207,8 @@ mw.loader.using(['oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.styles.icons-conten
                 /* Syncing talk page but talk page exists and isn't a redirect */
                 if (syncTalkCheckbox?.isSelected() && !talkData.query.pages[0].missing && !talkData.query.pages[0].redirect) return promptError(pageTitleParsed.getTalkPage().getPrefixedText(), 'exists, but is not a redirect!');
             }
+
+            parsedDestination = mw.Title.newFromText(redirectInput.getValue());
 
             /* Edit/create redirect */
             submitButton.setLabel(`${exists ? 'Editing' : 'Creating'} redirect...`);

@@ -4,7 +4,7 @@ mw.loader.using(['oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.styles.icons-conten
     if (mw.config.get('wgNamespaceNumber') < 0) return; // Don't run in virtual namespaces
     if (!mw.config.get('wgIsProbablyEditable')) return; // Don't run if user can't edit page
     if (mw.config.get('wgAction') !== 'view' || !mw.config.get('wgIsArticle')) return; // Don't run if not viewing page
-    if (mw.util.getParamValue('oldid')) return; // Don't run if viewing old revision
+    if (mw.util.getParamValue('oldid') || mw.config.get('wgDiffOldId')) return; // Don't run if viewing old revision or diff
 
     const contentText = document.getElementById('mw-content-text');
 

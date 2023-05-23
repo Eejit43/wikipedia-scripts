@@ -299,30 +299,24 @@ mw.loader.using(['oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.styles.icons-conten
 
         let talkData;
 
-        let syncTalkCheckbox, syncTalkLabel;
+        let syncTalkCheckbox, syncTalkLayout;
         if (!pageTitleParsed.isTalkPage()) {
             talkData = await new mw.Api().get({ action: 'query', titles: pageTitleParsed.getTalkPage().getPrefixedText(), prop: 'info', formatversion: 2 });
             syncTalkCheckbox = new OO.ui.CheckboxInputWidget({ selected: !!talkData.query.pages[0].redirect });
-            syncTalkCheckbox.$element[0].style.marginBottom = '0';
 
-            syncTalkLabel = new OO.ui.LabelWidget({ id: 'sync-talk-label', label: 'Sync talk page' });
-            syncTalkLabel.$element[0].style.marginBottom = '0';
-
-            syncTalkCheckbox.setLabelledBy('sync-talk-label');
+            syncTalkLayout = new OO.ui.Widget({ content: [new OO.ui.FieldLayout(syncTalkCheckbox, { label: 'Sync talk page', align: 'inline' })] });
+            syncTalkLayout.$element[0].style.marginBottom = '0';
         }
 
-        let patrolCheckbox, patrolLabel;
+        let patrolCheckbox, patrolLayout;
         if (document.querySelector('.patrollink')) {
             patrolCheckbox = new OO.ui.CheckboxInputWidget({ selected: true });
-            patrolCheckbox.$element[0].style.marginBottom = '0';
 
-            patrolLabel = new OO.ui.LabelWidget({ id: 'patrol-label', label: 'Mark page as patrolled' });
-            patrolLabel.$element[0].style.marginBottom = '0';
-
-            patrolCheckbox.setLabelledBy('patrol-label');
+            patrolLayout = new OO.ui.Widget({ content: [new OO.ui.FieldLayout(patrolCheckbox, { label: 'Mark as patrolled', align: 'inline' })] });
+            patrolLayout.$element[0].style.marginBottom = '0';
         }
 
-        const submitLayout = new OO.ui.HorizontalLayout({ items: [submitButton, syncTalkCheckbox, syncTalkLabel, patrolCheckbox, patrolLabel].filter(Boolean) });
+        const submitLayout = new OO.ui.HorizontalLayout({ items: [submitButton, syncTalkLayout, patrolLayout].filter(Boolean) });
         submitLayout.$element[0].style.marginTop = '10px';
 
         let warningMessage;

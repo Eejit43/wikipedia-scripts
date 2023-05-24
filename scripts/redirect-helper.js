@@ -286,14 +286,18 @@ mw.loader.using(['oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.styles.icons-conten
             if (patrolCheckbox?.isSelected()) {
                 submitButton.setLabel('Patrolling redirect...');
 
-                if (document.querySelector('.patrollink a'))
-                    await new mw.Api().postWithToken('patrol', { action: 'patrol', rcid: new URL(document.querySelector('.patrollink a').href).searchParams.get('rcid') }).catch((error, data) => {
+                if (document.querySelector('.patrollink a')) {
+                    const patrolResult = await new mw.Api().postWithToken('patrol', { action: 'patrol', rcid: new URL(document.querySelector('.patrollink a').href).searchParams.get('rcid') }).catch((error, data) => {
                         console.error(error); // eslint-disable-line no-console
-                        mw.notify(`Error patrolling ${pageTitle}: ${data.error.info} (${error})`, { type: 'error' });
+                        mw.notify(`Error patrolling ${pageTitle} via API: ${data.error.info} (${error})`, { type: 'error' });
+                        return null;
                     });
-                else document.getElementById('mwe-pt-mark-as-reviewed-button').click();
-
-                mw.notify('Redirect patrolled successfully!', { type: 'success' });
+                    if (patrolResult) mw.notify('Redirect patrolled successfully!', { type: 'success' });
+                } else if (!document.getElementById('mwe-pt-mark-as-reviewed-button')) mw.notify('Page curation toolbar not found, redirect cannot be patrolled!', { type: 'error' });
+                else {
+                    document.getElementById('mwe-pt-mark-as-reviewed-button').click();
+                    mw.notify('Redirect patrolled successfully!', { type: 'success' });
+                }
             }
 
             submitButton.setLabel('Complete, reloading...');

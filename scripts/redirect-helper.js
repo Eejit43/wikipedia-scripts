@@ -286,10 +286,12 @@ mw.loader.using(['oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.styles.icons-conten
             if (patrolCheckbox?.isSelected()) {
                 submitButton.setLabel('Patrolling redirect...');
 
-                await new mw.Api().postWithToken('patrol', { action: 'patrol', rcid: new URL(document.querySelector('.patrollink a').href).searchParams.get('rcid') }).catch((error, data) => {
-                    console.error(error); // eslint-disable-line no-console
-                    mw.notify(`Error patrolling ${pageTitle}: ${data.error.info} (${error})`, { type: 'error' });
-                });
+                if (document.querySelector('.patrollink a'))
+                    await new mw.Api().postWithToken('patrol', { action: 'patrol', rcid: new URL(document.querySelector('.patrollink a').href).searchParams.get('rcid') }).catch((error, data) => {
+                        console.error(error); // eslint-disable-line no-console
+                        mw.notify(`Error patrolling ${pageTitle}: ${data.error.info} (${error})`, { type: 'error' });
+                    });
+                else document.getElementById('mwe-pt-mark-as-reviewed-button').click();
 
                 mw.notify('Redirect patrolled successfully!', { type: 'success' });
             }
@@ -310,8 +312,23 @@ mw.loader.using(['oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.styles.icons-conten
             syncTalkLayout.$element[0].style.marginBottom = '0';
         }
 
+        let shouldPromptPatrol;
+        if (document.querySelector('.patrollink')) shouldPromptPatrol = true;
+        else if (document.getElementById('mwe-pt-mark-as-reviewed-button')) shouldPromptPatrol = true;
+        else if (document.getElementById('mwe-pt-mark-as-unreviewed-button')) shouldPromptPatrol = false;
+        else {
+            if (!mw.config.get('wgArticleId')) shouldPromptPatrol = false;
+            const userPermissions = await new mw.Api().get({ action: 'query', meta: 'userinfo', uiprop: 'rights' });
+            if (!userPermissions.query.userinfo.rights.includes('patrol')) shouldPromptPatrol = false;
+
+            const patrolResponse = await new mw.Api().get({ action: 'pagetriagelist', page_id: mw.config.get('wgArticleId') }); // eslint-disable-line camelcase
+
+            if (patrolResponse.pagetriagelist.result !== 'success' || patrolResponse.pagetriagelist.pages.length === 0) shouldPromptPatrol = false;
+            else shouldPromptPatrol = !parseInt(patrolResponse.pagetriagelist.pages[0].patrol_status);
+        }
+
         let patrolCheckbox, patrolLayout;
-        if (document.querySelector('.patrollink')) {
+        if (shouldPromptPatrol) {
             patrolCheckbox = new OO.ui.CheckboxInputWidget({ selected: true });
 
             patrolLayout = new OO.ui.Widget({ content: [new OO.ui.FieldLayout(patrolCheckbox, { label: 'Mark as patrolled', align: 'inline' })] });

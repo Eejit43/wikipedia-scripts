@@ -1,6 +1,6 @@
 /* global mw, OO, $ */
 
-mw.loader.using(['oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.styles.icons-content'], async () => {
+mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.styles.icons-content'], async () => {
     if (mw.config.get('wgNamespaceNumber') < 0) return; // Don't run in virtual namespaces
     if (!mw.config.get('wgIsProbablyEditable')) return; // Don't run if user can't edit page
     if (mw.config.get('wgAction') !== 'view' || !mw.config.get('wgIsArticle')) return; // Don't run if not viewing page
@@ -17,6 +17,13 @@ mw.loader.using(['oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.styles.icons-conten
 
     if (pageInfo.query.pages[0].missing) promptCreation();
     else if (pageInfo.query.pages[0].redirect) showRedirectInfo(true);
+    else {
+        const portletLink = mw.util.addPortletLink(mw.config.get('skin') === 'minerva' ? 'p-tb' : 'p-cactions', '#', 'Redirect page');
+        portletLink.addEventListener('click', (event) => {
+            event.preventDefault();
+            showRedirectInfo(false);
+        });
+    }
 
     /**
      * Prompts the creation of a redirect if a page doesn't exist

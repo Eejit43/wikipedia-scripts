@@ -338,7 +338,8 @@ mw.loader.using(['oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.styles.icons-conten
         }
 
         let shouldPromptPatrol;
-        if (document.querySelector('.patrollink')) shouldPromptPatrol = true;
+        if (mw.config.get('wgNamespaceNumber') !== 0) shouldPromptPatrol = false;
+        else if (document.querySelector('.patrollink')) shouldPromptPatrol = true;
         else if (document.getElementById('mwe-pt-mark-as-reviewed-button')) shouldPromptPatrol = true;
         else if (document.getElementById('mwe-pt-mark-as-unreviewed-button')) shouldPromptPatrol = false;
         else {

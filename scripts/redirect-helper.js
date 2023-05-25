@@ -26,7 +26,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.s
         contentText.prepend(button.$element[0]);
     } else if (pageInfo.query.pages[0].redirect) showRedirectInfo(true);
     else {
-        const portletLink = mw.util.addPortletLink(mw.config.get('skin') === 'minerva' ? 'p-tb' : 'p-cactions', '#', 'Redirect page');
+        const portletLink = mw.util.addPortletLink(mw.config.get('skin') === 'minerva' ? 'p-tb' : 'p-cactions', '#', 'Redirect page', 'redirect-helper');
         portletLink.addEventListener('click', (event) => {
             event.preventDefault();
             showRedirectInfo(false);

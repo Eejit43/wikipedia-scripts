@@ -1,6 +1,6 @@
 /* global mw, OO, $ */
 
-mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.styles.icons-content'], async () => {
+mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.styles.icons-content', 'oojs-ui.styles.icons-editing-core'], async () => {
     if (mw.config.get('wgNamespaceNumber') < 0) return; // Don't run in virtual namespaces
     if (!mw.config.get('wgIsProbablyEditable')) return; // Don't run if user can't edit page
     if (mw.config.get('wgAction') !== 'view' || !mw.config.get('wgIsArticle')) return; // Don't run if not viewing page
@@ -15,20 +15,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.s
 
     const pageInfo = await new mw.Api().get({ action: 'query', prop: 'info', formatversion: 2, titles: pageTitle });
 
-    if (pageInfo.query.pages[0].missing) promptCreation();
-    else if (pageInfo.query.pages[0].redirect) showRedirectInfo(true);
-    else {
-        const portletLink = mw.util.addPortletLink(mw.config.get('skin') === 'minerva' ? 'p-tb' : 'p-cactions', '#', 'Redirect page');
-        portletLink.addEventListener('click', (event) => {
-            event.preventDefault();
-            showRedirectInfo(false);
-        });
-    }
-
-    /**
-     * Prompts the creation of a redirect if a page doesn't exist
-     */
-    function promptCreation() {
+    if (pageInfo.query.pages[0].missing) {
         const button = new OO.ui.ButtonWidget({ label: 'Create redirect', icon: 'articleRedirect', flags: ['progressive'] });
         button.$element[0].style.marginBottom = '10px';
         button.on('click', () => {
@@ -37,6 +24,13 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.s
         });
 
         contentText.prepend(button.$element[0]);
+    } else if (pageInfo.query.pages[0].redirect) showRedirectInfo(true);
+    else {
+        const portletLink = mw.util.addPortletLink(mw.config.get('skin') === 'minerva' ? 'p-tb' : 'p-cactions', '#', 'Redirect page');
+        portletLink.addEventListener('click', (event) => {
+            event.preventDefault();
+            showRedirectInfo(false);
+        });
     }
 
     /**
@@ -49,6 +43,26 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.s
         editorBox.$element[0].style.width = '700px';
         editorBox.$element[0].style.maxWidth = 'calc(100% - 50px)';
         editorBox.$element[0].style.margin = '0 auto 20px';
+
+        let syncWithMainButton;
+
+        if (pageTitleParsed.isTalkPage()) {
+            const mainPageData = await new mw.Api().get({ action: 'query', prop: 'info', formatversion: 2, titles: pageTitleParsed.getSubjectPage().getPrefixedText() });
+
+            if (mainPageData.query.pages[0].redirect) {
+                const mainPageContent = (await new mw.Api().get({ action: 'query', prop: 'revisions', formatversion: 2, titles: pageTitleParsed.getSubjectPage().getPrefixedText(), rvprop: 'content', rvslots: '*' })).query.pages[0].revisions[0].slots.main.content.trim();
+                syncWithMainButton = new OO.ui.ButtonWidget({ label: 'Sync with main page', icon: 'link', flags: ['progressive'] });
+                syncWithMainButton.on('click', () => {
+                    redirectInput.setValue(
+                        mw.Title.newFromText(/^#REDIRECT:?\s*\[\[\s*([^|{}[\]]+?)\s*]]\s*/i.exec(mainPageContent)?.[1])
+                            ?.getTalkPage()
+                            ?.toString() || ''
+                    );
+                    const fromMove = ['R from move', ...redirectTemplates['R from move']].some((tagOrRedirect) => new RegExp(`{{\\s*[${tagOrRedirect[0].toLowerCase()}${tagOrRedirect[0]}]${tagOrRedirect.substring(1)}\\s*(\\||}})`).test(mainPageContent));
+                    if (fromMove) tagSelect.setValue(['R from move']);
+                });
+            }
+        }
 
         /* Redirect target input */
         const RedirectInputWidget = function RedirectInputWidget(config) {
@@ -372,7 +386,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.s
         submitLayout.$element[0].style.marginTop = '10px';
 
         /* Add elements to screen */
-        editorBox.$element[0].append(redirectInputLayout.$element[0], tagSelectLayout.$element[0], summaryInputLayout.$element[0], submitLayout.$element[0]);
+        editorBox.$element[0].append(...[syncWithMainButton?.$element?.[0], redirectInputLayout.$element[0], tagSelectLayout.$element[0], summaryInputLayout.$element[0], submitLayout.$element[0]].filter(Boolean));
 
         contentText.prepend(editorBox.$element[0]);
 

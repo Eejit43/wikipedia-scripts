@@ -153,59 +153,80 @@ mw.loader.using(['oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.styles.icons-conten
 
             let parsedDestination;
 
+            const errors = [];
+
             /* Title validation */
             if (needsCheck) {
                 const destination = redirectInput.getValue().trim();
-                const destinationData = await new mw.Api().get({ action: 'query', titles: destination, prop: 'pageprops', formatversion: 2 }).catch((_, data) => {
-                    /* Non-existent destination */ if (data.error.code === 'missingtitle') promptError(destination, 'does not exist!');
-                    /* Other API error */ else promptError(destination, 'was not able to be fetched from the API!');
-                    return null;
-                });
-                const destinationParseResult = await new mw.Api().get({ action: 'parse', page: destination, prop: 'sections', redirects: '1' });
 
                 /* Invalid characters */
-                if (!/^\s*[^|{}[\]]+\s*$/.exec(destination)) return promptError(destination, 'is not a valid page title!');
+                if (!/^\s*[^|{}[\]]+\s*$/.exec(destination)) errors.push({ title: destination, message: 'is not a valid page title!' });
 
                 /* Failed during title parsing */
                 try {
                     parsedDestination = mw.Title.newFromText(destination);
                 } catch {
-                    return promptError(destination, 'is not a valid page title!');
+                    errors.push({ title: destination, message: 'is not a valid page title!' });
                 }
-                if (!parsedDestination) return promptError(destination, 'is not a valid page title!');
+                if (!parsedDestination) errors.push({ title: destination, message: 'is not a valid page title!' });
 
                 /* Self redirects */
-                if (parsedDestination.toString() === pageTitleParsed.toString()) return promptError(null, 'cannot redirect to itself!');
+                if (parsedDestination.toString() === pageTitleParsed.toString()) errors.push({ title: null, message: 'cannot redirect to itself!' });
+
+                const destinationData = await new mw.Api().get({ action: 'query', titles: destination, prop: 'pageprops', formatversion: 2 }).catch((_, data) => {
+                    /* Non-existent destination */ if (data.error.code === 'missingtitle') errors.push({ title: destination, message: 'does not exist!' });
+                    /* Other API error */ else errors.push({ title: destination, message: 'was not able to be fetched from the API!' });
+                    return null;
+                });
+                const destinationParseResult = await new mw.Api().get({ action: 'parse', page: destination, prop: 'sections', redirects: '1' });
 
                 /* Double redirects */
                 if (destinationParseResult.parse.redirects?.[0]) {
                     const destinationRedirect = destinationParseResult.parse.redirects[0].to + (destinationParseResult.parse.redirects[0].tofragment ? `#${destinationParseResult.parse.redirects[0].tofragment}` : '');
-                    return promptError(destination, `is a redirect to <a href="${mw.util.getUrl(destinationRedirect)}" target="_blank">${destinationRedirect}</a>. Retarget to that page instead, as double redirects aren't allowed.`);
+                    errors.push({ title: destination, message: `is a redirect to <a href="${mw.util.getUrl(destinationRedirect)}" target="_blank">${destinationRedirect}</a>. Retarget to that page instead, as double redirects aren't allowed.` });
                 }
 
                 /* Non-existent section */
                 if (destination.split('#').length > 1) {
                     const validSection = destinationParseResult.parse.sections.find((section) => section.line === destination.split('#')[1]);
-                    if (!validSection) return promptError(null, `is a redirect to <a href="${mw.util.getUrl(destination)}" target="_blank">${destination}</a>, but that section does not exist!`);
+                    if (!validSection) errors.push({ title: null, message: `is a redirect to <a href="${mw.util.getUrl(destination)}" target="_blank">${destination}</a>, but that section does not exist!` });
                 }
 
                 /* Redirect to section/anchor without template */
-                if (destination.split('#').length > 1 && !tagSelect.getValue().includes('R to section') && !tagSelect.getValue().includes('R to anchor')) return promptError(null, 'is a redirect to a section/anchor, but it is not tagged with <code>{{R from section}}</code> or <code>{{R from anchor}}</code>!');
+                if (destination.split('#').length > 1 && !tagSelect.getValue().includes('R to section') && !tagSelect.getValue().includes('R to anchor')) errors.push({ title: null, message: 'is a redirect to a section/anchor, but it is not tagged with <code>{{R from section}}</code> or <code>{{R from anchor}}</code>!' });
 
                 /* Improperly tagged as redirect to section/anchor */
-                if (destination.split('#').length === 1 && (tagSelect.getValue().includes('R to section') || tagSelect.getValue().includes('R to anchor'))) return promptError(null, 'is not a redirect to a section/anchor, but it is tagged with <code>{{R from section}}</code> or <code>{{R from anchor}}</code>!');
+                if (destination.split('#').length === 1 && (tagSelect.getValue().includes('R to section') || tagSelect.getValue().includes('R to anchor'))) errors.push({ title: null, message: 'is not a redirect to a section/anchor, but it is tagged with <code>{{R from section}}</code> or <code>{{R from anchor}}</code>!' });
 
                 /* Redirect to disambiguation page without template */
-                if ('disambiguation' in destinationData.query.pages[0].pageprops && !['R from ambiguous sort name', 'R from ambiguous term', 'R to disambiguation page', 'R from incomplete disambiguation', 'R from incorrect disambiguation', 'R from other disambiguation'].some((template) => tagSelect.getValue().includes(template))) return promptError(null, 'is a redirect to a disambiguation page, but it is not tagged with a disambiguation categorization template!');
+                if ('disambiguation' in destinationData.query.pages[0].pageprops && !['R from ambiguous sort name', 'R from ambiguous term', 'R to disambiguation page', 'R from incomplete disambiguation', 'R from incorrect disambiguation', 'R from other disambiguation'].some((template) => tagSelect.getValue().includes(template))) errors.push({ title: null, message: 'is a redirect to a disambiguation page, but it is not tagged with a disambiguation categorization template!' });
 
                 /* Improperly tagged as redirect to disambiguation page */
-                if (!('disambiguation' in destinationData.query.pages[0].pageprops) && ['R from ambiguous sort name', 'R from ambiguous term', 'R to disambiguation page', 'R from incomplete disambiguation', 'R from incorrect disambiguation', 'R from other disambiguation'].some((template) => tagSelect.getValue().includes(template))) return promptError(null, 'is not a redirect to a disambiguation page, but it is tagged with a disambiguation categorization template!');
+                if (!('disambiguation' in destinationData.query.pages[0].pageprops) && ['R from ambiguous sort name', 'R from ambiguous term', 'R to disambiguation page', 'R from incomplete disambiguation', 'R from incorrect disambiguation', 'R from other disambiguation'].some((template) => tagSelect.getValue().includes(template))) errors.push({ title: null, message: 'is not a redirect to a disambiguation page, but it is tagged with a disambiguation categorization template!' });
 
                 /* {{R to disambiguation page}} without " (disambiguation)" at end of title */
-                if (tagSelect.getValue().includes('R to disambiguation page') && !/ \(disambiguation\)$/.exec(pageTitleParsed.getMainText())) return promptError(null, 'is tagged with <code>{{R to disambiguation page}}</code>, but this title does not end with " (disambiguation)". Use <code>{{R from ambiguous term}}</code> or a similar categorization template instead!');
+                if (tagSelect.getValue().includes('R to disambiguation page') && !/ \(disambiguation\)$/.exec(pageTitleParsed.getMainText())) errors.push({ title: null, message: 'is tagged with <code>{{R to disambiguation page}}</code>, but this title does not end with " (disambiguation)". Use <code>{{R from ambiguous term}}</code> or a similar categorization template instead!' });
 
                 /* Syncing talk page but talk page exists and isn't a redirect */
-                if (syncTalkCheckbox?.isSelected() && !talkData.query.pages[0].missing && !talkData.query.pages[0].redirect) return promptError(pageTitleParsed.getTalkPage().getPrefixedText(), 'exists, but is not a redirect!');
+                if (syncTalkCheckbox?.isSelected() && !talkData.query.pages[0].missing && !talkData.query.pages[0].redirect) errors.push({ title: pageTitleParsed.getTalkPage().getPrefixedText(), message: 'exists, but is not a redirect!' });
+            }
+
+            if (errors.length > 0) {
+                document.querySelectorAll('.redirect-helper-warning').forEach((element) => element.remove());
+                errors.forEach(({ title, message }) => {
+                    const label = new OO.ui.HtmlSnippet(`${title ? `<a href="${mw.util.getUrl(title)}" target="_blank">${title}</a>` : 'This page'} ${message} Click again without making changes to submit anyway.`);
+                    const warningMessage = new OO.ui.MessageWidget({ type: 'error', classes: ['redirect-helper-warning'], inline: true, label });
+                    warningMessage.$element[0].style.marginTop = '8px';
+
+                    editorBox.$element[0].append(warningMessage.$element[0]);
+                });
+
+                [redirectInput, tagSelect, summaryInput, submitButton, syncTalkCheckbox, patrolCheckbox].filter(Boolean).forEach((element) => element.setDisabled(false));
+
+                submitButton.setLabel('Submit anyway');
+                needsCheck = false;
+
+                return;
             }
 
             parsedDestination = mw.Title.newFromText(redirectInput.getValue());
@@ -341,28 +362,6 @@ mw.loader.using(['oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.styles.icons-conten
 
         const submitLayout = new OO.ui.HorizontalLayout({ items: [submitButton, syncTalkLayout, patrolLayout].filter(Boolean) });
         submitLayout.$element[0].style.marginTop = '10px';
-
-        let warningMessage;
-
-        /**
-         * Alerts a user of an issue with the destination title
-         * @param {string?} title The destination title
-         * @param {string} message The error message
-         */
-        function promptError(title, message) {
-            const label = new OO.ui.HtmlSnippet(`${title ? `<a href="${mw.util.getUrl(title)}" target="_blank">${title}</a>` : 'This page'} ${message} Click again without making changes to submit anyway.`);
-            if (warningMessage) warningMessage.setLabel(label);
-            else {
-                warningMessage = new OO.ui.MessageWidget({ type: 'error', inline: true, label });
-                warningMessage.$element[0].style.marginTop = '8px';
-
-                editorBox.$element[0].append(warningMessage.$element[0]);
-            }
-            [redirectInput, tagSelect, summaryInput, submitButton, syncTalkCheckbox, patrolCheckbox].filter(Boolean).forEach((element) => element.setDisabled(false));
-
-            submitButton.setLabel('Submit anyway');
-            needsCheck = false;
-        }
 
         /* Add elements to screen */
         editorBox.$element[0].append(redirectInputLayout.$element[0], tagSelectLayout.$element[0], summaryInputLayout.$element[0], submitLayout.$element[0]);

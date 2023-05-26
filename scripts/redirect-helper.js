@@ -210,11 +210,35 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.s
                 /* Non-existent section */
                 if (destination.split('#').length > 1) {
                     const validSection = destinationParseResult.parse.sections.find((section) => section.line === destination.split('#')[1]);
-                    if (!validSection) errors.push({ title: null, message: `is a redirect to <a href="${mw.util.getUrl(destination)}" target="_blank">${destination}</a>, but that section does not exist!` });
-                }
+                    if (validSection) {
+                        if (tagSelect.getValue().includes('R to anchor')) errors.push({ title: destination, message: 'is tagged as a redirect to an anchor, but it is actually a redirect to a section!' });
+                        if (!tagSelect.getValue().includes('R to section')) errors.push({ title: destination, message: 'is a redirect to a section, but it is not tagged with <code>{{R to section}}</code>!' });
+                    } else {
+                        const destinationContent = (await new mw.Api().get({ action: 'query', prop: 'revisions', formatversion: 2, titles: parsedDestination.toString(), rvprop: 'content', rvslots: '*' })).query.pages[0].revisions[0].slots.main.content;
 
-                /* Redirect to section/anchor without template */
-                if (destination.split('#').length > 1 && !tagSelect.getValue().includes('R to section') && !tagSelect.getValue().includes('R to anchor')) errors.push({ title: null, message: 'is a redirect to a section/anchor, but it is not tagged with <code>{{R from section}}</code> or <code>{{R from anchor}}</code>!' });
+                        const anchors = [
+                            ...(destinationContent
+                                .match(/(?<={{\s*?[aA](?:nchors?|nchor for redirect|nker|NCHOR|nc)\s*?\|).+?(?=}})/g)
+                                ?.map((anchor) => anchor.split('|').map((part) => part.trim()))
+                                ?.flat() || []),
+                            ...(destinationContent
+                                .match(/(?<={{\s*?(?:[vV](?:isible anchors?|isanc|Anch|anchor|isibleanchor|a)|[aA](?:nchord|chored|nchor\+)|[tT]ext anchor)\s*?\|).+?(?=(?<!!|=)}})/g)
+                                ?.map((anchor) =>
+                                    anchor
+                                        .split('|')
+                                        .map((part) => part.trim())
+                                        .filter((part) => !/^text\s*?=/.exec(part))
+                                )
+                                ?.flat() || []),
+                            ...(destinationContent.match(/(?<=id=)"?.+?(?="|>|\|)/g)?.map((anchor) => anchor.trim()) || [])
+                        ];
+                        if (!anchors.includes(destination.split('#')[1])) errors.push({ title: null, message: `is a redirect to <a href="${mw.util.getUrl(destination)}" target="_blank">${destination}</a>, but that section or anchor does not exist!` });
+                        else {
+                            if (tagSelect.getValue().includes('R to section')) errors.push({ title: destination, message: 'is tagged as a redirect to a section, but it is actually a redirect to an anchor!' });
+                            if (!tagSelect.getValue().includes('R to anchor')) errors.push({ title: destination, message: 'is a redirect to an anchor, but it is not tagged with <code>{{R from anchor}}</code>!' });
+                        }
+                    }
+                }
 
                 /* Improperly tagged as redirect to section/anchor */
                 if (destination.split('#').length === 1 && (tagSelect.getValue().includes('R to section') || tagSelect.getValue().includes('R to anchor'))) errors.push({ title: null, message: 'is not a redirect to a section/anchor, but it is tagged with <code>{{R from section}}</code> or <code>{{R from anchor}}</code>!' });

@@ -42,7 +42,9 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.s
         editorBox.$element[0].style.backgroundColor = '#95d4bc';
         editorBox.$element[0].style.width = '700px';
         editorBox.$element[0].style.maxWidth = 'calc(100% - 50px)';
-        editorBox.$element[0].style.margin = '0 auto 20px';
+        editorBox.$element[0].style.marginLeft = 'auto';
+        editorBox.$element[0].style.marginRight = 'auto';
+        editorBox.$element[0].style.marginBottom = '20px';
 
         let syncWithMainButton;
 

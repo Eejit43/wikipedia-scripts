@@ -16,11 +16,40 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui.styles.icons-editing
     font-size: 15px;
     max-width: 200px;
     width: 200px;
+    ${mw.config.get('skin') === 'modern' ? 'margin-top: 2px;' : ''}
+}`);
+
+    if (mw.config.get('skin') === 'modern')
+        mw.util.addCSS(`
+#mw_header {
+    height: 2.5em;
+}
+
+#p-personal {
+    top: 2.5em;
+}
+
+#mw_main {
+    margin-top: 4em;
 }`);
 
     const editButton = new OO.ui.ButtonWidget({ icon: 'edit', framed: false, id: 'displaytitle-edit-button' });
     editButton.on('click', async () => {
         editButton.setDisabled(true);
+
+        if (mw.config.get('skin') === 'modern')
+            mw.util.addCSS(`
+#mw_header {
+    height: 3em;
+}
+
+#p-personal {
+    top: 3em;
+}
+
+#mw_main {
+    margin-top: 4.5em;
+}`);
 
         const actualTitle = mw.config.get('wgPageName').replace(/_/g, ' ');
 

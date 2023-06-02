@@ -69,7 +69,7 @@ padding: revert;`
         const ajaxUndoLink = document.createElement('a');
         ajaxUndoLink.textContent = 'ajax undo';
         ajaxUndoLink.href = undoUrl.href;
-        ajaxUndoLink.style.marginLeft = '1em';
+        if (isMinerva && !isDiff) ajaxUndoLink.style.marginLeft = '1em';
         ajaxUndoLink.addEventListener('click', async (event) => {
             event.preventDefault();
 

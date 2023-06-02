@@ -1,9 +1,11 @@
 /* global mw */
 
 mw.loader.using(['mediawiki.util'], () => {
-    if (mw.config.get('wgAction') !== 'history' && !mw.config.get('wgDiffOldId')) return;
-
     const isDiff = mw.config.get('wgDiffOldId');
+
+    if (mw.config.get('wgAction') !== 'history' && !isDiff) return;
+
+    const isMinerva = mw.config.get('skin') === 'minerva';
 
     const stages = {
         AWAITING_CLICK: 0,
@@ -14,10 +16,11 @@ mw.loader.using(['mediawiki.util'], () => {
     mw.util.addCSS(`
 /* Modified from Max Beier's "text-spinners" (https://github.com/maxbeier/text-spinners) */
 #ajax-undo-loading {
-    display: inline-block;
+    display: none;
+    ${isMinerva && !isDiff ? 'float: right;' : ''}
     height: ${isDiff ? '1.55' : '1.3'}em;
     line-height: 1.5em;
-    ${!isDiff ? 'margin: -0.3em 3px 0 2px;' : ''}
+    ${!isDiff ? `margin: ${isMinerva ? '0' : '-0.3em'} 3px 0 2px;` : ''}
     overflow: hidden;
     vertical-align: text-bottom;
 }
@@ -40,6 +43,19 @@ mw.loader.using(['mediawiki.util'], () => {
 #ajax-undo-reason {
     display: none;
     margin-left: 3px;
+${
+    isMinerva && !isDiff
+        ? `float: right;
+height: 26px;`
+        : ''
+}
+${
+    isMinerva
+        ? `border: revert;
+background: revert;
+padding: revert;`
+        : ''
+}
 }
 `);
 
@@ -53,6 +69,7 @@ mw.loader.using(['mediawiki.util'], () => {
         const ajaxUndoLink = document.createElement('a');
         ajaxUndoLink.textContent = 'ajax undo';
         ajaxUndoLink.href = undoUrl.href;
+        ajaxUndoLink.style.marginLeft = '1em';
         ajaxUndoLink.addEventListener('click', async (event) => {
             event.preventDefault();
 
@@ -68,6 +85,8 @@ mw.loader.using(['mediawiki.util'], () => {
                 loadingSpinner.style.display = 'inline-block';
                 ajaxUndoLink.style.color = 'gray';
                 reasonInput.disabled = true;
+
+                if (isMinerva && !isDiff) ajaxUndoLink.appendChild(loadingSpinner);
 
                 const undoId = undoUrl.searchParams.get('undo');
                 const undoAfter = undoUrl.searchParams.get('undoafter');
@@ -100,9 +119,8 @@ mw.loader.using(['mediawiki.util'], () => {
 
         const loadingSpinner = document.createElement('span');
         loadingSpinner.id = 'ajax-undo-loading';
-        loadingSpinner.style.display = 'none';
 
-        span.appendChild(loadingSpinner);
+        if (!isMinerva) span.appendChild(loadingSpinner);
 
         const reasonInput = document.createElement('input');
         reasonInput.type = 'text';
@@ -112,13 +130,15 @@ mw.loader.using(['mediawiki.util'], () => {
             if (event.key === 'Enter') ajaxUndoLink.click();
         });
 
-        span.appendChild(reasonInput);
+        if (isMinerva) span.prepend(reasonInput);
+        else span.appendChild(reasonInput);
 
         if (isDiff) span.appendChild(document.createTextNode(')'));
 
         if (isDiff) {
             undoSpan.after(span);
             undoSpan.after(document.createTextNode(' '));
-        } else undoSpan.parentElement.after(span);
+        } else if (isMinerva) undoSpan.parentElement.before(span);
+        else undoSpan.parentElement.after(span);
     });
 });

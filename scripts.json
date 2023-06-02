@@ -11,7 +11,7 @@
             "timeless": "yes",
             "monobook": "yes",
             "modern": "yes",
-            "minerva": "yes-weird",
+            "minerva": "yes",
             "cologne-blue": "yes"
         },
         "released": "2023|02|27",
@@ -27,7 +27,7 @@
             "timeless": "yes",
             "monobook": "yes",
             "modern": "yes",
-            "minerva": "yes-weird",
+            "minerva": "yes",
             "cologne-blue": "yes"
         },
         "released": "2023|02|16",
@@ -92,7 +92,7 @@
             "vector": "yes",
             "timeless": "yes",
             "monobook": "yes",
-            "modern": "yes-weird",
+            "modern": "yes",
             "minerva": "yes",
             "cologne-blue": "yes"
         },

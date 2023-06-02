@@ -396,9 +396,9 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.s
 
             const patrolResponse = await new mw.Api().get({ action: 'pagetriagelist', page_id: mw.config.get('wgArticleId') }); // eslint-disable-line camelcase
 
-            if (patrolResponse.pagetriagelist.pages[0].user_name === mw.config.get('wgUserName')) shouldPromptPatrol = false;
+            if (patrolResponse.pagetriagelist.pages[0]?.user_name === mw.config.get('wgUserName')) shouldPromptPatrol = false;
             else if (patrolResponse.pagetriagelist.result !== 'success' || patrolResponse.pagetriagelist.pages.length === 0) shouldPromptPatrol = false;
-            else shouldPromptPatrol = !parseInt(patrolResponse.pagetriagelist.pages[0].patrol_status);
+            else shouldPromptPatrol = !parseInt(patrolResponse.pagetriagelist.pages[0]?.patrol_status);
         }
 
         let patrolCheckbox, patrolLayout;

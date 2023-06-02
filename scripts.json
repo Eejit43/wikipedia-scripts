@@ -70,7 +70,6 @@
     },
     {
         "name": "deletion-finder",
-        "image-caption": "Top: editor before opening<br>Bottom: editor while editing",
         "short-description": "User script that displays if a page has been previously deleted or taken to AfD",
         "description": "This user script adds messages following an article's title if it has been previously deleted or taken to AfD (linking to the deletion log or AfD discussion(s), respectively). It was inspired by [[User:Writ Keeper/Scripts/deletionFinder.js|Writ Keeper's \"deletionFinder\"]].",
         "skin-support": {
@@ -87,6 +86,7 @@
     },
     {
         "name": "displaytitle-editor",
+        "image-caption": "Top: editor before opening<br>Bottom: editor while editing",
         "short-description": "User script to modify DISPLAYTITLEs",
         "description": "This user script adds an icon following the article title, which, when clicked, allows a [[WP:DISPLAYTITLE|DISPLAYTITLE]] to be added, modified, or removed.",
         "skin-support": {

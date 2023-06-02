@@ -25,6 +25,7 @@ mw.loader.using(['mediawiki.util'], () => {
 
                 const fullSubpageInfo = [
                     '{{User:Eejit43/script-documentation', //
+                    script['image-caption'] ? `| image-caption     = ${script['image-caption']}` : null,
                     script['other-authors'] ? `| other-authors     = ${script['other-authors'].map((author) => `[[User:${author}|${author}]]`).join(', ')}` : null,
                     `| description-short = ${script['short-description']}`,
                     `| description       = ${script.description}`,
@@ -47,10 +48,7 @@ mw.loader.using(['mediawiki.util'], () => {
                     })
                     : null; // prettier-ignore
 
-                if (!scriptContent || (script.css && !styleContent)) {
-                    mw.notify(`Error syncing "${script.name}" from GitHub, skipping...`, { type: 'error' });
-                    return;
-                }
+                if (!scriptContent || (script.css && !styleContent)) return mw.notify(`Error syncing "${script.name}" from GitHub, skipping...`, { type: 'error' });
 
                 if (!script.personal) {
                     await editOrCreate(subpageName, fullSubpageInfo.join('\n'), 'Syncing script documentation from GitHub');

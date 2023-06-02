@@ -217,6 +217,7 @@
     },
     {
         "name": "search-links",
+        "image-size": "1.5",
         "short-description": "User script that adds helpful links on [[Special:Search]]",
         "description": "This user script adds edit and history links to search results on [[Special:Search]].",
         "skin-support": {

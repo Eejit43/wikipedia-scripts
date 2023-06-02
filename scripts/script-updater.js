@@ -25,6 +25,7 @@ mw.loader.using(['mediawiki.util'], () => {
 
                 const fullSubpageInfo = [
                     '{{User:Eejit43/script-documentation', //
+                    script['image-size'] ? `| image-size     = ${script['image-size']}` : null,
                     script['image-caption'] ? `| image-caption     = ${script['image-caption']}` : null,
                     script['other-authors'] ? `| other-authors     = ${script['other-authors'].map((author) => `[[User:${author}|${author}]]`).join(', ')}` : null,
                     `| description-short = ${script['short-description']}`,

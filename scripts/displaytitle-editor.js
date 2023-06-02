@@ -14,6 +14,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui.styles.icons-editing
 #displaytitle-edit-box {
     display: inline-block;
     font-size: 15px;
+    margin-bottom: 2px;
     max-width: 200px;
     width: 200px;
     ${mw.config.get('skin') === 'modern' ? 'margin-top: 2px;' : ''}

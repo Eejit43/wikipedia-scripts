@@ -19,7 +19,6 @@
     },
     {
         "name": "ajax-undo",
-        "image-size": "1.5",
         "image-caption": "Top: history view before button click<br>Bottom: diff view after button click",
         "short-description": "User script to easily undo edits",
         "description": "This user script adds a link following \"undo\" on page histories and diff views, allowing the edit to be undone without leaving the history/diff page. It allows for an optional comment to add to the edit summary.",
@@ -103,6 +102,7 @@
     },
     {
         "name": "highlight-homographs",
+        "image-caption": "The \"a\" is actually a Cyrillic character (\"а\")!",
         "short-description": "User script that highlights homographs in page titles",
         "description": "This user script adds a red background to homograph characters in page titles, which may be used to bypass create protection. While entirely rewritten, this script uses regex from [[User:Þjarkur/Highlight homographs in title|Þjarkur's script]].",
         "skin-support": {
@@ -218,7 +218,6 @@
     },
     {
         "name": "search-links",
-        "image-size": "1.5",
         "short-description": "User script that adds helpful links on [[Special:Search]]",
         "description": "This user script adds edit and history links to search results on [[Special:Search]].",
         "skin-support": {

@@ -19,6 +19,7 @@
     },
     {
         "name": "ajax-undo",
+        "image-size": "1.5",
         "image-caption": "Top: history view before button click<br>Bottom: diff view after button click",
         "short-description": "User script to easily undo edits",
         "description": "This user script adds a link following \"undo\" on page histories and diff views, allowing the edit to be undone without leaving the history/diff page. It allows for an optional comment to add to the edit summary.",

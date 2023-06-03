@@ -441,7 +441,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.s
         if (exists) {
             const pageContent = (await new mw.Api().get({ action: 'query', prop: 'revisions', formatversion: 2, titles: pageTitle, rvprop: 'content', rvslots: '*' })).query.pages[0].revisions[0].slots.main.content.trim();
 
-            oldRedirectTarget = /^#REDIRECT:?\s*\[\[\s*([^|{}[\]]+?)\s*]]\s*/i.exec(pageContent)?.[1];
+            oldRedirectTarget = /^#REDIRECT:?\s*\[\[\s*([^|{}[\]]+?)\s*(?:\|[^|{}[\]]+?)?]]\s*/i.exec(pageContent)?.[1];
             oldRedirectTags = Object.entries(redirectTemplates)
                 .map(([tag, redirects]) => ([tag, ...redirects].some((tagOrRedirect) => new RegExp(`{{\\s*[${tagOrRedirect[0].toLowerCase()}${tagOrRedirect[0]}]${tagOrRedirect.substring(1)}\\s*(\\||}})`).test(pageContent)) ? tag : null))
                 .filter(Boolean)
@@ -456,7 +456,8 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.s
             );
             oldStrayText = [pageContent.match(/{{Short description\|.*?}}/i)?.[0], pageContent.match(/{{DISPLAYTITLE:.*?}}/)?.[0], pageContent.match(/{{italic title\|?.*?}}/i)?.[0], pageContent.match(/{{DEFAULTSORT:.*?}}/)?.[0]].filter(Boolean).join('\n');
 
-            redirectInput.setValue(oldRedirectTarget.replaceAll('_', ' '));
+            if (oldRedirectTarget) redirectInput.setValue(oldRedirectTarget.replaceAll('_', ' '));
+            else mw.notify('Could not find redirect target!', { type: 'error' });
             tagSelect.setValue(oldRedirectTags);
         }
     }

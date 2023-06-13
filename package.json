@@ -1,8 +1,6 @@
 {
-    "name": "pageswap",
-    "version": "0.0.0",
+    "name": "wikipedia-scripts",
     "private": true,
-    "packageManager": "pnpm@8.6.2",
     "dependencies": {
         "eslint": "^8.42.0",
         "eslint-plugin-jsdoc": "^46.2.6"

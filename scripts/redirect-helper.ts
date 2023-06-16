@@ -113,7 +113,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.s
                     });
             }
 
-            return deferred.promise({ abort() {} }); // eslint-disable-line no-empty-function
+            return deferred.promise({ abort() {} }); // eslint-disable-line @typescript-eslint/no-empty-function
         };
         RedirectInputWidget.prototype.getLookupCacheDataFromResponse = (response) => response || [];
         RedirectInputWidget.prototype.getLookupMenuOptionsFromData = (data) => data.map((item) => new OO.ui.MenuOptionWidget({ data: item.data, label: item.label }));
@@ -396,7 +396,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.s
             const userPermissions = await new mw.Api().get({ action: 'query', meta: 'userinfo', uiprop: 'rights' });
             if (!userPermissions.query.userinfo.rights.includes('patrol')) shouldPromptPatrol = false;
 
-            const patrolResponse = await new mw.Api().get({ action: 'pagetriagelist', page_id: mw.config.get('wgArticleId') }); // eslint-disable-line camelcase
+            const patrolResponse = await new mw.Api().get({ action: 'pagetriagelist', page_id: mw.config.get('wgArticleId') });
 
             if (patrolResponse.pagetriagelist.pages[0]?.user_name === mw.config.get('wgUserName')) shouldPromptPatrol = false;
             else if (patrolResponse.pagetriagelist.result !== 'success' || patrolResponse.pagetriagelist.pages.length === 0) shouldPromptPatrol = false;

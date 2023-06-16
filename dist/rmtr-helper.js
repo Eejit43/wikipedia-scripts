@@ -236,13 +236,11 @@ mw.loader.using(['mediawiki.util'], () => {
                 ? `Removed ${Object.entries(changes.remove)
                     .map(([reason, pages]) => `${pages.map((page) => `[[${page.original}]]`).join(', ')} as ${reason.toLowerCase()}`)
                     .join(', ')}`
-                : '' // prettier-ignore
-            }${Object.entries(changes.move).length > 0
+                : ''}${Object.entries(changes.move).length > 0
                 ? `${Object.entries(changes.remove).length > 0 ? ', ' : ''}Moved ${Object.entries(changes.move)
                     .map(([destination, pages]) => `${pages.map((page) => `[[${page.original}]]`).join(', ')} to "${destination}"`)
                     .join(', ')}`
-                : '' // prettier-ignore
-            } ${noRemaining ? '(no requests remain)' : ''} (via [[User:Eejit43/scripts/rmtr-helper|script]])`;
+                : ''} ${noRemaining ? '(no requests remain)' : ''} (via [[User:Eejit43/scripts/rmtr-helper|script]])`;
             if (devMode)
                 showEditPreview(mw.config.get('wgPageName'), endResult, editSummary);
             else {
@@ -260,12 +258,6 @@ mw.loader.using(['mediawiki.util'], () => {
         outputElement.scrollIntoView();
     }));
 });
-/**
- * Shows a diff edit preview for the given wikitext on a given page
- * @param {string} title The title of the page to edit
- * @param {string} text The resulting wikitext of the page
- * @param {string} summary The edit summary
- */
 function showEditPreview(title, text, summary) {
     const baseURL = mw.config.get('wgServer') + mw.config.get('wgScriptPath') + '/';
     const form = document.createElement('form');

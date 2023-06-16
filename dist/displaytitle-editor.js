@@ -11,9 +11,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui.styles.icons-editing-core'], () => {
     var _a;
     if (mw.config.get('wgNamespaceNumber') < 0)
-        return; // Don't run in virtual namespaces
+        return;
     if (!mw.config.get('wgIsProbablyEditable'))
-        return; // Don't run if user can't edit page
+        return;
     mw.util.addCSS(`
 #displaytitle-edit-button {
     font-size: 15px;

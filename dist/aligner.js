@@ -1,9 +1,9 @@
 "use strict";
 (() => {
     if (mw.config.get('wgNamespaceNumber') < 0)
-        return; // Don't run in virtual namespaces
+        return;
     if (!mw.config.get('wgIsProbablyEditable'))
-        return; // Don't run if user can't edit page
+        return;
     const searches = ['infobox', 'speciesbox', 'taxobox', 'automatic taxobox', 'osm location map', 'motorsport season'];
     mw.loader.using(['mediawiki.util', 'mediawiki.notification', 'jquery.textSelection'], () => {
         mw.notification.autoHideSeconds.veryShort = 2;
@@ -82,7 +82,6 @@
                             newLines.push(line);
                             continue;
                         }
-                        // eslint-disable-next-line prefer-const
                         let [firstPart, lastPart] = splitParam(line);
                         firstPart = firstPart.slice(1).trim();
                         if (firstPart.length > maxLength) {
@@ -92,7 +91,7 @@
                     }
                 }
                 let output = '';
-                maxLength += 2; // to include '| '
+                maxLength += 2;
                 for (const lineNumber in newLines) {
                     let line = newLines[lineNumber];
                     const parts = splitParam(line);

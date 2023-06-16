@@ -47,7 +47,7 @@ mw.loader.using(['mediawiki.util'], () => {
                     console.error(error);
                     return null;
                 })
-                : null; // prettier-ignore
+                : null;
             if (!scriptContent || (script.css && !styleContent))
                 return mw.notify(`Error syncing "${script.name}" from GitHub, skipping...`, { type: 'error' });
             if (!script.personal) {
@@ -68,20 +68,9 @@ mw.loader.using(['mediawiki.util'], () => {
             mapScripts(scriptData.filter((script) => script.fork))
         ].join('\n'), 'Syncing script list from GitHub');
         mw.notify(`Synced ${scriptData.length} scripts from GitHub!`, { type: 'success', tag: 'sync-scripts-notification' });
-        /**
-         * Maps scripts to a bulleted list
-         * @param {Script[]} scripts The scripts to map
-         * @returns {string} The mapped scripts
-         */
         function mapScripts(scripts) {
             return scripts.map((script) => `* [[User:Eejit43/scripts/${script.name}${script.personal ? '.js' : ''}|${script.name}]] - ${script['short-description'] || script.description}`).join('\n');
         }
-        /**
-         * Edits a page, or creates it if it doesn't exist
-         * @param {string} title the title of the page to edit
-         * @param {string} text the page content to set
-         * @param {string} summary the edit summary (will append script notice)
-         */
         function editOrCreate(title, text, summary) {
             return __awaiter(this, void 0, void 0, function* () {
                 summary += ' (via [[User:Eejit43/scripts/script-updater.js|script]])';

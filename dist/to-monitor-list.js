@@ -113,13 +113,6 @@ mw.loader.using(['mediawiki.util'], () => {
         mw.notify('Successfully added missing counts to "Stuff to monitor"', { type: 'success' });
     }));
 });
-/**
- * Parses the searched categories from the check object
- * @param {object} check the check object
- * @param {string} [check.namespace] the namespace to search in
- * @param {string} [check.notNamespace] the namespace to exclude from the search
- * @returns {number|string} the category ID or list of category IDs (separated by '|')
- */
 function getCategory({ namespace, notNamespace }) {
     var _a, _b;
     if (!namespace && !notNamespace)

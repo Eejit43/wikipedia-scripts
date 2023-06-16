@@ -714,7 +714,7 @@
      * @returns {string} the text of the page
      */
     function getPageText(title, addStatus) {
-        addStatus = typeof addStatus !== 'undefined' ? addStatus : function () {}; // eslint-disable-line no-empty-function
+        addStatus = typeof addStatus !== 'undefined' ? addStatus : function () {}; // eslint-disable-line @typescript-eslint/no-empty-function
         addStatus('<li id="afcHelper_get' + jqEscape(title) + '">Getting <a href="' + mw.config.get('wgArticlePath').replace('$1', encodeURI(title)) + '" title="' + title + '">' + title + '</a></li>');
 
         const request = {

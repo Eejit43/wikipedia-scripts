@@ -129,11 +129,6 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
         windowManager.openWindow(dialog);
     });
 }));
-// !! Some content below this contains code modified from [[User:Andy M. Wang/pageswap.js]] !!
-/**
- * Checks if user has the required permissions to perform a swap
- * @returns {Promise<{canSwap: boolean, allowSwapTemplates: boolean}>}
- */
 function fetchUserPermissions() {
     return new mw.Api()
         .get({
@@ -149,11 +144,6 @@ function fetchUserPermissions() {
         };
     });
 }
-/**
- * Given namespace data, title, title namespace, returns expected title of page
- * Along with title without prefix
- * Precondition, title, titleNs is a subject page!
- */
 function getTalkPageName(namespaceData, title, titleNamespace) {
     const result = {};
     const prefixLength = namespaceData[titleNamespace.toString()]['*'].length === 0 ? 0 : namespaceData[titleNamespace.toString()]['*'].length + 1;
@@ -161,11 +151,6 @@ function getTalkPageName(namespaceData, title, titleNamespace) {
     result.talkTitle = `${namespaceData[(titleNamespace + 1).toString()]['*']}:${result.titleWithoutPrefix}`;
     return result;
 }
-/**
- * Given two (normalized) titles, find their namespaces, if they are redirects,
- * if have a talk page, whether the current user can move the pages, suggests
- * whether movesubpages should be allowed, whether talk pages need to be checked
- */
 function swapValidate(startTitle, endTitle, pagesData, namespacesData, userPermissions) {
     const result = { valid: true, allowMoveSubpages: true, checkTalk: true };
     let count = 0;
@@ -176,7 +161,6 @@ function swapValidate(startTitle, endTitle, pagesData, namespacesData, userPermi
             result.error = `Page ${pageData.title} does not exist.`;
             return result;
         }
-        // Enable only in Main, Talk, User, User talk, Wikipedia, Wikipedia talk, Help, Help talk, Draft, and Draft talk
         if ((pageData.ns >= 6 && pageData.ns <= 9) || (pageData.ns >= 10 && pageData.ns <= 11 && !userPermissions.allowSwapTemplates) || (pageData.ns >= 14 && pageData.ns <= 117) || pageData.ns >= 120) {
             result.valid = false;
             result.error = `Namespace of ${pageData.title} (${pageData.ns}) not supported.\n\nLikely reasons:\n- Names of pages in this namespace relies on other pages\n- Namespace features heavily-transcluded pages\n- Namespace involves subpages: swaps produce many redlinks\n\n\nIf the move is legitimate, consider a careful manual swap.`;
@@ -221,7 +205,6 @@ function swapValidate(startTitle, endTitle, pagesData, namespacesData, userPermi
     }
     result.currentNamespaceAllowSubpages = namespacesData[result.currentNamespace.toString()].subpages !== '';
     result.destinationNamespaceAllowSubpages = namespacesData[result.destinationNamespace.toString()].subpages !== '';
-    // If same namespace (subpages allowed), if one is subpage of another, disallow moving subpages
     if (result.currentTitle.startsWith(result.destinationTitle + '/') || result.destinationTitle.startsWith(result.currentTitle + '/')) {
         if (result.currentNamespace !== result.destinationNamespace) {
             result.valid = false;
@@ -233,7 +216,7 @@ function swapValidate(startTitle, endTitle, pagesData, namespacesData, userPermi
             result.addLineInfo = 'One page is a subpage. Disallowing move-subpages';
     }
     if (result.currentNamespace % 2 === 1)
-        result.checkTalk = false; // No need to check talks, already talk pages
+        result.checkTalk = false;
     else {
         const currentTalkData = getTalkPageName(namespacesData, result.currentTitle, result.currentNamespace);
         result.currentTitleWithoutPrefix = currentTalkData.titleWithoutPrefix;
@@ -241,20 +224,9 @@ function swapValidate(startTitle, endTitle, pagesData, namespacesData, userPermi
         const destinationData = getTalkPageName(namespacesData, result.destinationTitle, result.destinationNamespace);
         result.destinationTitleWithoutPrefix = destinationData.titleWithoutPrefix;
         result.destinationTalkName = destinationData.talkTitle;
-        // TODO: possible that ret.currentTalkId is undefined, but subject page has talk subpages
     }
     return result;
 }
-/**
- * Given two talk page titles (may be undefined), retrieves their pages for comparison
- * Assumes that talk pages always have subpages enabled.
- * Assumes that pages are not identical (subject pages were already verified)
- * Assumes namespaces are okay (subject pages already checked)
- * (Currently) assumes that the malicious case of subject pages
- *   not detected as subpages and the talk pages ARE subpages
- *   (i.e. A and A/B vs. Talk:A and Talk:A/B) does not happen / does not handle
- * Returns structure indicating whether move talk should be allowed
- */
 function talkValidate(checkTalk, firstTalk, secondTalk) {
     return __awaiter(this, void 0, void 0, function* () {
         const result = {};
@@ -302,12 +274,6 @@ function talkValidate(checkTalk, firstTalk, secondTalk) {
         return result;
     });
 }
-/**
- * Given existing title (not prefixed with "/"), optionally searching for talk,
- *   finds subpages (incl. those that are redirs) and whether limits are exceeded
- * As of 2016-08, uses 2 api get calls to get needed details:
- *   whether the page can be moved, whether the page is a redirect
- */
 function getSubpages(namespaceData, title, titleNamespace, isTalk) {
     var _a, _b;
     return __awaiter(this, void 0, void 0, function* () {
@@ -322,7 +288,6 @@ function getSubpages(namespaceData, title, titleNamespace, isTalk) {
             apto: titlePageData.titleWithoutPrefix + '0',
             aplimit: 101
         })).query.allpages;
-        // Two queries are needed due to API limits
         const subpageIds = [[], []];
         for (const id in subpages)
             subpageIds[id < 50 ? 0 : 1].push(subpages[id].pageid);
@@ -360,10 +325,6 @@ function getSubpages(namespaceData, title, titleNamespace, isTalk) {
         return { data: result };
     });
 }
-/**
- * Prints subpage data given retrieved subpage information returned by getSubpages
- * Returns a suggestion whether movesubpages should be allowed
- */
 function printSubpageInfo(basePage, currentSubpage) {
     const result = {};
     const currentSubpages = [];
@@ -382,10 +343,6 @@ function printSubpageInfo(basePage, currentSubpage) {
     result.noNeed = currentSubpages.length === 0;
     return result;
 }
-/**
- * Swaps the two pages (given all prerequisite checks)
- * Optionally moves talk pages and subpages
- */
 function swapPages(titleOne, titleTwo, summary, moveTalk, moveSubpages) {
     const intermediateTitle = `Draft:Move/${titleOne}`;
     const moves = [
@@ -402,7 +359,6 @@ function swapPages(titleOne, titleTwo, summary, moveTalk, moveSubpages) {
     return new Promise((resolve, reject) => {
         const result = { success: true };
         let i = 0;
-        // eslint-disable-next-line jsdoc/require-jsdoc
         function doMove() {
             if (i >= moves.length)
                 return resolve(result);
@@ -422,19 +378,13 @@ function swapPages(titleOne, titleTwo, summary, moveTalk, moveSubpages) {
         return result;
     });
 }
-/**
- * Given two titles, normalizes, does prerequisite checks for talk/subpages,
- * prompts user for config before swapping the titles
- */
 function roundRobin(userPermissions, currentTitle, destinationTitle, summary, moveTalk, moveSubpages) {
     return __awaiter(this, void 0, void 0, function* () {
-        // General information about all namespaces
         const namespacesInformation = (yield new mw.Api().get({
             action: 'query',
             meta: 'siteinfo',
             siprop: 'namespaces'
         })).query.namespaces;
-        // Specific information about current and destination pages
         const pagesData = (yield new mw.Api().get({
             action: 'query',
             prop: 'info',
@@ -442,20 +392,17 @@ function roundRobin(userPermissions, currentTitle, destinationTitle, summary, mo
             intestactions: 'move|create',
             titles: `${currentTitle}|${destinationTitle}`
         })).query;
-        // Normalize titles if necessary
         for (const changes in pagesData.normalized) {
             if (currentTitle === pagesData.normalized[changes].from)
                 currentTitle = pagesData.normalized[changes].to;
             if (destinationTitle === pagesData.normalized[changes].from)
                 destinationTitle = pagesData.normalized[changes].to;
         }
-        // Validate namespaces
         const validationData = swapValidate(currentTitle, destinationTitle, pagesData.pages, namespacesInformation, userPermissions);
         if (!validationData.valid)
             throw new Error(validationData.error);
         if (validationData.addLineInfo !== undefined)
             mw.notify(validationData.addLineInfo);
-        // Subpage checks
         const currentSubpages = yield getSubpages(namespacesInformation, validationData.currentTitle, validationData.currentNamespace, false);
         if (currentSubpages.error !== undefined)
             throw new Error(currentSubpages.error);
@@ -465,7 +412,6 @@ function roundRobin(userPermissions, currentTitle, destinationTitle, summary, mo
             throw new Error(destinationSubpages.error);
         const destinationSubpageFlags = printSubpageInfo(validationData.destinationTitle, destinationSubpages);
         const talkValidationData = yield talkValidate(validationData.checkTalk, validationData.currentTalkName, validationData.destinationTalkName);
-        // TODO: check empty subpage destinations on both sides (subj, talk) for create protection
         const currentTalkSubpages = yield getSubpages(namespacesInformation, validationData.currentTitle, validationData.currentNamespace, true);
         if (currentTalkSubpages.error !== undefined)
             throw new Error(currentTalkSubpages.error);
@@ -475,14 +421,12 @@ function roundRobin(userPermissions, currentTitle, destinationTitle, summary, mo
             throw new Error(destinationTalkSubpages.error);
         const destinationTalkSubpageFlags = printSubpageInfo(validationData.destinationTalkName, destinationTalkSubpages);
         const noSubpages = currentSubpageFlags.noNeed && destinationSubpageFlags.noNeed && currentTalkSubpageFlags.noNeed && destinationTalkSubpageFlags.noNeed;
-        // If one namespace disables subpages, other enables subpages (and has subpages), consider abort. Assume talk pages always safe (TODO fix)
         const subpageCollision = (validationData.currentNamespaceAllowSubpages && !destinationSubpageFlags.noNeed) || (validationData.destinationNamespaceAllowSubpages && !currentSubpageFlags.noNeed);
         if (moveTalk && validationData.checkTalk && !talkValidationData.allowMoveTalk) {
             moveTalk = false;
             mw.notify(`Disallowing moving talk. ${!talkValidationData.currentTalkCanCreate ? `${validationData.currentTalkName} is create-protected` : !talkValidationData.destinationTalkCanCreate ? `${validationData.destinationTalkName} is create-protected` : 'Talk page is immovable'}`);
         }
         let finalMoveSubpages = false;
-        // TODO future: currTSpFlags.allowMoveSubpages && destTSpFlags.allowMoveSubpages needs to be separate check. If talk subpages immovable, should not affect subjspace
         if (!subpageCollision && !noSubpages && validationData.allowMoveSubpages && currentSubpageFlags.allowMoveSubpages && destinationSubpageFlags.allowMoveSubpages && currentTalkSubpageFlags.allowMoveSubpages && destinationTalkSubpageFlags.allowMoveSubpages)
             finalMoveSubpages = moveSubpages;
         else if (subpageCollision) {

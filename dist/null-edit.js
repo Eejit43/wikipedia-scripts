@@ -10,9 +10,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 mw.loader.using(['mediawiki.util'], () => {
     if (mw.config.get('wgNamespaceNumber') < 0)
-        return; // Don't run in virtual namespaces
+        return;
     if (!mw.config.get('wgIsProbablyEditable'))
-        return; // Don't run if user can't edit page
+        return;
     const link = mw.util.addPortletLink(mw.config.get('skin') === 'minerva' ? 'p-tb' : 'p-cactions', '#', 'Null edit', 'null-edit');
     link.addEventListener('click', (event) => __awaiter(void 0, void 0, void 0, function* () {
         event.preventDefault();

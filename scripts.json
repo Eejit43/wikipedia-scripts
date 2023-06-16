@@ -15,7 +15,7 @@
             "cologne-blue": "yes"
         },
         "released": "2023|02|27",
-        "updated": "2023|06|01"
+        "updated": "2023|06|15"
     },
     {
         "name": "ajax-undo",
@@ -32,7 +32,7 @@
             "cologne-blue": "yes"
         },
         "released": "2023|02|16",
-        "updated": "2023|06|02"
+        "updated": "2023|06|15"
     },
     {
         "name": "aligner",
@@ -50,7 +50,7 @@
             "cologne-blue": "yes"
         },
         "released": "2023|01|02",
-        "updated": "2023|05|12"
+        "updated": "2023|06|16"
     },
     {
         "name": "copy-search-results",
@@ -66,7 +66,7 @@
             "cologne-blue": "yes"
         },
         "released": "2023|05|12",
-        "updated": "2023|05|12"
+        "updated": "2023|06|15"
     },
     {
         "name": "deletion-finder",
@@ -82,7 +82,7 @@
             "cologne-blue": "yes"
         },
         "released": "2023|05|10",
-        "updated": "2023|05|10"
+        "updated": "2023|06|15"
     },
     {
         "name": "displaytitle-editor",
@@ -99,7 +99,7 @@
             "cologne-blue": "yes"
         },
         "released": "2023|04|28",
-        "updated": "2023|06|02"
+        "updated": "2023|06|15"
     },
     {
         "name": "highlight-homographs",
@@ -116,7 +116,7 @@
             "cologne-blue": "yes"
         },
         "released": "2023|05|09",
-        "updated": "2023|05|09"
+        "updated": "2023|06|15"
     },
     {
         "name": "null-edit",
@@ -132,7 +132,7 @@
             "cologne-blue": "yes"
         },
         "released": "2023|02|14",
-        "updated": "2023|05|12"
+        "updated": "2023|06|15"
     },
     {
         "name": "pageswap",
@@ -149,7 +149,7 @@
             "cologne-blue": "yes"
         },
         "released": "2023|03|29",
-        "updated": "2023|05|16"
+        "updated": "2023|06|15"
     },
     {
         "name": "redirect-helper",
@@ -165,7 +165,7 @@
             "cologne-blue": "yes"
         },
         "released": "2023|05|17",
-        "updated": "2023|06|02"
+        "updated": "2023|06|15"
     },
     {
         "name": "rmtr-helper",
@@ -181,7 +181,7 @@
             "cologne-blue": "yes"
         },
         "released": "2023|02|14",
-        "updated": "2023|05|18",
+        "updated": "2023|06|15",
         "css": true
     },
     {
@@ -198,7 +198,7 @@
             "cologne-blue": "yes"
         },
         "released": "2023|02|09",
-        "updated": "2023|05|17"
+        "updated": "2023|06|15"
     },
     {
         "name": "to-monitor-list",
@@ -215,7 +215,7 @@
             "cologne-blue": "yes"
         },
         "released": "2023|03|05",
-        "updated": "2023|05|17"
+        "updated": "2023|06|15"
     },
     {
         "name": "search-links",
@@ -231,7 +231,7 @@
             "cologne-blue": "yes"
         },
         "released": "2023|04|27",
-        "updated": "2023|04|27"
+        "updated": "2023|06|15"
     },
     {
         "name": "script-updater",
@@ -248,6 +248,6 @@
             "cologne-blue": "yes"
         },
         "released": "2023|04|05",
-        "updated": "2023|05|18"
+        "updated": "2023|06|15"
     }
 ]

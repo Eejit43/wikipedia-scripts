@@ -1,3 +1,17 @@
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+interface Window {
+    wikEd?: {
+        useWikEd: boolean;
+        UpdateTextarea: () => void;
+        UpdateFrame: () => void;
+    };
+}
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+interface JQuery<TElement extends Node = HTMLElement> extends Iterable<TElement> {
+    textSelection(methodName: 'setContents', value: string): void;
+}
+
 (() => {
     if (mw.config.get('wgNamespaceNumber') < 0) return; // Don't run in virtual namespaces
     if (!mw.config.get('wgIsProbablyEditable')) return; // Don't run if user can't edit page
@@ -5,27 +19,21 @@
     const searches = ['infobox', 'speciesbox', 'taxobox', 'automatic taxobox', 'osm location map', 'motorsport season'];
 
     mw.loader.using(['mediawiki.util', 'mediawiki.notification', 'jquery.textSelection'], () => {
-        mw.notification.autoHideSeconds.veryShort = 2;
-
         const link = mw.util.addPortletLink(mw.config.get('skin') === 'minerva' ? 'p-navigation' : 'p-cactions', '#', 'Align template params', 'align-params');
         link.addEventListener('click', (event) => {
             event.preventDefault();
 
-            const splitParam = (string) => {
+            function splitParam(string: string): (string | undefined)[] {
                 const split = string.split('=');
-                if (split.length <= 2) {
-                    return split;
-                }
+                if (split.length <= 2) return split;
 
                 const first = split.shift();
                 return [first, split.join('=')];
-            };
+            }
 
-            const splitIntoParams = (string) => {
+            function splitIntoParams(string: string): string[] {
                 if (string.startsWith('{{') && string.endsWith('}}')) {
-                    if (!string.includes('|')) {
-                        return [string];
-                    }
+                    if (!string.includes('|')) return [string];
 
                     const results = splitIntoParams(string.slice(2, -2));
                     return ['{{' + results[0]].concat(splitIntoParams(string.slice(2, -2)).slice(1), ['}}']);
@@ -52,40 +60,24 @@
                 params.push(temp);
 
                 return params;
-            };
-
-            const useWikEd = window.wikEd && window.wikEd.useWikEd;
-
-            if (useWikEd) {
-                window.wikEd.UpdateTextarea();
             }
+
+            if (window.wikEd?.useWikEd) window.wikEd.UpdateTextarea();
 
             const editBox = $('#wpTextbox1');
 
-            if (!editBox) {
-                mw.notification.notify('Edit box not found, are you in edit mode?', { type: 'error', autoHideSeconds: 'veryShort' });
-                return;
-            }
+            if (!editBox) return mw.notification.notify('Edit box not found, are you in edit mode?', { type: 'error', autoHideSeconds: 'short' });
 
             const text = editBox.textSelection('getContents');
 
-            if (!text || text.length === 0) {
-                mw.notification.notify('Edit box value not found!', { type: 'error', autoHideSeconds: 'veryShort' });
-                return;
-            }
+            if (!text) return mw.notification.notify('Edit box value not found!', { type: 'error', autoHideSeconds: 'short' });
 
             let count = 0;
 
-            const processInfobox = (template) => {
-                if (template === '') {
-                    mw.notification.notify('Infobox not found!', { type: 'error', autoHideSeconds: 'veryShort' });
-                    return;
-                }
+            function processInfobox(template: string) {
+                if (template === '') return mw.notification.notify('Infobox not found!', { type: 'error', autoHideSeconds: 'short' });
 
-                if (open !== 0) {
-                    mw.notification.notify('Template was not properly closed!', { type: 'error', autoHideSeconds: 'veryShort' });
-                    return;
-                }
+                if (open !== 0) return mw.notification.notify('Template was not properly closed!', { type: 'error', autoHideSeconds: 'short' });
 
                 let maxLength = 0;
 
@@ -103,13 +95,10 @@
                             continue;
                         }
 
-                        // eslint-disable-next-line prefer-const
-                        let [firstPart, lastPart] = splitParam(line);
+                        let [firstPart, lastPart] = splitParam(line) as [string, string]; // eslint-disable-line prefer-const
                         firstPart = firstPart.slice(1).trim();
 
-                        if (firstPart.length > maxLength) {
-                            maxLength = firstPart.length;
-                        }
+                        if (firstPart.length > maxLength) maxLength = firstPart.length;
 
                         newLines.push('| ' + firstPart + '=' + lastPart);
                     }
@@ -121,7 +110,7 @@
 
                 for (const lineNumber in newLines) {
                     let line = newLines[lineNumber];
-                    const parts = splitParam(line);
+                    const parts = splitParam(line) as [string, string];
 
                     if (parts.length < 2) {
                         output += line += '\n';
@@ -130,23 +119,17 @@
 
                     let firstPart = parts[0].trim();
 
-                    while (firstPart.length < maxLength) {
-                        firstPart += ' ';
-                    }
+                    while (firstPart.length < maxLength) firstPart += ' ';
 
                     output += firstPart + ' = ' + parts[1].trim() + '\n';
                 }
 
-                if (output.endsWith('\n')) {
-                    output = output.slice(0, -1);
-                }
+                if (output.endsWith('\n')) output = output.slice(0, -1);
 
                 editBox.textSelection('setContents', editBox.textSelection('getContents').replace(origTemplate, output).replace(/\n+$/, ''));
 
-                if (useWikEd) {
-                    window.wikEd.UpdateFrame();
-                }
-            };
+                if (window.wikEd?.useWikEd) window.wikEd.UpdateFrame();
+            }
 
             let template = '';
             let open = 0;
@@ -170,9 +153,8 @@
                 if (open >= 1 && !foo) {
                     template += text[i];
 
-                    if (text[i] === '{') {
-                        open++;
-                    } else if (text[i] === '}') {
+                    if (text[i] === '{') open++;
+                    else if (text[i] === '}') {
                         open--;
 
                         if (open === 0) {
@@ -184,7 +166,7 @@
                 }
             }
 
-            mw.notification.notify(`Successfully aligned ${count} templates!`, { type: 'success', autoHideSeconds: 'veryShort' });
+            mw.notification.notify(`Successfully aligned ${count} templates!`, { type: 'success', autoHideSeconds: 'short' });
         });
     });
 })();

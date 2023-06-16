@@ -1,5 +1,3 @@
-/* global mw, OO, $ */
-
 mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.styles.icons-content', 'oojs-ui.styles.icons-editing-core'], async () => {
     if (mw.config.get('wgNamespaceNumber') < 0) return; // Don't run in virtual namespaces
     if (!mw.config.get('wgIsProbablyEditable')) return; // Don't run if user can't edit page
@@ -8,10 +6,14 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.s
 
     const contentText = document.getElementById('mw-content-text');
 
+    if (!contentText) return mw.notify('Failed to find content text element!', { type: 'error' });
+
     const redirectTemplates = JSON.parse((await new mw.Api().get({ action: 'query', prop: 'revisions', formatversion: 2, titles: 'User:Eejit43/scripts/redirect-helper.json', rvprop: 'content', rvslots: '*' })).query.pages?.[0]?.revisions?.[0]?.slots?.main?.content || '[]');
 
     const pageTitle = mw.config.get('wgPageName');
-    const pageTitleParsed = mw.Title.newFromText(pageTitle);
+    const pageTitleParsed = mw.Title.newFromText(pageTitle) as mw.Title;
+
+    if (!pageTitleParsed) return mw.notify('Failed to parse page title!', { type: 'error' });
 
     const pageInfo = await new mw.Api().get({ action: 'query', prop: 'info', formatversion: 2, titles: pageTitle });
 
@@ -37,7 +39,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.s
      * Shows the redirect information box
      * @param {boolean} exists Whether or not the page exists
      */
-    async function showRedirectInfo(exists) {
+    async function showRedirectInfo(exists: boolean): Promise<void> {
         const editorBox = new OO.ui.PanelLayout({ padded: true, expanded: false, framed: true });
         editorBox.$element[0].style.backgroundColor = '#95d4bc';
         editorBox.$element[0].style.width = '700px';
@@ -301,13 +303,13 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.s
                 .catch((error, data) => {
                     if (error === 'nocreate-missing')
                         return new mw.Api().create(pageTitle, { summary }, output).catch((error, data) => {
-                            console.error(error); // eslint-disable-line no-console
+                            console.error(error);
                             mw.notify(`Error creating ${pageTitle}: ${data.error.info} (${error})`, { type: 'error' });
                         });
                     else {
-                        console.error(error); // eslint-disable-line no-console
+                        console.error(error);
                         mw.notify(`Error editing or creating ${pageTitle}: ${data.error.info} (${error})`, { type: 'error' });
-                        return false;
+                        return null;
                     }
                 });
 
@@ -335,13 +337,13 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.s
                     .catch((error, data) => {
                         if (error === 'nocreate-missing')
                             return new mw.Api().create(talkPage, { summary: 'Syncing redirect from main page (via [[User:Eejit43/scripts/redirect-helper|redirect-helper]])' }, output).catch((error, data) => {
-                                console.error(error); // eslint-disable-line no-console
+                                console.error(error);
                                 mw.notify(`Error creating ${talkPage}: ${data.error.info} (${error})`, { type: 'error' });
                             });
                         else {
-                            console.error(error); // eslint-disable-line no-console
+                            console.error(error);
                             mw.notify(`Error editing or creating ${talkPage}: ${data.error.info} (${error})`, { type: 'error' });
-                            return false;
+                            return null;
                         }
                     });
 
@@ -356,7 +358,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.s
 
                 if (document.querySelector('.patrollink a')) {
                     const patrolResult = await new mw.Api().postWithToken('patrol', { action: 'patrol', rcid: new URL(document.querySelector('.patrollink a').href).searchParams.get('rcid') }).catch((error, data) => {
-                        console.error(error); // eslint-disable-line no-console
+                        console.error(error);
                         mw.notify(`Error patrolling ${pageTitle} via API: ${data.error.info} (${error})`, { type: 'error' });
                         return null;
                     });

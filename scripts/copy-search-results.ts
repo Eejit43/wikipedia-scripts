@@ -1,10 +1,9 @@
-/* global mw */
-
 mw.loader.using(['mediawiki.util'], () => {
     if (mw.config.get('wgPageName') !== 'Special:Search') return;
 
-    mw.util.addPortletLink(mw.config.get('skin') === 'minerva' ? 'p-navigation' : 'p-cactions', '#', 'Copy search result titles', 'copy-search-results');
-    document.getElementById('copy-search-results').addEventListener('click', (event) => {
+    const link = mw.util.addPortletLink(mw.config.get('skin') === 'minerva' ? 'p-navigation' : 'p-cactions', '#', 'Copy search result titles', 'copy-search-results');
+
+    link.addEventListener('click', (event) => {
         event.preventDefault();
 
         const titles = Array.from(document.querySelectorAll('.mw-search-result-heading a[data-serp-pos]'))

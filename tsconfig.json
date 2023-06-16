@@ -1,0 +1,9 @@
+{
+    "extends": "@tsconfig/recommended/tsconfig.json",
+    "compilerOptions": {
+        "preserveConstEnums": true,
+        "lib": ["DOM", "DOM.Iterable", "ES2021"],
+        "outDir": "dist"
+    },
+    "include": ["scripts/*", "./node_modules/types-mediawiki"]
+}

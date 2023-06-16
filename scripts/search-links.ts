@@ -1,9 +1,10 @@
-/* global mw */
-
 if (mw.config.get('wgCanonicalSpecialPageName') === 'Search')
     document.querySelectorAll('.mw-search-result-heading').forEach((header) => {
+        const link = header.querySelector('a')?.href;
+        if (!link) return;
+
         const links = ['edit', 'history'].map((action) => {
-            const url = new mw.Uri(header.querySelector('a').href).extend({ action }).toString();
+            const url = new mw.Uri(link).extend({ action }).toString();
             const linkElement = document.createElement('a');
             linkElement.href = url;
             linkElement.textContent = action;

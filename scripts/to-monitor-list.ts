@@ -1,14 +1,23 @@
-/* global mw */
+type SearchData = {
+    categories: { id: string; category: string; namespace?: string; notNamespace?: string }[];
+    searches: { id: string; search: string; namespace?: string; notNamespace?: string }[];
+    whatLinksHere: { id: string; title: string; namespace?: string; notNamespace?: string }[];
+    transclusions: { id: string; title: string; namespace?: string; notNamespace?: string }[];
+};
+
+type SearchResult = { query: { searchinfo: { totalhits: number } } }; // Heavily simplified
+type BacklinksResult = { query: { backlinks: object[] } }; // Heavily simplified
+type EmbeddedinResult = { query: { embeddedin: object[] } }; // Heavily simplified
 
 mw.loader.using(['mediawiki.util'], () => {
     if (mw.config.get('wgPageName') !== 'User:Eejit43') return;
 
-    mw.util.addPortletLink(mw.config.get('skin') === 'minerva' ? 'p-tb' : 'p-cactions', '#', 'Add counts to monitoring list', 'add-monitoring-counts');
+    const link = mw.util.addPortletLink(mw.config.get('skin') === 'minerva' ? 'p-tb' : 'p-cactions', '#', 'Add counts to monitoring list', 'add-monitoring-counts');
 
-    document.getElementById('add-monitoring-counts').addEventListener('click', async (event) => {
+    link.addEventListener('click', async (event) => {
         event.preventDefault();
 
-        const toCheck = JSON.parse(
+        const toCheck: SearchData = JSON.parse(
             (
                 await new mw.Api().get({
                     action: 'query',
@@ -22,7 +31,7 @@ mw.loader.using(['mediawiki.util'], () => {
         );
 
         toCheck.categories.forEach(async (check) => {
-            const data = await new mw.Api()
+            const data: SearchResult | null = await new mw.Api()
                 .get({
                     action: 'query',
                     list: 'search',
@@ -31,20 +40,22 @@ mw.loader.using(['mediawiki.util'], () => {
                     srinfo: 'totalhits'
                 })
                 .catch((_, data) => {
-                    console.error(data.error); // eslint-disable-line no-console
+                    console.error(data.error);
                     mw.notify(`An error occurred while trying to get category members! (${data.error.info})`, { type: 'error' });
                     return null;
                 });
 
             if (!data) return;
 
-            const count = data.query.searchinfo.totalhits;
+            const count = (data as SearchResult).query.searchinfo.totalhits;
 
-            document.getElementById(`to-monitor-list-${check.id}`).innerHTML = count === 0 ? '<span style="color: #00733f">None</span>' : `<b><span style="color: #bd2828">${count === 500 ? '500+' : count}</span></b>`;
+            const element = document.getElementById(`to-monitor-list-${check.id}`);
+            if (!element) return mw.notify(`Failed to find element for ID "${check.id}"`);
+            element.innerHTML = count === 0 ? '<span style="color: #00733f">None</span>' : `<b><span style="color: #bd2828">${count === 500 ? '500+' : count}</span></b>`;
         });
 
         toCheck.searches.forEach(async (check) => {
-            const data = await new mw.Api()
+            const data: SearchResult | null = await new mw.Api()
                 .get({
                     action: 'query',
                     list: 'search',
@@ -53,20 +64,22 @@ mw.loader.using(['mediawiki.util'], () => {
                     srinfo: 'totalhits'
                 })
                 .catch((_, data) => {
-                    console.error(data.error); // eslint-disable-line no-console
+                    console.error(data.error);
                     mw.notify(`An error occurred while trying to get search results! (${data.error.info})`, { type: 'error' });
                     return null;
                 });
 
             if (!data) return;
 
-            const count = data.query.searchinfo.totalhits;
+            const count = (data as SearchResult).query.searchinfo.totalhits;
 
-            document.getElementById(`to-monitor-list-${check.id}`).innerHTML = count === 0 ? '<span style="color: #00733f">None</span>' : `<b><span style="color: #bd2828">${count.toLocaleString()}</span></b>`;
+            const element = document.getElementById(`to-monitor-list-${check.id}`);
+            if (!element) return mw.notify(`Failed to find element for ID "${check.id}"`);
+            element.innerHTML = count === 0 ? '<span style="color: #00733f">None</span>' : `<b><span style="color: #bd2828">${count.toLocaleString()}</span></b>`;
         });
 
         toCheck.whatLinksHere.forEach(async (check) => {
-            const data = await new mw.Api()
+            const data: BacklinksResult | null = await new mw.Api()
                 .get({
                     action: 'query',
                     list: 'backlinks',
@@ -75,20 +88,22 @@ mw.loader.using(['mediawiki.util'], () => {
                     bllimit: 500
                 })
                 .catch((_, data) => {
-                    console.error(data.error); // eslint-disable-line no-console
+                    console.error(data.error);
                     mw.notify(`An error occurred while trying to get backlinks! (${data.error.info})`, { type: 'error' });
                     return null;
                 });
 
             if (!data) return;
 
-            const count = data.query.backlinks.length;
+            const count = (data as BacklinksResult).query.backlinks.length;
 
-            document.getElementById(`to-monitor-list-${check.id}`).innerHTML = count === 0 ? '<span style="color: #00733f">None</span>' : `<b><span style="color: #bd2828">${count === 500 ? '500+' : count}</span></b>`;
+            const element = document.getElementById(`to-monitor-list-${check.id}`);
+            if (!element) return mw.notify(`Failed to find element for ID "${check.id}"`);
+            element.innerHTML = count === 0 ? '<span style="color: #00733f">None</span>' : `<b><span style="color: #bd2828">${count === 500 ? '500+' : count}</span></b>`;
         });
 
         toCheck.transclusions.forEach(async (check) => {
-            const data = await new mw.Api()
+            const data: EmbeddedinResult | null = await new mw.Api()
                 .get({
                     action: 'query',
                     list: 'embeddedin',
@@ -97,16 +112,18 @@ mw.loader.using(['mediawiki.util'], () => {
                     eilimit: 500
                 })
                 .catch((_, data) => {
-                    console.error(data.error); // eslint-disable-line no-console
+                    console.error(data.error);
                     mw.notify(`An error occurred while trying to get transclusions! (${data.error.info})`, { type: 'error' });
                     return null;
                 });
 
             if (!data) return;
 
-            const count = data.query.embeddedin.length;
+            const count = (data as EmbeddedinResult).query.embeddedin.length;
 
-            document.getElementById(`to-monitor-list-${check.id}`).innerHTML = count === 0 ? '<span style="color: #00733f">None</span>' : `<b><span style="color: #bd2828">${count === 500 ? '500+' : count}</span></b>`;
+            const element = document.getElementById(`to-monitor-list-${check.id}`);
+            if (!element) return mw.notify(`Failed to find element for ID "${check.id}"`);
+            element.innerHTML = count === 0 ? '<span style="color: #00733f">None</span>' : `<b><span style="color: #bd2828">${count === 500 ? '500+' : count}</span></b>`;
         });
 
         mw.notify('Successfully added missing counts to "Stuff to monitor"', { type: 'success' });
@@ -120,9 +137,9 @@ mw.loader.using(['mediawiki.util'], () => {
  * @param {string} [check.notNamespace] the namespace to exclude from the search
  * @returns {number|string} the category ID or list of category IDs (separated by '|')
  */
-function getCategory({ namespace, notNamespace }) {
+function getCategory({ namespace, notNamespace }: { namespace?: string; notNamespace?: string }): number | string {
     if (!namespace && !notNamespace) return 0;
-    else if (namespace) return Object.entries(mw.config.get('wgFormattedNamespaces')).find(([, value]) => value === namespace)[0] ?? 0;
+    else if (namespace) return Object.entries(mw.config.get('wgFormattedNamespaces')).find(([, value]) => value === namespace)?.[0] ?? 0;
     else
         return Object.entries(mw.config.get('wgFormattedNamespaces'))
             .filter(([, value]) => notNamespace !== (value || 'Article'))

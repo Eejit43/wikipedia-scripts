@@ -1,10 +1,20 @@
-/* global mw */
-
-mw.loader.using(['mediawiki.util'], async () => {
-    if (mw.config.get('wgNamespaceNumber') !== 0) return;
-    if (mw.config.get('wgAction') !== 'view') return;
-    if (mw.config.get('wgPageName') === 'Main_Page') return;
-
+"use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+mw.loader.using(['mediawiki.util'], () => __awaiter(void 0, void 0, void 0, function* () {
+    if (mw.config.get('wgNamespaceNumber') !== 0)
+        return;
+    if (mw.config.get('wgAction') !== 'view')
+        return;
+    if (mw.config.get('wgPageName') === 'Main_Page')
+        return;
     mw.util.addCSS(`
 #deletion-finder-previously-deleted {
     color: #dd3333;
@@ -35,34 +45,30 @@ mw.loader.using(['mediawiki.util'], async () => {
 }
 `);
     const titleElement = document.getElementById('firstHeading');
-
-    const deletionResult = await new mw.Api().get({
+    if (!titleElement)
+        return mw.notify('Could not find title element', { type: 'error' });
+    const deletionResult = yield new mw.Api().get({
         action: 'query',
         list: 'logevents',
         leaction: 'delete/delete',
         lelimit: '1',
         letitle: mw.config.get('wgPageName')
     });
-
     if (deletionResult.query.logevents.length > 0) {
         const link = document.createElement('a');
         link.id = 'deletion-finder-previously-deleted';
         link.href = mw.util.getUrl('Special:Log/delete', { page: mw.config.get('wgPageName').replaceAll('_', ' '), subtype: 'delete' });
         link.target = '_blank';
         link.textContent = 'Previously deleted';
-
         titleElement.appendChild(link);
     }
-
-    const afdExists = await new mw.Api().get({ action: 'query', titles: `Wikipedia:Articles_for_deletion/${mw.config.get('wgPageName')}` });
-
+    const afdExists = yield new mw.Api().get({ action: 'query', titles: `Wikipedia:Articles_for_deletion/${mw.config.get('wgPageName')}` });
     if (!afdExists.query.pages['-1']) {
         const link = document.createElement('a');
         link.id = 'deletion-finder-previous-afd';
         link.href = mw.util.getUrl('Special:AllPages', { from: `Articles for deletion/${mw.config.get('wgPageName').replaceAll('_', ' ')}`, to: `Articles for deletion/${mw.config.get('wgPageName').replaceAll('_', ' ')} (9z)`, namespace: '4' });
         link.target = '_blank';
         link.textContent = 'Previously at AfD';
-
         titleElement.appendChild(link);
     }
-});
+}));

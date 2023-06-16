@@ -1,5 +1,3 @@
-/* global mw, OO */
-
 mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui.styles.icons-editing-core'], () => {
     if (mw.config.get('wgNamespaceNumber') < 0) return; // Don't run in virtual namespaces
     if (!mw.config.get('wgIsProbablyEditable')) return; // Don't run if user can't edit page
@@ -87,5 +85,5 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui.styles.icons-editing
         editBox.popPending();
     });
 
-    document.getElementById('firstHeading').appendChild(editButton.$element[0]);
+    document.getElementById('firstHeading')?.appendChild(editButton.$element[0]);
 });

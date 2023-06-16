@@ -1,4 +1,17 @@
-/* global mw */
+type Script = {
+    name: string;
+    'image-size'?: string;
+    'image-caption'?: string;
+    'short-description': string;
+    description: string;
+    'other-authors'?: string[];
+    fork?: boolean;
+    personal?: boolean;
+    'skin-support': Record<string, boolean>;
+    released: string;
+    updated: string;
+    css?: boolean;
+};
 
 mw.loader.using(['mediawiki.util'], () => {
     if (mw.config.get('wgUserName') !== 'Eejit43' || mw.config.get('wgPageName') !== 'User:Eejit43') return;
@@ -6,13 +19,14 @@ mw.loader.using(['mediawiki.util'], () => {
     const repoOwner = 'Eejit43';
     const repoName = 'wikipedia-scripts';
 
-    mw.util.addPortletLink(mw.config.get('skin') === 'minerva' ? 'p-tb' : 'p-cactions', '#', 'Sync user scripts from GitHub', 'sync-scripts');
-    document.getElementById('sync-scripts').addEventListener('click', async (event) => {
+    const link = mw.util.addPortletLink(mw.config.get('skin') === 'minerva' ? 'p-tb' : 'p-cactions', '#', 'Sync user scripts from GitHub', 'sync-scripts');
+
+    link.addEventListener('click', async (event) => {
         event.preventDefault();
 
         const latestCommitHash = (await (await fetch(`https://api.github.com/repos/${repoOwner}/${repoName}/commits`)).json())[0].sha;
 
-        const scriptData = await (await fetch(`https://raw.githubusercontent.com/${repoOwner}/${repoName}/${latestCommitHash}/scripts.json`)).json();
+        const scriptData: Script[] = await (await fetch(`https://raw.githubusercontent.com/${repoOwner}/${repoName}/${latestCommitHash}/scripts.json`)).json();
 
         mw.notify('Syncing scripts...', { autoHide: false, tag: 'sync-scripts-notification' });
 
@@ -38,14 +52,15 @@ mw.loader.using(['mediawiki.util'], () => {
                     '}}'
                 ].filter(Boolean);
 
-                const scriptContent = await (await fetch(`https://raw.githubusercontent.com/${repoOwner}/${repoName}/${latestCommitHash}/scripts/${script.name}.js`)).text().catch((error) => {
-                    console.error(error); // eslint-disable-line no-console
-                    return false;
+                const scriptContent = await (await fetch(`https://raw.githubusercontent.com/${repoOwner}/${repoName}/${latestCommitHash}/dist/${script.name}.js`)).text().catch((error) => {
+                    console.error(error);
+                    return null;
                 });
+
                 const styleContent = script.css
                     ? await (await fetch(`https://raw.githubusercontent.com/${repoOwner}/${repoName}/${latestCommitHash}/styles/${script.name}.css`)).text().catch((error) => {
-                        console.error(error); // eslint-disable-line no-console
-                        return false;
+                        console.error(error);
+                        return null;
                     })
                     : null; // prettier-ignore
 
@@ -55,8 +70,8 @@ mw.loader.using(['mediawiki.util'], () => {
                     await editOrCreate(subpageName, fullSubpageInfo.join('\n'), 'Syncing script documentation from GitHub');
                     await editOrCreate(subpageTalkName, '#REDIRECT [[User talk:Eejit43]]', 'Redirecting script documentation talk page to main user talk page');
                 }
-                await editOrCreate(scriptName, `// <nowiki>\n${scriptContent}\n// </nowiki>`, 'Syncing script from GitHub');
-                if (script.css) await editOrCreate(styleName, styleContent, 'Syncing CSS from GitHub');
+                await editOrCreate(scriptName, `// <nowiki>\n// Note: This script was compiled from TypeScript. For a more readable version, see https://github.com/${repoOwner}/${repoName}/blob/main/scripts/${script.name}.ts\n\n${scriptContent}\n// </nowiki>`, 'Syncing script from GitHub');
+                if (script.css && styleContent) await editOrCreate(styleName, styleContent, 'Syncing CSS from GitHub');
             })
         );
 
@@ -78,10 +93,10 @@ mw.loader.using(['mediawiki.util'], () => {
 
         /**
          * Maps scripts to a bulleted list
-         * @param {object[]} scripts The scripts to map
+         * @param {Script[]} scripts The scripts to map
          * @returns {string} The mapped scripts
          */
-        function mapScripts(scripts) {
+        function mapScripts(scripts: Script[]): string {
             return scripts.map((script) => `* [[User:Eejit43/scripts/${script.name}${script.personal ? '.js' : ''}|${script.name}]] - ${script['short-description'] || script.description}`).join('\n');
         }
 
@@ -91,19 +106,19 @@ mw.loader.using(['mediawiki.util'], () => {
          * @param {string} text the page content to set
          * @param {string} summary the edit summary (will append script notice)
          */
-        async function editOrCreate(title, text, summary) {
+        async function editOrCreate(title: string, text: string, summary: string): Promise<void> {
             summary += ' (via [[User:Eejit43/scripts/script-updater.js|script]])';
             await new mw.Api()
                 .edit(title, () => ({ text, summary, watchlist: 'watch' }))
                 .catch(async (error, data) => {
                     if (error === 'nocreate-missing')
                         await new mw.Api().create(title, { summary, watchlist: 'watch' }, text).catch((error, data) => {
-                            console.error(error); // eslint-disable-line no-console
+                            console.error(error);
                             mw.notify(`Error creating ${title}: ${data.error.info} (${error})`, { type: 'error' });
                             return;
                         });
                     else {
-                        console.error(error); // eslint-disable-line no-console
+                        console.error(error);
                         mw.notify(`Error editing or creating ${title}: ${data.error.info} (${error})`, { type: 'error' });
                         return;
                     }

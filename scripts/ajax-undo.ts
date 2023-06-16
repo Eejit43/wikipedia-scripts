@@ -1,5 +1,3 @@
-/* global mw */
-
 mw.loader.using(['mediawiki.util'], () => {
     const isDiff = mw.config.get('wgDiffOldId');
 
@@ -60,7 +58,11 @@ padding: revert;`
 `);
 
     document.querySelectorAll('.mw-history-undo, .mw-diff-undo').forEach((undoSpan) => {
-        const undoUrl = new URL(undoSpan.querySelector('a').href);
+        const undoLink = undoSpan.querySelector('a');
+
+        if (!undoLink?.href) return mw.notify('Could not find undo link!', { type: 'error' });
+
+        const undoUrl = new URL(undoLink.href);
 
         const span = document.createElement('span');
 
@@ -91,7 +93,11 @@ padding: revert;`
                 const undoId = undoUrl.searchParams.get('undo');
                 const undoAfter = undoUrl.searchParams.get('undoafter');
 
-                const revisionUser = undoSpan.closest(isDiff ? 'td' : 'li').querySelector('.mw-userlink bdi').textContent;
+                if (!undoId || !undoAfter) return mw.notify('Could not find undo parameters in URL!', { type: 'error' });
+
+                const revisionUser = undoSpan.closest(isDiff ? 'td' : 'li')?.querySelector('.mw-userlink bdi')?.textContent;
+
+                if (!revisionUser) return mw.notify('Could not find revision user!', { type: 'error' });
 
                 const success = await new mw.Api()
                     .postWithEditToken({
@@ -138,7 +144,7 @@ padding: revert;`
         if (isDiff) {
             undoSpan.after(span);
             undoSpan.after(document.createTextNode(' '));
-        } else if (isMinerva) undoSpan.parentElement.before(span);
-        else undoSpan.parentElement.after(span);
+        } else if (isMinerva) undoSpan.parentElement?.before(span);
+        else undoSpan.parentElement?.after(span);
     });
 });

@@ -70,7 +70,7 @@ mw.loader.using(['mediawiki.util'], () => {
         ].join('\n'), 'Syncing script list from GitHub');
         mw.notify(`Synced ${scriptData.length} scripts from GitHub!`, { type: 'success', tag: 'sync-scripts-notification' });
         function mapScripts(scripts) {
-            return scripts.map((script) => `* [[User:Eejit43/scripts/${script.name}${script.personal ? '.js' : ''}|${script.name}]] - ${script['short-description'] || script.description}`).join('\n');
+            return scripts.map((script) => `* [[User:Eejit43/scripts/${script.name}${script.personal ? '.js' : ''}|${script.name}]] - ${script['short-description'] || script.description}${script['use-instead'] ? ' (<span style="color: #bd2828">deprecated</span>)' : ''}`).join('\n');
         }
         function editOrCreate(title, text, summary) {
             return __awaiter(this, void 0, void 0, function* () {

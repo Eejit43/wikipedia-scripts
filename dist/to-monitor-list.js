@@ -16,24 +16,23 @@ mw.loader.using(['mediawiki.util'], () => {
         event.preventDefault();
         const toCheck = JSON.parse((yield new mw.Api().get({
             action: 'query',
-            prop: 'revisions',
             formatversion: 2,
-            titles: 'User:Eejit43/scripts/to-monitor-list.json',
+            prop: 'revisions',
             rvprop: 'content',
-            rvslots: '*'
+            rvslots: '*',
+            titles: 'User:Eejit43/scripts/to-monitor-list.json'
         })).query.pages[0].revisions[0].slots.main.content);
         toCheck.categories.forEach((check) => __awaiter(void 0, void 0, void 0, function* () {
             const data = yield new mw.Api()
                 .get({
                 action: 'query',
                 list: 'search',
-                srsearch: `incategory:"${check.category}"`,
+                srinfo: 'totalhits',
                 srnamespace: getCategory(check),
-                srinfo: 'totalhits'
+                srsearch: `incategory:"${check.category}"`
             })
-                .catch((_, data) => {
-                console.error(data.error);
-                mw.notify(`An error occurred while trying to get category members! (${data.error.info})`, { type: 'error' });
+                .catch((errorCode, { error }) => {
+                mw.notify(`An error occurred while trying to get category members: ${error.info} (${errorCode})`, { type: 'error' });
                 return null;
             });
             if (!data)
@@ -49,13 +48,12 @@ mw.loader.using(['mediawiki.util'], () => {
                 .get({
                 action: 'query',
                 list: 'search',
-                srsearch: check.search,
+                srinfo: 'totalhits',
                 srnamespace: getCategory(check),
-                srinfo: 'totalhits'
+                srsearch: check.search
             })
-                .catch((_, data) => {
-                console.error(data.error);
-                mw.notify(`An error occurred while trying to get search results! (${data.error.info})`, { type: 'error' });
+                .catch((errorCode, { error }) => {
+                mw.notify(`An error occurred while trying to get search results: ${error.info} (${errorCode})`, { type: 'error' });
                 return null;
             });
             if (!data)
@@ -70,14 +68,13 @@ mw.loader.using(['mediawiki.util'], () => {
             const data = yield new mw.Api()
                 .get({
                 action: 'query',
-                list: 'backlinks',
-                bltitle: check.title,
+                bllimit: 500,
                 blnamespace: getCategory(check),
-                bllimit: 500
+                bltitle: check.title,
+                list: 'backlinks'
             })
-                .catch((_, data) => {
-                console.error(data.error);
-                mw.notify(`An error occurred while trying to get backlinks! (${data.error.info})`, { type: 'error' });
+                .catch((errorCode, { error }) => {
+                mw.notify(`An error occurred while trying to get backlinks: ${error.info} (${errorCode})`, { type: 'error' });
                 return null;
             });
             if (!data)
@@ -92,14 +89,13 @@ mw.loader.using(['mediawiki.util'], () => {
             const data = yield new mw.Api()
                 .get({
                 action: 'query',
-                list: 'embeddedin',
-                eititle: check.title,
+                eilimit: 500,
                 einamespace: getCategory(check),
-                eilimit: 500
+                eititle: check.title,
+                list: 'embeddedin'
             })
-                .catch((_, data) => {
-                console.error(data.error);
-                mw.notify(`An error occurred while trying to get transclusions! (${data.error.info})`, { type: 'error' });
+                .catch((errorCode, { error }) => {
+                mw.notify(`An error occurred while trying to get transclusions: ${error.info} (${errorCode})`, { type: 'error' });
                 return null;
             });
             if (!data)

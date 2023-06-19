@@ -30,12 +30,10 @@
                 for (let i = 0; i < string.length; i++) {
                     const char = string[i];
                     temp += char;
-                    if (char === '{' || char === '[') {
+                    if (char === '{' || char === '[')
                         open += 1;
-                    }
-                    else if (char === '}' || char === ']') {
+                    else if (char === '' || char === ']')
                         open--;
-                    }
                     else if (char === '|' && open === 0 && temp.trim() !== '|') {
                         params.push(temp.slice(0, -1).trim());
                         temp = '|';
@@ -63,10 +61,10 @@
                 const origTemplate = String(template);
                 const lines = template.split('\n');
                 const newLines = [];
-                for (const lineNumber in lines) {
-                    const paramsInLine = splitIntoParams(lines[lineNumber].trim());
-                    for (const paramNumber in paramsInLine) {
-                        const line = paramsInLine[paramNumber].trim();
+                for (const line of lines) {
+                    const paramsInLine = splitIntoParams(line.trim());
+                    for (const param of paramsInLine) {
+                        const line = param.trim();
                         if (!line.startsWith('|') || line.split('=').length !== 2) {
                             newLines.push(line);
                             continue;
@@ -80,8 +78,7 @@
                 }
                 let output = '';
                 maxLength += 2;
-                for (const lineNumber in newLines) {
-                    let line = newLines[lineNumber];
+                for (let line of newLines) {
                     const parts = splitParam(line);
                     if (parts.length < 2) {
                         output += line += '\n';
@@ -102,8 +99,8 @@
             let open = 0;
             for (let i = 0; i < text.length; i++) {
                 let foo = false;
-                for (const searchIndex in searches) {
-                    const search = '{{' + searches[searchIndex];
+                for (let search of searches) {
+                    search = '{{' + search;
                     const searchLength = search.length;
                     if (text.length - i > searchLength) {
                         if (text.slice(i, i + searchLength).toLowerCase() === search || text.slice(i, i + searchLength).toLowerCase() === search.replace(' ', '_')) {

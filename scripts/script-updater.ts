@@ -1,13 +1,13 @@
 type Script = {
     name: string;
-    'image-size'?: string;
-    'image-caption'?: string;
-    'short-description': string;
+    'image-size'?: string; // eslint-disable-line @typescript-eslint/naming-convention
+    'image-caption'?: string; // eslint-disable-line @typescript-eslint/naming-convention
+    'short-description': string; // eslint-disable-line @typescript-eslint/naming-convention
     description: string;
-    'other-authors'?: string[];
+    'other-authors'?: string[]; // eslint-disable-line @typescript-eslint/naming-convention
     fork?: boolean;
     personal?: boolean;
-    'skin-support': Record<string, boolean>;
+    'skin-support': Record<string, boolean>; // eslint-disable-line @typescript-eslint/naming-convention
     released: string;
     updated: string;
     css?: boolean;
@@ -24,9 +24,9 @@ mw.loader.using(['mediawiki.util'], () => {
     link.addEventListener('click', async (event) => {
         event.preventDefault();
 
-        const latestCommitHash = (await (await fetch(`https://api.github.com/repos/${repoOwner}/${repoName}/commits`)).json())[0].sha;
+        const latestCommitHash = ((await (await fetch(`https://api.github.com/repos/${repoOwner}/${repoName}/commits`)).json()) as { sha: string }[])[0].sha;
 
-        const scriptData: Script[] = await (await fetch(`https://raw.githubusercontent.com/${repoOwner}/${repoName}/${latestCommitHash}/scripts.json`)).json();
+        const scriptData = (await (await fetch(`https://raw.githubusercontent.com/${repoOwner}/${repoName}/${latestCommitHash}/scripts.json`)).json()) as Script[];
 
         mw.notify('Syncing scripts...', { autoHide: false, tag: 'sync-scripts-notification' });
 
@@ -59,10 +59,10 @@ mw.loader.using(['mediawiki.util'], () => {
 
                 const styleContent = script.css
                     ? await (await fetch(`https://raw.githubusercontent.com/${repoOwner}/${repoName}/${latestCommitHash}/styles/${script.name}.css`)).text().catch((error) => {
-                        console.error(error);
-                        return null;
-                    })
-                    : null; // prettier-ignore
+                          console.error(error);
+                          return null;
+                      })
+                    : null;
 
                 if (!scriptContent || (script.css && !styleContent)) return mw.notify(`Error syncing "${script.name}" from GitHub, skipping...`, { type: 'error' });
 
@@ -110,16 +110,14 @@ mw.loader.using(['mediawiki.util'], () => {
             summary += ' (via [[User:Eejit43/scripts/script-updater.js|script]])';
             await new mw.Api()
                 .edit(title, () => ({ text, summary, watchlist: 'watch' }))
-                .catch(async (error, data) => {
-                    if (error === 'nocreate-missing')
-                        await new mw.Api().create(title, { summary, watchlist: 'watch' }, text).catch((error, data) => {
-                            console.error(error);
-                            mw.notify(`Error creating ${title}: ${data.error.info} (${error})`, { type: 'error' });
+                .catch(async (errorCode: string, { error }: MediaWikiDataError) => {
+                    if (errorCode === 'nocreate-missing')
+                        await new mw.Api().create(title, { summary, watchlist: 'watch' }, text).catch((errorCode: string, { error }: MediaWikiDataError) => {
+                            mw.notify(`Error creating ${title}: ${error.info} (${errorCode})`, { type: 'error' });
                             return;
                         });
                     else {
-                        console.error(error);
-                        mw.notify(`Error editing or creating ${title}: ${data.error.info} (${error})`, { type: 'error' });
+                        mw.notify(`Error editing or creating ${title}: ${error.info} (${errorCode})`, { type: 'error' });
                         return;
                     }
                 });

@@ -13,10 +13,10 @@ mw.loader.using(['mediawiki.util'], () => {
     if (mw.config.get('wgAction') !== 'history' && !isDiff)
         return;
     const isMinerva = mw.config.get('skin') === 'minerva';
-    const stages = {
-        AWAITING_CLICK: 0,
-        AWAITING_CONFIRMATION: 1,
-        AWAITING_RELOAD: 2
+    const STAGES = {
+        awaitingClick: 0,
+        awaitingConfirmation: 1,
+        awaitingReload: 2
     };
     mw.util.addCSS(`
 /* Modified from Max Beier's "text-spinners" (https://github.com/maxbeier/text-spinners) */
@@ -66,7 +66,7 @@ padding: revert;`
             return mw.notify('Could not find undo link!', { type: 'error' });
         const undoUrl = new URL(undoLink.href);
         const span = document.createElement('span');
-        let stage = stages.AWAITING_CLICK;
+        let stage = STAGES.awaitingClick;
         const ajaxUndoLink = document.createElement('a');
         ajaxUndoLink.textContent = 'ajax undo';
         ajaxUndoLink.href = undoUrl.href;
@@ -75,14 +75,14 @@ padding: revert;`
         ajaxUndoLink.addEventListener('click', (event) => __awaiter(void 0, void 0, void 0, function* () {
             var _c, _d;
             event.preventDefault();
-            if (stage === stages.AWAITING_CLICK) {
-                stage = stages.AWAITING_CONFIRMATION;
+            if (stage === STAGES.awaitingClick) {
+                stage = STAGES.awaitingConfirmation;
                 reasonInput.style.display = 'inline';
                 reasonInput.focus();
                 ajaxUndoLink.textContent = 'confirm ajax undo';
             }
-            else if (stage === stages.AWAITING_CONFIRMATION) {
-                stage = stages.AWAITING_RELOAD;
+            else if (stage === STAGES.awaitingConfirmation) {
+                stage = STAGES.awaitingReload;
                 loadingSpinner.style.display = 'inline-block';
                 ajaxUndoLink.style.color = 'gray';
                 reasonInput.disabled = true;
@@ -103,8 +103,8 @@ padding: revert;`
                     undoafter: undoAfter,
                     summary: `Undid revision ${undoId} by [[Special:Contributions/${revisionUser}|${revisionUser}]] ([[User talk:${revisionUser}|talk]])${reasonInput.value ? `: ${reasonInput.value}` : ''}`
                 })
-                    .catch((_, data) => {
-                    mw.notify(`${data.error.info} (${data.error.code})`, { type: 'error' });
+                    .catch((errorCode, { error }) => {
+                    mw.notify(`${error.info} (${errorCode})`, { type: 'error' });
                     setTimeout(() => window.location.reload(), 2000);
                     return false;
                 });

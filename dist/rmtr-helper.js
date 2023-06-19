@@ -23,7 +23,7 @@ mw.loader.using(['mediawiki.util'], () => {
             return (_a = document.getElementById('rmtr-review-result')) === null || _a === void 0 ? void 0 : _a.scrollIntoView();
         else
             displayed = true;
-        const pageContent = (yield new mw.Api().get({ action: 'query', prop: 'revisions', formatversion: 2, titles: mw.config.get('wgPageName'), rvprop: 'content', rvslots: '*' })).query.pages[0].revisions[0].slots.main.content;
+        const pageContent = (yield new mw.Api().get({ action: 'query', formatversion: 2, prop: 'revisions', rvprop: 'content', rvslots: '*', titles: mw.config.get('wgPageName') })).query.pages[0].revisions[0].slots.main.content;
         const sections = ['Uncontroversial technical requests', 'Requests to revert undiscussed moves', 'Contested technical requests', 'Administrator needed'];
         const allRequests = {};
         sections.forEach((section) => {

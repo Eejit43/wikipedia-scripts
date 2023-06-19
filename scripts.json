@@ -32,7 +32,7 @@
             "cologne-blue": "yes"
         },
         "released": "2023|02|16",
-        "updated": "2023|06|15"
+        "updated": "2023|06|19"
     },
     {
         "name": "aligner",
@@ -50,7 +50,7 @@
             "cologne-blue": "yes"
         },
         "released": "2023|01|02",
-        "updated": "2023|06|16"
+        "updated": "2023|06|19"
     },
     {
         "name": "copy-search-results",
@@ -82,7 +82,7 @@
             "cologne-blue": "yes"
         },
         "released": "2023|05|10",
-        "updated": "2023|06|15"
+        "updated": "2023|06|19"
     },
     {
         "name": "displaytitle-editor",
@@ -99,7 +99,7 @@
             "cologne-blue": "yes"
         },
         "released": "2023|04|28",
-        "updated": "2023|06|15"
+        "updated": "2023|06|19"
     },
     {
         "name": "highlight-homographs",
@@ -181,29 +181,13 @@
             "cologne-blue": "yes"
         },
         "released": "2023|02|14",
-        "updated": "2023|06|15",
+        "updated": "2023|06|19",
         "css": true
     },
     {
-        "name": "sync-redirect",
-        "short-description": "User script to sync talk page redirects with their main page",
-        "description": "This user script allows talk pages to be synced to their corresponding main page redirect. If the main page ''is'' a redirect, a link is added to the \"More\"/\"Tools\" dropdown menu (or sidebar), which, when clicked, automatically update the page. If it exists on the main page, {{tl|R from move}} is added in {{tl|Redirect category shell}} as well.",
-        "skin-support": {
-            "vector-2022": "yes",
-            "vector": "yes",
-            "timeless": "yes",
-            "monobook": "yes",
-            "modern": "yes",
-            "minerva": "yes",
-            "cologne-blue": "yes"
-        },
-        "released": "2023|02|09",
-        "updated": "2023|06|15"
-    },
-    {
-        "name": "to-monitor-list",
-        "short-description": "User script that adds counts to [[User:Eejit43#Stuff to monitor|§ Stuff to monitor]]",
-        "description": "A user script for ''personal'' use that loads data that can't be parsed with wikitext in [[User:Eejit43#Stuff to monitor|§ Stuff to monitor]].",
+        "name": "script-updater",
+        "short-description": "User script that updates on-wiki scripts from GitHub",
+        "description": "A user script for ''personal'' use that updates on-wiki scripts from GitHub.",
         "personal": true,
         "skin-support": {
             "vector-2022": "yes",
@@ -214,8 +198,8 @@
             "minerva": "yes",
             "cologne-blue": "yes"
         },
-        "released": "2023|03|05",
-        "updated": "2023|06|15"
+        "released": "2023|04|05",
+        "updated": "2023|06|19"
     },
     {
         "name": "search-links",
@@ -234,9 +218,25 @@
         "updated": "2023|06|15"
     },
     {
-        "name": "script-updater",
-        "short-description": "User script that updates on-wiki scripts from GitHub",
-        "description": "A user script for ''personal'' use that updates on-wiki scripts from GitHub.",
+        "name": "sync-redirect",
+        "short-description": "User script to sync talk page redirects with their main page",
+        "description": "This user script allows talk pages to be synced to their corresponding main page redirect. If the main page ''is'' a redirect, a link is added to the \"More\"/\"Tools\" dropdown menu (or sidebar), which, when clicked, automatically update the page. If it exists on the main page, {{tl|R from move}} is added in {{tl|Redirect category shell}} as well.",
+        "skin-support": {
+            "vector-2022": "yes",
+            "vector": "yes",
+            "timeless": "yes",
+            "monobook": "yes",
+            "modern": "yes",
+            "minerva": "yes",
+            "cologne-blue": "yes"
+        },
+        "released": "2023|02|09",
+        "updated": "2023|06|19"
+    },
+    {
+        "name": "to-monitor-list",
+        "short-description": "User script that adds counts to [[User:Eejit43#Stuff to monitor|§ Stuff to monitor]]",
+        "description": "A user script for ''personal'' use that loads data that can't be parsed with wikitext in [[User:Eejit43#Stuff to monitor|§ Stuff to monitor]].",
         "personal": true,
         "skin-support": {
             "vector-2022": "yes",
@@ -247,7 +247,7 @@
             "minerva": "yes",
             "cologne-blue": "yes"
         },
-        "released": "2023|04|05",
-        "updated": "2023|06|15"
+        "released": "2023|03|05",
+        "updated": "2023|06|19"
     }
 ]

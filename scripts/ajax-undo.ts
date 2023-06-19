@@ -5,10 +5,10 @@ mw.loader.using(['mediawiki.util'], () => {
 
     const isMinerva = mw.config.get('skin') === 'minerva';
 
-    const stages = {
-        AWAITING_CLICK: 0,
-        AWAITING_CONFIRMATION: 1,
-        AWAITING_RELOAD: 2
+    const STAGES = {
+        awaitingClick: 0,
+        awaitingConfirmation: 1,
+        awaitingReload: 2
     };
 
     mw.util.addCSS(`
@@ -66,7 +66,7 @@ padding: revert;`
 
         const span = document.createElement('span');
 
-        let stage = stages.AWAITING_CLICK;
+        let stage = STAGES.awaitingClick;
 
         const ajaxUndoLink = document.createElement('a');
         ajaxUndoLink.textContent = 'ajax undo';
@@ -75,15 +75,15 @@ padding: revert;`
         ajaxUndoLink.addEventListener('click', async (event) => {
             event.preventDefault();
 
-            if (stage === stages.AWAITING_CLICK) {
-                stage = stages.AWAITING_CONFIRMATION;
+            if (stage === STAGES.awaitingClick) {
+                stage = STAGES.awaitingConfirmation;
 
                 reasonInput.style.display = 'inline';
                 reasonInput.focus();
 
                 ajaxUndoLink.textContent = 'confirm ajax undo';
-            } else if (stage === stages.AWAITING_CONFIRMATION) {
-                stage = stages.AWAITING_RELOAD;
+            } else if (stage === STAGES.awaitingConfirmation) {
+                stage = STAGES.awaitingReload;
                 loadingSpinner.style.display = 'inline-block';
                 ajaxUndoLink.style.color = 'gray';
                 reasonInput.disabled = true;
@@ -107,8 +107,8 @@ padding: revert;`
                         undoafter: undoAfter,
                         summary: `Undid revision ${undoId} by [[Special:Contributions/${revisionUser}|${revisionUser}]] ([[User talk:${revisionUser}|talk]])${reasonInput.value ? `: ${reasonInput.value}` : ''}`
                     })
-                    .catch((_, data) => {
-                        mw.notify(`${data.error.info} (${data.error.code})`, { type: 'error' });
+                    .catch((errorCode: string, { error }: MediaWikiDataError) => {
+                        mw.notify(`${error.info} (${errorCode})`, { type: 'error' });
                         setTimeout(() => window.location.reload(), 2000);
                         return false;
                     });

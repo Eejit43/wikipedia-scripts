@@ -5,9 +5,9 @@ type SearchData = {
     transclusions: { id: string; title: string; namespace?: string; notNamespace?: string }[];
 };
 
-type SearchResult = { query: { searchinfo: { totalhits: number } } }; // Heavily simplified
-type BacklinksResult = { query: { backlinks: object[] } }; // Heavily simplified
-type EmbeddedinResult = { query: { embeddedin: object[] } }; // Heavily simplified
+type SearchResult = { query: { searchinfo: { totalhits: number } } };
+type BacklinksResult = { query: { backlinks: object[] } };
+type EmbeddedinResult = { query: { embeddedin: object[] } };
 
 mw.loader.using(['mediawiki.util'], () => {
     if (mw.config.get('wgPageName') !== 'User:Eejit43') return;
@@ -17,31 +17,30 @@ mw.loader.using(['mediawiki.util'], () => {
     link.addEventListener('click', async (event) => {
         event.preventDefault();
 
-        const toCheck: SearchData = JSON.parse(
+        const toCheck = JSON.parse(
             (
-                await new mw.Api().get({
+                (await new mw.Api().get({
                     action: 'query',
-                    prop: 'revisions',
                     formatversion: 2,
-                    titles: 'User:Eejit43/scripts/to-monitor-list.json',
+                    prop: 'revisions',
                     rvprop: 'content',
-                    rvslots: '*'
-                })
+                    rvslots: '*',
+                    titles: 'User:Eejit43/scripts/to-monitor-list.json'
+                })) as PageRevisionsResult
             ).query.pages[0].revisions[0].slots.main.content
-        );
+        ) as SearchData;
 
         toCheck.categories.forEach(async (check) => {
             const data: SearchResult | null = await new mw.Api()
                 .get({
                     action: 'query',
                     list: 'search',
-                    srsearch: `incategory:"${check.category}"`,
+                    srinfo: 'totalhits',
                     srnamespace: getCategory(check),
-                    srinfo: 'totalhits'
+                    srsearch: `incategory:"${check.category}"`
                 })
-                .catch((_, data) => {
-                    console.error(data.error);
-                    mw.notify(`An error occurred while trying to get category members! (${data.error.info})`, { type: 'error' });
+                .catch((errorCode: string, { error }: MediaWikiDataError) => {
+                    mw.notify(`An error occurred while trying to get category members: ${error.info} (${errorCode})`, { type: 'error' });
                     return null;
                 });
 
@@ -59,13 +58,12 @@ mw.loader.using(['mediawiki.util'], () => {
                 .get({
                     action: 'query',
                     list: 'search',
-                    srsearch: check.search,
+                    srinfo: 'totalhits',
                     srnamespace: getCategory(check),
-                    srinfo: 'totalhits'
+                    srsearch: check.search
                 })
-                .catch((_, data) => {
-                    console.error(data.error);
-                    mw.notify(`An error occurred while trying to get search results! (${data.error.info})`, { type: 'error' });
+                .catch((errorCode: string, { error }: MediaWikiDataError) => {
+                    mw.notify(`An error occurred while trying to get search results: ${error.info} (${errorCode})`, { type: 'error' });
                     return null;
                 });
 
@@ -82,14 +80,13 @@ mw.loader.using(['mediawiki.util'], () => {
             const data: BacklinksResult | null = await new mw.Api()
                 .get({
                     action: 'query',
-                    list: 'backlinks',
-                    bltitle: check.title,
+                    bllimit: 500,
                     blnamespace: getCategory(check),
-                    bllimit: 500
+                    bltitle: check.title,
+                    list: 'backlinks'
                 })
-                .catch((_, data) => {
-                    console.error(data.error);
-                    mw.notify(`An error occurred while trying to get backlinks! (${data.error.info})`, { type: 'error' });
+                .catch((errorCode: string, { error }: MediaWikiDataError) => {
+                    mw.notify(`An error occurred while trying to get backlinks: ${error.info} (${errorCode})`, { type: 'error' });
                     return null;
                 });
 
@@ -106,14 +103,13 @@ mw.loader.using(['mediawiki.util'], () => {
             const data: EmbeddedinResult | null = await new mw.Api()
                 .get({
                     action: 'query',
-                    list: 'embeddedin',
-                    eititle: check.title,
+                    eilimit: 500,
                     einamespace: getCategory(check),
-                    eilimit: 500
+                    eititle: check.title,
+                    list: 'embeddedin'
                 })
-                .catch((_, data) => {
-                    console.error(data.error);
-                    mw.notify(`An error occurred while trying to get transclusions! (${data.error.info})`, { type: 'error' });
+                .catch((errorCode: string, { error }: MediaWikiDataError) => {
+                    mw.notify(`An error occurred while trying to get transclusions: ${error.info} (${errorCode})`, { type: 'error' });
                     return null;
                 });
 

@@ -76,7 +76,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui.styles.icons-editing
 
         editButton.$element[0].after(editBox.$element[0]);
 
-        const pageContent = (await new mw.Api().get({ action: 'query', prop: 'revisions', formatversion: 2, titles: mw.config.get('wgPageName'), rvprop: 'content', rvslots: '*' })).query.pages[0].revisions[0].slots.main.content;
+        const pageContent = ((await new mw.Api().get({ action: 'query', formatversion: 2, prop: 'revisions', rvprop: 'content', rvslots: '*', titles: mw.config.get('wgPageName') })) as PageRevisionsResult).query.pages[0].revisions[0].slots.main.content;
 
         const foundMagicWords = pageContent.match(/{{\s*DISPLAYTITLE\s*:\s*(.*?)\s*}}/gi);
         if (foundMagicWords) editBox.setValue(foundMagicWords[foundMagicWords.length - 1].replace(/{{\s*DISPLAYTITLE\s*:\s*(.*?)\s*}}/i, '$1'));

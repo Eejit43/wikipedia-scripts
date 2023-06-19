@@ -2,8 +2,8 @@
 interface Window {
     wikEd?: {
         useWikEd: boolean;
-        UpdateTextarea: () => void;
-        UpdateFrame: () => void;
+        UpdateTextarea: () => void; // eslint-disable-line @typescript-eslint/naming-convention
+        UpdateFrame: () => void; // eslint-disable-line @typescript-eslint/naming-convention
     };
 }
 
@@ -47,11 +47,9 @@ interface JQuery<TElement extends Node = HTMLElement> extends Iterable<TElement>
                     const char = string[i];
                     temp += char;
 
-                    if (char === '{' || char === '[') {
-                        open += 1;
-                    } else if (char === '}' || char === ']') {
-                        open--;
-                    } else if (char === '|' && open === 0 && temp.trim() !== '|') {
+                    if (char === '{' || char === '[') open += 1;
+                    else if (char === '' || char === ']') open--;
+                    else if (char === '|' && open === 0 && temp.trim() !== '|') {
                         params.push(temp.slice(0, -1).trim());
                         temp = '|';
                     }
@@ -85,11 +83,11 @@ interface JQuery<TElement extends Node = HTMLElement> extends Iterable<TElement>
                 const lines = template.split('\n');
                 const newLines = [];
 
-                for (const lineNumber in lines) {
-                    const paramsInLine = splitIntoParams(lines[lineNumber].trim());
+                for (const line of lines) {
+                    const paramsInLine = splitIntoParams(line.trim());
 
-                    for (const paramNumber in paramsInLine) {
-                        const line = paramsInLine[paramNumber].trim();
+                    for (const param of paramsInLine) {
+                        const line = param.trim();
                         if (!line.startsWith('|') || line.split('=').length !== 2) {
                             newLines.push(line);
                             continue;
@@ -108,8 +106,7 @@ interface JQuery<TElement extends Node = HTMLElement> extends Iterable<TElement>
 
                 maxLength += 2; // to include '| '
 
-                for (const lineNumber in newLines) {
-                    let line = newLines[lineNumber];
+                for (let line of newLines) {
                     const parts = splitParam(line) as [string, string];
 
                     if (parts.length < 2) {
@@ -137,8 +134,8 @@ interface JQuery<TElement extends Node = HTMLElement> extends Iterable<TElement>
             for (let i = 0; i < text.length; i++) {
                 let foo = false;
 
-                for (const searchIndex in searches) {
-                    const search = '{{' + searches[searchIndex];
+                for (let search of searches) {
+                    search = '{{' + search;
                     const searchLength = search.length;
 
                     if (text.length - i > searchLength) {

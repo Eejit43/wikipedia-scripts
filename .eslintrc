@@ -12,6 +12,7 @@
         "@typescript-eslint/no-floating-promises": "off",
         "@typescript-eslint/no-misused-promises": "off",
         "@typescript-eslint/no-unused-expressions": "error",
+        "@typescript-eslint/restrict-template-expressions": ["error", { "allowNumber": true, "allowBoolean": true }],
         "default-case-last": "error",
         "default-param-last": "off",
         "dot-notation": "off",

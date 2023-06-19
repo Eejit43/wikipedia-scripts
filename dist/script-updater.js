@@ -17,7 +17,7 @@ mw.loader.using(['mediawiki.util'], () => {
     link.addEventListener('click', (event) => __awaiter(void 0, void 0, void 0, function* () {
         event.preventDefault();
         const latestCommitHash = (yield (yield fetch(`https://api.github.com/repos/${repoOwner}/${repoName}/commits`)).json())[0].sha;
-        const scriptData = yield (yield fetch(`https://raw.githubusercontent.com/${repoOwner}/${repoName}/${latestCommitHash}/scripts.json`)).json();
+        const scriptData = (yield (yield fetch(`https://raw.githubusercontent.com/${repoOwner}/${repoName}/${latestCommitHash}/scripts.json`)).json());
         mw.notify('Syncing scripts...', { autoHide: false, tag: 'sync-scripts-notification' });
         yield Promise.all(scriptData.map((script) => __awaiter(void 0, void 0, void 0, function* () {
             const subpageName = `User:Eejit43/scripts/${script.name}`;
@@ -76,16 +76,14 @@ mw.loader.using(['mediawiki.util'], () => {
                 summary += ' (via [[User:Eejit43/scripts/script-updater.js|script]])';
                 yield new mw.Api()
                     .edit(title, () => ({ text, summary, watchlist: 'watch' }))
-                    .catch((error, data) => __awaiter(this, void 0, void 0, function* () {
-                    if (error === 'nocreate-missing')
-                        yield new mw.Api().create(title, { summary, watchlist: 'watch' }, text).catch((error, data) => {
-                            console.error(error);
-                            mw.notify(`Error creating ${title}: ${data.error.info} (${error})`, { type: 'error' });
+                    .catch((errorCode, { error }) => __awaiter(this, void 0, void 0, function* () {
+                    if (errorCode === 'nocreate-missing')
+                        yield new mw.Api().create(title, { summary, watchlist: 'watch' }, text).catch((errorCode, { error }) => {
+                            mw.notify(`Error creating ${title}: ${error.info} (${errorCode})`, { type: 'error' });
                             return;
                         });
                     else {
-                        console.error(error);
-                        mw.notify(`Error editing or creating ${title}: ${data.error.info} (${error})`, { type: 'error' });
+                        mw.notify(`Error editing or creating ${title}: ${error.info} (${errorCode})`, { type: 'error' });
                         return;
                     }
                 }));

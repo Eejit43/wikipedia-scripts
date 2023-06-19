@@ -47,13 +47,13 @@ mw.loader.using(['mediawiki.util'], () => __awaiter(void 0, void 0, void 0, func
     const titleElement = document.getElementById('firstHeading');
     if (!titleElement)
         return mw.notify('Could not find title element', { type: 'error' });
-    const deletionResult = yield new mw.Api().get({
+    const deletionResult = (yield new mw.Api().get({
         action: 'query',
-        list: 'logevents',
         leaction: 'delete/delete',
         lelimit: '1',
-        letitle: mw.config.get('wgPageName')
-    });
+        letitle: mw.config.get('wgPageName'),
+        list: 'logevents'
+    }));
     if (deletionResult.query.logevents.length > 0) {
         const link = document.createElement('a');
         link.id = 'deletion-finder-previously-deleted';
@@ -62,8 +62,8 @@ mw.loader.using(['mediawiki.util'], () => __awaiter(void 0, void 0, void 0, func
         link.textContent = 'Previously deleted';
         titleElement.appendChild(link);
     }
-    const afdExists = yield new mw.Api().get({ action: 'query', titles: `Wikipedia:Articles_for_deletion/${mw.config.get('wgPageName')}` });
-    if (!afdExists.query.pages['-1']) {
+    const afdExists = (yield new mw.Api().get({ action: 'query', formatversion: 2, titles: `Wikipedia:Articles_for_deletion/${mw.config.get('wgPageName')}` }));
+    if (!afdExists.query.pages[0].missing) {
         const link = document.createElement('a');
         link.id = 'deletion-finder-previous-afd';
         link.href = mw.util.getUrl('Special:AllPages', { from: `Articles for deletion/${mw.config.get('wgPageName').replaceAll('_', ' ')}`, to: `Articles for deletion/${mw.config.get('wgPageName').replaceAll('_', ' ')} (9z)`, namespace: '4' });

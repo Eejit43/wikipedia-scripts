@@ -21,12 +21,12 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.s
     const contentText = document.getElementById('mw-content-text');
     if (!contentText)
         return mw.notify('Failed to find content text element!', { type: 'error' });
-    const redirectTemplates = JSON.parse(((_f = (_e = (_d = (_c = (_b = (_a = (yield new mw.Api().get({ action: 'query', prop: 'revisions', formatversion: 2, titles: 'User:Eejit43/scripts/redirect-helper.json', rvprop: 'content', rvslots: '*' })).query.pages) === null || _a === void 0 ? void 0 : _a[0]) === null || _b === void 0 ? void 0 : _b.revisions) === null || _c === void 0 ? void 0 : _c[0]) === null || _d === void 0 ? void 0 : _d.slots) === null || _e === void 0 ? void 0 : _e.main) === null || _f === void 0 ? void 0 : _f.content) || '[]');
+    const redirectTemplates = JSON.parse(((_f = (_e = (_d = (_c = (_b = (_a = (yield new mw.Api().get({ action: 'query', formatversion: 2, prop: 'revisions', rvprop: 'content', rvslots: '*', titles: 'User:Eejit43/scripts/redirect-helper.json' })).query.pages) === null || _a === void 0 ? void 0 : _a[0]) === null || _b === void 0 ? void 0 : _b.revisions) === null || _c === void 0 ? void 0 : _c[0]) === null || _d === void 0 ? void 0 : _d.slots) === null || _e === void 0 ? void 0 : _e.main) === null || _f === void 0 ? void 0 : _f.content) || '[]');
     const pageTitle = mw.config.get('wgPageName');
     const pageTitleParsed = mw.Title.newFromText(pageTitle);
     if (!pageTitleParsed)
         return mw.notify('Failed to parse page title!', { type: 'error' });
-    const pageInfo = yield new mw.Api().get({ action: 'query', prop: 'info', formatversion: 2, titles: pageTitle });
+    const pageInfo = (yield new mw.Api().get({ action: 'query', formatversion: 2, prop: 'info', titles: pageTitle }));
     if (pageInfo.query.pages[0].missing) {
         const button = new OO.ui.ButtonWidget({ label: 'Create redirect', icon: 'articleRedirect', flags: ['progressive'] });
         button.$element[0].style.marginBottom = '10px';
@@ -57,67 +57,70 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.s
             editorBox.$element[0].style.marginBottom = '20px';
             let syncWithMainButton;
             if (pageTitleParsed.isTalkPage()) {
-                const mainPageData = yield new mw.Api().get({ action: 'query', prop: 'info', formatversion: 2, titles: pageTitleParsed.getSubjectPage().getPrefixedText() });
+                const mainPageData = (yield new mw.Api().get({ action: 'query', formatversion: 2, prop: 'info', titles: pageTitleParsed.getSubjectPage().getPrefixedText() }));
                 if (mainPageData.query.pages[0].redirect) {
                     const mainPageContent = (yield new mw.Api().get({ action: 'query', prop: 'revisions', formatversion: 2, titles: pageTitleParsed.getSubjectPage().getPrefixedText(), rvprop: 'content', rvslots: '*' })).query.pages[0].revisions[0].slots.main.content.trim();
                     syncWithMainButton = new OO.ui.ButtonWidget({ label: 'Sync with main page', icon: 'link', flags: ['progressive'] });
                     syncWithMainButton.on('click', () => {
                         var _a, _b, _c;
-                        redirectInput.setValue(((_c = (_b = mw.Title.newFromText((_a = /^#REDIRECT:?\s*\[\[\s*([^|{}[\]]+?)\s*]]\s*/i.exec(mainPageContent)) === null || _a === void 0 ? void 0 : _a[1])) === null || _b === void 0 ? void 0 : _b.getTalkPage()) === null || _c === void 0 ? void 0 : _c.toString()) || '');
+                        const target = (_a = /^#REDIRECT:?\s*\[\[\s*([^|{}[\]]+?)\s*(?:\|[^|{}[\]]+?)?]]\s*/i.exec(mainPageContent)) === null || _a === void 0 ? void 0 : _a[1];
+                        if (!target)
+                            return mw.notify('Failed to parse main page content!', { type: 'error' });
+                        redirectInput.setValue(((_c = (_b = mw.Title.newFromText(target)) === null || _b === void 0 ? void 0 : _b.getTalkPage()) === null || _c === void 0 ? void 0 : _c.toString()) || '');
                         const fromMove = ['R from move', ...redirectTemplates['R from move']].some((tagOrRedirect) => new RegExp(`{{\\s*[${tagOrRedirect[0].toLowerCase()}${tagOrRedirect[0]}]${tagOrRedirect.substring(1)}\\s*(\\||}})`).test(mainPageContent));
                         if (fromMove)
                             tagSelect.setValue(['R from move']);
                     });
                 }
             }
-            const RedirectInputWidget = function RedirectInputWidget(config) {
-                OO.ui.TextInputWidget.call(this, config);
-                OO.ui.mixin.LookupElement.call(this, config);
-            };
-            OO.inheritClass(RedirectInputWidget, OO.ui.TextInputWidget);
-            OO.mixinClass(RedirectInputWidget, OO.ui.mixin.LookupElement);
-            RedirectInputWidget.prototype.getLookupRequest = function () {
-                var _a, _b;
-                const value = this.getValue();
-                const deferred = $.Deferred();
-                if (!value)
-                    deferred.resolve([]);
-                else if (value.includes('#')) {
-                    const title = value.split('#')[0];
-                    new mw.Api()
-                        .get({ action: 'parse', page: title, prop: 'sections', redirects: '1' })
-                        .catch(() => null)
-                        .then((result) => {
-                        if (!result)
+            class RedirectInputWidget extends OO.ui.TextInputWidget {
+                constructor(config) {
+                    super(config);
+                    this.getLookupRequest = () => {
+                        var _a, _b;
+                        const value = this.getValue();
+                        const deferred = $.Deferred();
+                        if (!value)
                             deferred.resolve([]);
-                        else {
-                            const matchedSections = result.parse.sections.filter((section) => section.line.toLowerCase().startsWith(value.split('#')[1].toLowerCase()));
-                            deferred.resolve(matchedSections.map((section) => ({ data: `${result.parse.title}#${section.line}`, label: `${result.parse.title}#${section.line}` })));
+                        else if (value.includes('#')) {
+                            const title = value.split('#')[0];
+                            new mw.Api()
+                                .get({ action: 'parse', page: title, prop: 'sections', redirects: '1' })
+                                .catch(() => null)
+                                .then((result) => {
+                                if (!result)
+                                    deferred.resolve([]);
+                                else {
+                                    const matchedSections = result.parse.sections.filter((section) => section.line.toLowerCase().startsWith(value.split('#')[1].toLowerCase()));
+                                    deferred.resolve(matchedSections.map((section) => ({ data: `${result.parse.title}#${section.line}`, label: `${result.parse.title}#${section.line}` })));
+                                }
+                            });
                         }
-                    });
-                }
-                else {
-                    const parsedTitle = mw.Title.newFromText(value);
-                    new mw.Api()
-                        .get({ action: 'query', generator: 'allpages', gapprefix: (_a = parsedTitle === null || parsedTitle === void 0 ? void 0 : parsedTitle.title) !== null && _a !== void 0 ? _a : value, gapnamespace: (_b = parsedTitle === null || parsedTitle === void 0 ? void 0 : parsedTitle.namespace) !== null && _b !== void 0 ? _b : 'e', gaplimit: 20, prop: 'info|pageprops' })
-                        .catch(() => null)
-                        .then((result) => {
-                        var _a;
-                        if (!result)
-                            deferred.resolve([]);
                         else {
-                            deferred.resolve(((_a = result.query) === null || _a === void 0 ? void 0 : _a.pages)
-                                ? Object.values(result.query.pages)
-                                    .filter((page) => page.title !== pageTitleParsed.toString())
-                                    .map((page) => ({ data: page.title, label: new OO.ui.HtmlSnippet(`${page.title}${page.pageprops && 'disambiguation' in page.pageprops ? ' <i>(disambiguation)</i>' : ''}${'redirect' in page ? ' <i>(redirect)</i>' : ''}`) }))
-                                : []);
+                            const parsedTitle = mw.Title.newFromText(value);
+                            new mw.Api()
+                                .get({ action: 'query', generator: 'allpages', gapprefix: (_a = parsedTitle === null || parsedTitle === void 0 ? void 0 : parsedTitle.title) !== null && _a !== void 0 ? _a : value, gapnamespace: (_b = parsedTitle === null || parsedTitle === void 0 ? void 0 : parsedTitle.namespace) !== null && _b !== void 0 ? _b : 0, gaplimit: 20, prop: 'info|pageprops', formatversion: 2 })
+                                .catch(() => null)
+                                .then((result) => {
+                                var _a;
+                                if (!result)
+                                    deferred.resolve([]);
+                                else
+                                    deferred.resolve(((_a = result.query) === null || _a === void 0 ? void 0 : _a.pages)
+                                        ? result.query.pages
+                                            .filter((page) => page.title !== pageTitleParsed.toString())
+                                            .map((page) => ({ data: page.title, label: new OO.ui.HtmlSnippet(`${page.title}${page.pageprops && 'disambiguation' in page.pageprops ? ' <i>(disambiguation)</i>' : ''}${'redirect' in page ? ' <i>(redirect)</i>' : ''}`) }))
+                                        : []);
+                            });
                         }
-                    });
+                        return deferred.promise({ abort() { } });
+                    };
+                    this.getLookupCacheDataFromResponse = (response) => response || [];
+                    this.getLookupMenuOptionsFromData = (data) => data.map(({ data, label }) => new OO.ui.MenuOptionWidget({ data, label }));
+                    OO.ui.mixin.LookupElement.call(this, config);
                 }
-                return deferred.promise({ abort() { } });
-            };
-            RedirectInputWidget.prototype.getLookupCacheDataFromResponse = (response) => response || [];
-            RedirectInputWidget.prototype.getLookupMenuOptionsFromData = (data) => data.map((item) => new OO.ui.MenuOptionWidget({ data: item.data, label: item.label }));
+            }
+            Object.assign(RedirectInputWidget.prototype, OO.ui.mixin.LookupElement.prototype);
             const redirectInput = new RedirectInputWidget({ placeholder: 'Target page name', required: true });
             redirectInput.on('change', () => {
                 let value = redirectInput.getValue();
@@ -136,7 +139,6 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.s
             const redirectInputLayout = new OO.ui.FieldLayout(redirectInput, { label: new OO.ui.HtmlSnippet('<b>Redirect target:</b>'), align: 'top' });
             const tagSelect = new OO.ui.MenuTagMultiselectWidget({
                 allowArbitrary: false,
-                verticalPosition: 'below',
                 allowReordering: false,
                 options: Object.keys(redirectTemplates).map((tag) => ({ data: tag, label: tag }))
             });
@@ -180,16 +182,16 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.s
                     }
                     if (!parsedDestination && errors.length === 0)
                         errors.push({ title: destination, message: 'is not a valid page title!' });
-                    if (parsedDestination.toString() === pageTitleParsed.toString())
+                    if ((parsedDestination === null || parsedDestination === void 0 ? void 0 : parsedDestination.toString()) === pageTitleParsed.toString())
                         errors.push({ message: 'cannot redirect to itself!' });
-                    const destinationData = yield new mw.Api().get({ action: 'query', titles: destination, prop: 'pageprops', formatversion: 2 }).catch((_, data) => {
-                        if (data.error.code === 'missingtitle')
+                    const destinationData = (yield new mw.Api().get({ action: 'query', titles: destination, prop: 'pageprops', formatversion: 2 }).catch((errorCode) => {
+                        if (errorCode === 'missingtitle')
                             errors.push({ title: destination, message: 'does not exist!' });
                         else
                             errors.push({ title: destination, message: 'was not able to be fetched from the API!' });
                         return null;
-                    });
-                    const destinationParseResult = yield new mw.Api().get({ action: 'parse', page: destination, prop: 'sections', redirects: '1' });
+                    }));
+                    const destinationParseResult = (yield new mw.Api().get({ action: 'parse', page: destination, prop: 'sections', redirects: '1' }));
                     if ((_j = destinationParseResult.parse.redirects) === null || _j === void 0 ? void 0 : _j[0]) {
                         const destinationRedirect = destinationParseResult.parse.redirects[0].to + (destinationParseResult.parse.redirects[0].tofragment ? `#${destinationParseResult.parse.redirects[0].tofragment}` : '');
                         errors.push({ title: destination, message: `is a redirect to <a href="${mw.util.getUrl(destinationRedirect)}" target="_blank">${destinationRedirect}</a>. Retarget to that page instead, as double redirects aren't allowed.` });
@@ -265,15 +267,13 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.s
                 const summary = (summaryInput.getValue() || summaryInput.$tabIndexed[0].placeholder) + ' (via [[User:Eejit43/scripts/redirect-helper|redirect-helper]])';
                 const result = yield new mw.Api()
                     .edit(pageTitle, () => ({ text: output, summary }))
-                    .catch((error, data) => {
-                    if (error === 'nocreate-missing')
-                        return new mw.Api().create(pageTitle, { summary }, output).catch((error, data) => {
-                            console.error(error);
-                            mw.notify(`Error creating ${pageTitle}: ${data.error.info} (${error})`, { type: 'error' });
+                    .catch((errorCode, data) => {
+                    if (errorCode === 'nocreate-missing')
+                        return new mw.Api().create(pageTitle, { summary }, output).catch((errorCode, data) => {
+                            mw.notify(`Error creating ${pageTitle}: ${data.error.info} (${errorCode})`, { type: 'error' });
                         });
                     else {
-                        console.error(error);
-                        mw.notify(`Error editing or creating ${pageTitle}: ${data.error.info} (${error})`, { type: 'error' });
+                        mw.notify(`Error editing or creating ${pageTitle}: ${data.error.info} (${errorCode})`, { type: 'error' });
                         return null;
                     }
                 });
@@ -284,7 +284,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.s
                     submitButton.setLabel('Editing talk page...');
                     const fromMove = tagSelect.getValue().includes('R from move');
                     const output = [
-                        `#REDIRECT [[${parsedDestination.getTalkPage().getPrefixedText()}]]`,
+                        `#REDIRECT [[${(parsedDestination === null || parsedDestination === void 0 ? void 0 : parsedDestination.getTalkPage()).getPrefixedText()}]]`,
                         fromMove ? '{{Redirect category shell|\n{{R from move}}\n}}' : null
                     ]
                         .filter(Boolean)
@@ -292,15 +292,13 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.s
                     const talkPage = pageTitleParsed.getTalkPage().getPrefixedText();
                     const talkResult = yield new mw.Api()
                         .edit(talkPage, () => ({ text: output, summary: 'Syncing redirect from main page (via [[User:Eejit43/scripts/redirect-helper|redirect-helper]])' }))
-                        .catch((error, data) => {
-                        if (error === 'nocreate-missing')
-                            return new mw.Api().create(talkPage, { summary: 'Syncing redirect from main page (via [[User:Eejit43/scripts/redirect-helper|redirect-helper]])' }, output).catch((error, data) => {
-                                console.error(error);
-                                mw.notify(`Error creating ${talkPage}: ${data.error.info} (${error})`, { type: 'error' });
+                        .catch((errorCode, data) => {
+                        if (errorCode === 'nocreate-missing')
+                            return new mw.Api().create(talkPage, { summary: 'Syncing redirect from main page (via [[User:Eejit43/scripts/redirect-helper|redirect-helper]])' }, output).catch((errorCode, data) => {
+                                mw.notify(`Error creating ${talkPage}: ${data.error.info} (${errorCode})`, { type: 'error' });
                             });
                         else {
-                            console.error(error);
-                            mw.notify(`Error editing or creating ${talkPage}: ${data.error.info} (${error})`, { type: 'error' });
+                            mw.notify(`Error editing or creating ${talkPage}: ${data.error.info} (${errorCode})`, { type: 'error' });
                             return null;
                         }
                     });
@@ -310,19 +308,20 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.s
                 }
                 if (patrolCheckbox === null || patrolCheckbox === void 0 ? void 0 : patrolCheckbox.isSelected()) {
                     submitButton.setLabel('Patrolling redirect...');
-                    if (document.querySelector('.patrollink a')) {
-                        const patrolResult = yield new mw.Api().postWithToken('patrol', { action: 'patrol', rcid: new URL(document.querySelector('.patrollink a').href).searchParams.get('rcid') }).catch((error, data) => {
-                            console.error(error);
-                            mw.notify(`Error patrolling ${pageTitle} via API: ${data.error.info} (${error})`, { type: 'error' });
+                    const patrolLink = document.querySelector('.patrollink a');
+                    const markReviewedButton = document.getElementById('mwe-pt-mark-as-reviewed-button');
+                    if (patrolLink) {
+                        const patrolResult = yield new mw.Api().postWithToken('patrol', { action: 'patrol', rcid: new URL(patrolLink.href).searchParams.get('rcid') }).catch((errorCode, data) => {
+                            mw.notify(`Error patrolling ${pageTitle} via API: ${data.error.info} (${errorCode})`, { type: 'error' });
                             return null;
                         });
                         if (patrolResult)
                             mw.notify('Redirect patrolled successfully!', { type: 'success' });
                     }
-                    else if (!document.getElementById('mwe-pt-mark-as-reviewed-button'))
+                    else if (!markReviewedButton)
                         mw.notify('Page curation toolbar not found, redirect cannot be patrolled!', { type: 'error' });
                     else {
-                        document.getElementById('mwe-pt-mark-as-reviewed-button').click();
+                        markReviewedButton.click();
                         mw.notify('Redirect patrolled successfully!', { type: 'success' });
                     }
                 }
@@ -332,7 +331,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.s
             let talkData;
             let syncTalkCheckbox, syncTalkLayout;
             if (!pageTitleParsed.isTalkPage()) {
-                talkData = yield new mw.Api().get({ action: 'query', titles: pageTitleParsed.getTalkPage().getPrefixedText(), prop: 'info', formatversion: 2 });
+                talkData = (yield new mw.Api().get({ action: 'query', titles: pageTitleParsed.getTalkPage().getPrefixedText(), prop: 'info', formatversion: 2 }));
                 syncTalkCheckbox = new OO.ui.CheckboxInputWidget({ selected: !!talkData.query.pages[0].redirect });
                 syncTalkLayout = new OO.ui.Widget({ content: [new OO.ui.FieldLayout(syncTalkCheckbox, { label: 'Sync talk page', align: 'inline' })] });
                 syncTalkLayout.$element[0].style.marginBottom = '0';
@@ -349,10 +348,10 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.s
             else {
                 if (!mw.config.get('wgArticleId'))
                     shouldPromptPatrol = false;
-                const userPermissions = yield new mw.Api().get({ action: 'query', meta: 'userinfo', uiprop: 'rights' });
+                const userPermissions = (yield new mw.Api().get({ action: 'query', meta: 'userinfo', uiprop: 'rights' }));
                 if (!userPermissions.query.userinfo.rights.includes('patrol'))
                     shouldPromptPatrol = false;
-                const patrolResponse = yield new mw.Api().get({ action: 'pagetriagelist', page_id: mw.config.get('wgArticleId') });
+                const patrolResponse = (yield new mw.Api().get({ action: 'pagetriagelist', page_id: mw.config.get('wgArticleId') }));
                 if (((_a = patrolResponse.pagetriagelist.pages[0]) === null || _a === void 0 ? void 0 : _a.user_name) === mw.config.get('wgUserName'))
                     shouldPromptPatrol = false;
                 else if (patrolResponse.pagetriagelist.result !== 'success' || patrolResponse.pagetriagelist.pages.length === 0)
@@ -378,7 +377,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.s
                     summaryInput.$tabIndexed[0].placeholder = `Creating redirect to [[${redirectValue}]]`;
                 else {
                     const targetChanged = redirectValue !== oldRedirectTarget;
-                    const tagsChanged = tagSelect.getValue().join(';') !== oldRedirectTags.join(';');
+                    const tagsChanged = tagSelect.getValue().join(';') !== (oldRedirectTags === null || oldRedirectTags === void 0 ? void 0 : oldRedirectTags.join(';'));
                     if (targetChanged && tagsChanged)
                         summaryInput.$tabIndexed[0].placeholder = `Changing redirect to [[${redirectValue}]] and changing categorization templates`;
                     else if (targetChanged)
@@ -395,8 +394,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.s
                 oldRedirectTarget = (_d = /^#REDIRECT:?\s*\[\[\s*([^|{}[\]]+?)\s*(?:\|[^|{}[\]]+?)?]]\s*/i.exec(pageContent)) === null || _d === void 0 ? void 0 : _d[1];
                 oldRedirectTags = Object.entries(redirectTemplates)
                     .map(([tag, redirects]) => ([tag, ...redirects].some((tagOrRedirect) => new RegExp(`{{\\s*[${tagOrRedirect[0].toLowerCase()}${tagOrRedirect[0]}]${tagOrRedirect.substring(1)}\\s*(\\||}})`).test(pageContent)) ? tag : null))
-                    .filter(Boolean)
-                    .sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
+                    .filter(Boolean).sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
                 oldRedirectTagData = Object.fromEntries(oldRedirectTags
                     .map((tag) => {
                     const match = new RegExp(`{{\\s*(?:${[tag, ...redirectTemplates[tag]].map((tag) => `[${tag[0].toLowerCase()}${tag[0]}]${tag.substring(1)}`).join('|')})\\|?(.*?)\\s*}}`).exec(pageContent);

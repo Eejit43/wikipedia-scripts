@@ -9,9 +9,7 @@
     "overrides": [
         {
             "files": ["scripts.json"],
-            "options": {
-                "printWidth": 100
-            }
+            "options": { "printWidth": 100 }
         }
     ]
 }

@@ -99,7 +99,7 @@ mw.loader.using(['mediawiki.util'], () => {
          * @returns {string} The mapped scripts
          */
         function mapScripts(scripts: Script[]): string {
-            return scripts.map((script) => `* [[User:Eejit43/scripts/${script.name}${script.personal ? '.js' : ''}|${script.name}]] - ${script['short-description'] || script.description}`).join('\n');
+            return scripts.map((script) => `* [[User:Eejit43/scripts/${script.name}${script.personal ? '.js' : ''}|${script.name}]] - ${script['short-description'] || script.description}${script['use-instead'] ? ' (<span style="color: #bd2828">deprecated</span>)' : ''}`).join('\n');
         }
 
         /**

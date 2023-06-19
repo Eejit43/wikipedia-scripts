@@ -29,9 +29,7 @@ mw.loader.using(['mediawiki.util'], () => __awaiter(void 0, void 0, void 0, func
         const mwRedirectTarget = mw.Title.newFromText(redirectTargetParsed);
         if (!mwRedirectTarget)
             return mw.notify('Failed to parse redirect target!', { type: 'error', tag: 'sync-redirect-notification' });
-        const mainTargetText = mwRedirectTarget === null || mwRedirectTarget === void 0 ? void 0 : mwRedirectTarget.getMainText();
-        if (!mainTargetText)
-            return mw.notify('Failed to redirect page: Invalid redirect target', { type: 'error', tag: 'sync-redirect-notification' });
+        const mainTargetText = mwRedirectTarget.getMainText();
         const pageMove = /{{ *r(edirect)?( from)?(( a)? page)? (move|rename|pm) *}}/i.test(mainPageContent);
         const destinationTalkNamespaceName = mw.config.get('wgFormattedNamespaces')[mwRedirectTarget.getNamespaceId() + 1];
         yield new mw.Api()

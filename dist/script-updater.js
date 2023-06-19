@@ -26,6 +26,7 @@ mw.loader.using(['mediawiki.util'], () => {
             const styleName = `${subpageName}.css`;
             const fullSubpageInfo = [
                 '{{User:Eejit43/script-documentation',
+                script['use-instead'] ? `| use-instead       = [[User:Eejit43/scripts/${script['use-instead']}|${script['use-instead']}]]` : null,
                 script['image-size'] ? `| image-size        = ${script['image-size']}` : null,
                 script['image-caption'] ? `| image-caption     = ${script['image-caption']}` : null,
                 script['other-authors'] ? `| other-authors     = ${script['other-authors'].map((author) => `[[User:${author}|${author}]]`).join(', ')}` : null,

@@ -1,16 +1,17 @@
 type Script = {
     name: string;
+    'use-instead'?: string; // eslint-disable-line @typescript-eslint/naming-convention
     'image-size'?: string; // eslint-disable-line @typescript-eslint/naming-convention
     'image-caption'?: string; // eslint-disable-line @typescript-eslint/naming-convention
     'short-description': string; // eslint-disable-line @typescript-eslint/naming-convention
     description: string;
     'other-authors'?: string[]; // eslint-disable-line @typescript-eslint/naming-convention
-    fork?: boolean;
-    personal?: boolean;
+    fork?: true;
+    personal?: true;
     'skin-support': Record<string, boolean>; // eslint-disable-line @typescript-eslint/naming-convention
     released: string;
     updated: string;
-    css?: boolean;
+    css?: true;
 };
 
 mw.loader.using(['mediawiki.util'], () => {
@@ -39,6 +40,7 @@ mw.loader.using(['mediawiki.util'], () => {
 
                 const fullSubpageInfo = [
                     '{{User:Eejit43/script-documentation', //
+                    script['use-instead'] ? `| use-instead       = [[User:Eejit43/scripts/${script['use-instead']}|${script['use-instead']}]]` : null,
                     script['image-size'] ? `| image-size        = ${script['image-size']}` : null,
                     script['image-caption'] ? `| image-caption     = ${script['image-caption']}` : null,
                     script['other-authors'] ? `| other-authors     = ${script['other-authors'].map((author) => `[[User:${author}|${author}]]`).join(', ')}` : null,

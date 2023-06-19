@@ -219,6 +219,7 @@
     },
     {
         "name": "sync-redirect",
+        "use-instead": "redirect-helper",
         "short-description": "User script to sync talk page redirects with their main page",
         "description": "This user script allows talk pages to be synced to their corresponding main page redirect. If the main page ''is'' a redirect, a link is added to the \"More\"/\"Tools\" dropdown menu (or sidebar), which, when clicked, automatically update the page. If it exists on the main page, {{tl|R from move}} is added in {{tl|Redirect category shell}} as well.",
         "skin-support": {

@@ -13,6 +13,7 @@
         "@typescript-eslint/no-misused-promises": "off",
         "@typescript-eslint/no-unused-expressions": "error",
         "@typescript-eslint/restrict-template-expressions": ["error", { "allowNumber": true, "allowBoolean": true }],
+        "curly": ["error", "multi"],
         "default-case-last": "error",
         "default-param-last": "off",
         "dot-notation": "off",

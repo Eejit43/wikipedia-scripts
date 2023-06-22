@@ -102,13 +102,12 @@
                 for (let search of searches) {
                     search = '{{' + search;
                     const searchLength = search.length;
-                    if (text.length - i > searchLength) {
+                    if (text.length - i > searchLength)
                         if (text.slice(i, i + searchLength).toLowerCase() === search || text.slice(i, i + searchLength).toLowerCase() === search.replace(' ', '_')) {
                             open++;
                             template += text[i];
                             foo = true;
                         }
-                    }
                 }
                 if (open >= 1 && !foo) {
                     template += text[i];

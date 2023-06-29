@@ -6,6 +6,7 @@
     "root": true,
     "parserOptions": { "project": "./tsconfig.json" },
     "rules": {
+        "@typescript-eslint/ban-ts-comment": ["error", { "ts-ignore": "allow-with-description" }],
         "@typescript-eslint/default-param-last": "error",
         "@typescript-eslint/dot-notation": "error",
         "@typescript-eslint/naming-convention": "error",

@@ -2,7 +2,7 @@
     "name": "wikipedia-scripts",
     "private": true,
     "scripts": {
-        "build": "npx tsc"
+        "build": "npx esbuild $(find scripts -name '*.ts') --outdir=dist --target=es2015 --platform=browser"
     },
     "devDependencies": {
         "@tsconfig/recommended": "^1.0.2",
@@ -11,6 +11,7 @@
         "@types/oojs-ui": "^0.46.4",
         "@typescript-eslint/eslint-plugin": "^5.60.0",
         "@typescript-eslint/parser": "^5.60.0",
+        "esbuild": "^0.18.10",
         "eslint": "^8.43.0",
         "types-mediawiki": "^1.4.0",
         "typescript": "^5.1.3"

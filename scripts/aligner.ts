@@ -7,7 +7,7 @@ interface Window {
     };
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+// eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/naming-convention
 interface JQuery<TElement extends Node = HTMLElement> extends Iterable<TElement> {
     textSelection(methodName: 'setContents', value: string): void;
 }

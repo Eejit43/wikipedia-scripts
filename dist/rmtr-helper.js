@@ -69,9 +69,9 @@ mw.loader.using(['mediawiki.util'], () => {
                 invalidNamespaceWarning.classList.add('rmtr-review-invalid-warning');
                 invalidNamespaceWarning.textContent = `Warning: original or destination page is in namespace "${mwNewTitle.namespace === namespaces.file ? 'file' : 'category'}"!`;
                 const parsedWikitext = yield new mw.Api().parse(`[[:${request.original}]] → ${validTitle ? `[[:${request.destination}]]` : invalidTitleWarning.outerHTML} requested by ${mw.util.isIPAddress(request.requester) ? `[[Special:Contributions/${request.requester}|${request.requester}]]` : `[[User:${request.requester}|${request.requester}]]`} with reasoning "${request.reason}"`);
-                const parsedHTML = new DOMParser().parseFromString(parsedWikitext, 'text/html');
+                const parsedHtml = new DOMParser().parseFromString(parsedWikitext, 'text/html');
                 const requestElement = document.createElement('li');
-                requestElement.innerHTML = (_c = (_b = parsedHTML.querySelector('div.mw-parser-output')) === null || _b === void 0 ? void 0 : _b.firstElementChild) === null || _c === void 0 ? void 0 : _c.innerHTML;
+                requestElement.innerHTML = (_c = (_b = parsedHtml.querySelector('div.mw-parser-output')) === null || _b === void 0 ? void 0 : _b.firstElementChild) === null || _c === void 0 ? void 0 : _c.innerHTML;
                 if (!validNamespace)
                     requestElement.appendChild(invalidNamespaceWarning);
                 request.element = requestElement;
@@ -259,9 +259,9 @@ mw.loader.using(['mediawiki.util'], () => {
     }));
 });
 function showEditPreview(title, text, summary) {
-    const baseURL = mw.config.get('wgServer') + mw.config.get('wgScriptPath') + '/';
+    const baseUrl = mw.config.get('wgServer') + mw.config.get('wgScriptPath') + '/';
     const form = document.createElement('form');
-    form.action = `${baseURL}index.php?title=${encodeURIComponent(title)}&action=submit`;
+    form.action = `${baseUrl}index.php?title=${encodeURIComponent(title)}&action=submit`;
     form.method = 'POST';
     const textboxInput = document.createElement('input');
     textboxInput.type = 'hidden';

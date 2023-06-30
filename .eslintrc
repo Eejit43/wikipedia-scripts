@@ -9,7 +9,7 @@
         "@typescript-eslint/ban-ts-comment": ["error", { "ts-ignore": "allow-with-description" }],
         "@typescript-eslint/default-param-last": "error",
         "@typescript-eslint/dot-notation": "error",
-        "@typescript-eslint/naming-convention": "error",
+        "@typescript-eslint/naming-convention": ["error", { "selector": ["default", "variableLike", "method"], "format": ["strictCamelCase", "UPPER_CASE"] }, { "selector": "typeLike", "format": ["StrictPascalCase"] }, { "selector": "memberLike", "format": null, "filter": { "regex": "[-]", "match": true } }],
         "@typescript-eslint/no-floating-promises": "off",
         "@typescript-eslint/no-misused-promises": "off",
         "@typescript-eslint/no-unused-expressions": "error",

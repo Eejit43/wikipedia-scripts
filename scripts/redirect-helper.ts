@@ -1,9 +1,26 @@
-type PageInfoResult = { query: { pages: { missing?: string; redirect?: string }[] } };
-type AllPagesGeneratorResult = { query: { pages: { title: string; pageprops: { disambiguation?: string }; redirect?: string }[] } };
-type PageParseResult = { parse: { title: string; redirects: { to: string; tofragment: string }[]; sections: { line: string }[] } };
-type PagepropsResult = { query: { pages: { pageprops: { disambiguation?: string } }[] } };
-type UserPermissionsResponse = { query: { userinfo: { rights: string[] } } };
-type PageTriageListResponse = { pagetriagelist: { pages: { user_name: string; patrol_status: string }[]; result: string } }; // eslint-disable-line @typescript-eslint/naming-convention
+interface PageInfoResult {
+    query: { pages: { missing?: string; redirect?: string }[] };
+}
+
+interface AllPagesGeneratorResult {
+    query: { pages: { title: string; pageprops: { disambiguation?: string }; redirect?: string }[] };
+}
+
+interface PageParseResult {
+    parse: { title: string; redirects: { to: string; tofragment: string }[]; sections: { line: string }[] };
+}
+
+interface PagepropsResult {
+    query: { pages: { pageprops: { disambiguation?: string } }[] };
+}
+
+interface UserPermissionsResponse {
+    query: { userinfo: { rights: string[] } };
+}
+
+interface PageTriageListResponse {
+    pagetriagelist: { pages: { user_name: string; patrol_status: string }[]; result: string }; // eslint-disable-line @typescript-eslint/naming-convention
+}
 
 mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.styles.icons-content', 'oojs-ui.styles.icons-editing-core'], async () => {
     if (mw.config.get('wgNamespaceNumber') < 0) return; // Don't run in virtual namespaces
@@ -18,7 +35,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.s
     const redirectTemplates = JSON.parse(((await new mw.Api().get({ action: 'query', formatversion: 2, prop: 'revisions', rvprop: 'content', rvslots: '*', titles: 'User:Eejit43/scripts/redirect-helper.json' })) as PageRevisionsResult).query.pages?.[0]?.revisions?.[0]?.slots?.main?.content || '[]') as Record<string, string[]>;
 
     const pageTitle = mw.config.get('wgPageName');
-    const pageTitleParsed = mw.Title.newFromText(pageTitle) as mw.Title;
+    const pageTitleParsed = mw.Title.newFromText(pageTitle)!;
 
     if (!pageTitleParsed) return mw.notify('Failed to parse page title!', { type: 'error' });
 
@@ -43,8 +60,8 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.s
     }
 
     /**
-     * Shows the redirect information box
-     * @param {boolean} exists Whether or not the page exists
+     * Shows the redirect information box.
+     * @param exists Whether the page exists.
      */
     async function showRedirectInfo(exists: boolean): Promise<void> {
         const editorBox = new OO.ui.PanelLayout({ padded: true, expanded: false, framed: true });
@@ -58,16 +75,16 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.s
         let syncWithMainButton;
 
         if (pageTitleParsed.isTalkPage()) {
-            const mainPageData = (await new mw.Api().get({ action: 'query', formatversion: 2, prop: 'info', titles: (pageTitleParsed.getSubjectPage() as mw.Title).getPrefixedText() })) as PageInfoResult;
+            const mainPageData = (await new mw.Api().get({ action: 'query', formatversion: 2, prop: 'info', titles: pageTitleParsed.getSubjectPage()!.getPrefixedText() })) as PageInfoResult;
 
             if (mainPageData.query.pages[0].redirect) {
-                const mainPageContent = ((await new mw.Api().get({ action: 'query', formatversion: 2, prop: 'revisions', rvprop: 'content', rvslots: '*', titles: (pageTitleParsed.getSubjectPage() as mw.Title).getPrefixedText() })) as PageRevisionsResult).query.pages[0].revisions[0].slots.main.content.trim();
+                const mainPageContent = ((await new mw.Api().get({ action: 'query', formatversion: 2, prop: 'revisions', rvprop: 'content', rvslots: '*', titles: pageTitleParsed.getSubjectPage()!.getPrefixedText() })) as PageRevisionsResult).query.pages[0].revisions[0].slots.main.content.trim();
                 syncWithMainButton = new OO.ui.ButtonWidget({ label: 'Sync with main page', icon: 'link', flags: ['progressive'] });
                 syncWithMainButton.on('click', () => {
                     const target = /^#REDIRECT:?\s*\[\[\s*([^|{}[\]]+?)\s*(?:\|[^|{}[\]]+?)?]]\s*/i.exec(mainPageContent)?.[1];
                     if (!target) return mw.notify('Failed to parse main page content!', { type: 'error' });
 
-                    redirectInput.setValue(mw.Title.newFromText(target)?.getTalkPage()?.toString() || '');
+                    redirectInput.setValue(mw.Title.newFromText(target)?.getTalkPage()?.toString() ?? '');
                     const fromMove = ['R from move', ...redirectTemplates['R from move']].some((tagOrRedirect) => new RegExp(`{{\\s*[${tagOrRedirect[0].toLowerCase()}${tagOrRedirect[0]}]${tagOrRedirect.substring(1)}\\s*(\\||}})`).test(mainPageContent));
                     if (fromMove) tagSelect.setValue(['R from move']);
                 });
@@ -122,7 +139,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.s
                 return deferred.promise({ abort() {} }); // eslint-disable-line @typescript-eslint/no-empty-function
             };
 
-            getLookupCacheDataFromResponse = <T>(response: T[] | null | undefined) => response || [];
+            getLookupCacheDataFromResponse = <T>(response: T[] | null | undefined) => response ?? [];
 
             getLookupMenuOptionsFromData = (data: { data: string; label: string }[]) => data.map(({ data, label }) => new OO.ui.MenuOptionWidget({ data, label }));
         }
@@ -228,13 +245,13 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.s
                         if (tagSelect.getValue().includes('R to anchor')) errors.push({ message: 'is tagged as a redirect to an anchor, but it is actually a redirect to a section!' });
                         if (!tagSelect.getValue().includes('R to section')) errors.push({ message: 'is a redirect to a section, but it is not tagged with <code>{{R to section}}</code>!' });
                     } else {
-                        const destinationContent = ((await new mw.Api().get({ action: 'query', formatversion: 2, prop: 'revisions', rvprop: 'content', rvslots: '*', titles: (parsedDestination as mw.Title).toString() })) as PageRevisionsResult).query.pages[0].revisions[0].slots.main.content;
+                        const destinationContent = ((await new mw.Api().get({ action: 'query', formatversion: 2, prop: 'revisions', rvprop: 'content', rvslots: '*', titles: parsedDestination!.toString() })) as PageRevisionsResult).query.pages[0].revisions[0].slots.main.content;
 
                         const anchors = [
                             ...(destinationContent
                                 .match(/(?<={{\s*?[aA](?:nchors?|nchor for redirect|nker|NCHOR|nc)\s*?\|).+?(?=}})/g)
                                 ?.map((anchor: string) => anchor.split('|').map((part) => part.trim()))
-                                ?.flat() || []),
+                                ?.flat() ?? []),
                             ...(destinationContent
                                 .match(/(?<={{\s*?(?:[vV](?:isible anchors?|isanc|Anch|anchor|isibleanchor|a)|[aA](?:nchord|chored|nchor\+)|[tT]ext anchor)\s*?\|).+?(?=(?<!!|=)}})/g)
                                 ?.map((anchor: string) =>
@@ -243,8 +260,8 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.s
                                         .map((part) => part.trim())
                                         .filter((part) => !/^text\s*?=/.exec(part))
                                 )
-                                ?.flat() || []),
-                            ...(destinationContent.match(/(?<=id=)"?.+?(?="|>|\|)/g)?.map((anchor: string) => anchor.trim()) || [])
+                                ?.flat() ?? []),
+                            ...(destinationContent.match(/(?<=id=)"?.+?(?="|>|\|)/g)?.map((anchor: string) => anchor.trim()) ?? [])
                         ];
                         if (!anchors.includes(destination.split('#')[1])) errors.push({ message: `is a redirect to <a href="${mw.util.getUrl(destination)}" target="_blank">${destination}</a>, but that section or anchor does not exist!` });
                         else {
@@ -258,16 +275,16 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.s
                 if (destination.split('#').length === 1 && (tagSelect.getValue().includes('R to section') || tagSelect.getValue().includes('R to anchor'))) errors.push({ message: 'is not a redirect to a section/anchor, but it is tagged with <code>{{R from section}}</code> or <code>{{R from anchor}}</code>!' });
 
                 /* Redirect to disambiguation page without template */
-                if ('disambiguation' in (destinationData as PagepropsResult).query.pages[0].pageprops && !['R from ambiguous sort name', 'R from ambiguous term', 'R to disambiguation page', 'R from incomplete disambiguation', 'R from incorrect disambiguation', 'R from other disambiguation'].some((template) => tagSelect.getValue().includes(template))) errors.push({ message: 'is a redirect to a disambiguation page, but it is not tagged with a disambiguation categorization template!' });
+                if ('disambiguation' in destinationData!.query.pages[0].pageprops && !['R from ambiguous sort name', 'R from ambiguous term', 'R to disambiguation page', 'R from incomplete disambiguation', 'R from incorrect disambiguation', 'R from other disambiguation'].some((template) => tagSelect.getValue().includes(template))) errors.push({ message: 'is a redirect to a disambiguation page, but it is not tagged with a disambiguation categorization template!' });
 
                 /* Improperly tagged as redirect to disambiguation page */
-                if (!('disambiguation' in (destinationData as PagepropsResult).query.pages[0].pageprops) && ['R from ambiguous sort name', 'R from ambiguous term', 'R to disambiguation page', 'R from incomplete disambiguation', 'R from incorrect disambiguation', 'R from other disambiguation'].some((template) => tagSelect.getValue().includes(template))) errors.push({ message: 'is not a redirect to a disambiguation page, but it is tagged with a disambiguation categorization template!' });
+                if (!('disambiguation' in destinationData!.query.pages[0].pageprops) && ['R from ambiguous sort name', 'R from ambiguous term', 'R to disambiguation page', 'R from incomplete disambiguation', 'R from incorrect disambiguation', 'R from other disambiguation'].some((template) => tagSelect.getValue().includes(template))) errors.push({ message: 'is not a redirect to a disambiguation page, but it is tagged with a disambiguation categorization template!' });
 
                 /* {{R to disambiguation page}} without " (disambiguation)" at end of title */
                 if (tagSelect.getValue().includes('R to disambiguation page') && !/ \(disambiguation\)$/.exec(pageTitleParsed.getMainText())) errors.push({ message: 'is tagged with <code>{{R to disambiguation page}}</code>, but this title does not end with " (disambiguation)". Use <code>{{R from ambiguous term}}</code> or a similar categorization template instead!' });
 
                 /* Syncing talk page but talk page exists and isn't a redirect */
-                if (syncTalkCheckbox?.isSelected() && !(talkData as PageInfoResult).query.pages[0].missing && !(talkData as PageInfoResult).query.pages[0].redirect) errors.push({ title: (pageTitleParsed.getTalkPage() as mw.Title).getPrefixedText(), message: 'exists, but is not a redirect!' });
+                if (syncTalkCheckbox?.isSelected() && !talkData!.query.pages[0].missing && !talkData!.query.pages[0].redirect) errors.push({ title: pageTitleParsed.getTalkPage()!.getPrefixedText(), message: 'exists, but is not a redirect!' });
             }
 
             if (errors.length > 0) {
@@ -327,13 +344,13 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.s
                 const fromMove = tagSelect.getValue().includes('R from move');
 
                 const output = [
-                    `#REDIRECT [[${(parsedDestination?.getTalkPage() as mw.Title).getPrefixedText()}]]`, //
+                    `#REDIRECT [[${parsedDestination!.getTalkPage()!.getPrefixedText()}]]`, //
                     fromMove ? '{{Redirect category shell|\n{{R from move}}\n}}' : null
                 ]
                     .filter(Boolean)
                     .join('\n\n');
 
-                const talkPage = (pageTitleParsed.getTalkPage() as mw.Title).getPrefixedText();
+                const talkPage = pageTitleParsed.getTalkPage()!.getPrefixedText();
 
                 const talkResult = await new mw.Api()
                     .edit(talkPage, () => ({ text: output, summary: 'Syncing redirect from main page (via [[User:Eejit43/scripts/redirect-helper|redirect-helper]])' }))
@@ -361,7 +378,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.s
                 const markReviewedButton = document.getElementById('mwe-pt-mark-as-reviewed-button');
 
                 if (patrolLink) {
-                    const patrolResult = await new mw.Api().postWithToken('patrol', { action: 'patrol', rcid: new URL(patrolLink.href).searchParams.get('rcid') as string }).catch((errorCode: string, { error }: MediaWikiDataError) => {
+                    const patrolResult = await new mw.Api().postWithToken('patrol', { action: 'patrol', rcid: new URL(patrolLink.href).searchParams.get('rcid')! }).catch((errorCode: string, { error }: MediaWikiDataError) => {
                         mw.notify(`Error patrolling ${pageTitle} via API: ${error.info} (${errorCode})`, { type: 'error' });
                         return null;
                     });
@@ -382,7 +399,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.s
 
         let syncTalkCheckbox: OO.ui.CheckboxInputWidget | undefined, syncTalkLayout: OO.ui.Widget | undefined;
         if (!pageTitleParsed.isTalkPage()) {
-            talkData = (await new mw.Api().get({ action: 'query', formatversion: 2, prop: 'info', titles: (pageTitleParsed.getTalkPage() as mw.Title).getPrefixedText() })) as PageInfoResult;
+            talkData = (await new mw.Api().get({ action: 'query', formatversion: 2, prop: 'info', titles: pageTitleParsed.getTalkPage()!.getPrefixedText() })) as PageInfoResult;
             syncTalkCheckbox = new OO.ui.CheckboxInputWidget({ selected: !!talkData.query.pages[0].redirect });
 
             syncTalkLayout = new OO.ui.Widget({ content: [new OO.ui.FieldLayout(syncTalkCheckbox, { label: 'Sync talk page', align: 'inline' })] });
@@ -423,7 +440,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.s
         contentText.prepend(editorBox.$element[0]);
 
         /**
-         * Updates the summary input placeholder
+         * Updates the summary input placeholder.
          */
         function updateSummary() {
             const redirectValue = redirectInput.getValue().trim();

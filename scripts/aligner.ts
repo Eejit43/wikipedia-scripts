@@ -43,8 +43,7 @@ interface JQuery<TElement extends Node = HTMLElement> extends Iterable<TElement>
                 let temp = '';
                 let open = 0;
 
-                for (let i = 0; i < string.length; i++) {
-                    const char = string[i];
+                for (const char of string) {
                     temp += char;
 
                     if (char === '{' || char === '[') open += 1;

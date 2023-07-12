@@ -23,7 +23,7 @@ mw.loader.using(['mediawiki.util'], () => {
 
         const sections = ['Uncontroversial technical requests', 'Requests to revert undiscussed moves', 'Contested technical requests', 'Administrator needed'];
 
-        type Request = {
+        interface Request {
             requester: string;
             reason: string;
             full: string;
@@ -31,10 +31,18 @@ mw.loader.using(['mediawiki.util'], () => {
             destination: string;
             element: HTMLLIElement;
             result?: RequestResultMove | RequestResultRemove;
-        };
+        }
 
-        type RequestResultMove = { move: boolean; section: string; reason?: string };
-        type RequestResultRemove = { remove: boolean; reason: string };
+        interface RequestResultMove {
+            move: boolean;
+            section: string;
+            reason?: string;
+        }
+
+        interface RequestResultRemove {
+            remove: boolean;
+            reason: string;
+        }
 
         const allRequests: Record<string, Request[]> = {};
 
@@ -96,7 +104,7 @@ mw.loader.using(['mediawiki.util'], () => {
                         const parsedHtml = new DOMParser().parseFromString(parsedWikitext, 'text/html');
 
                         const requestElement = document.createElement('li');
-                        requestElement.innerHTML = parsedHtml.querySelector('div.mw-parser-output')?.firstElementChild?.innerHTML as string;
+                        requestElement.innerHTML = parsedHtml.querySelector('div.mw-parser-output')!.firstElementChild!.innerHTML!;
 
                         if (!validNamespace) requestElement.appendChild(invalidNamespaceWarning);
 
@@ -267,11 +275,11 @@ mw.loader.using(['mediawiki.util'], () => {
 
             let endResult = pageContent;
 
-            type AllChanges = {
-                remove: { [reason: string]: Request[] };
-                move: { [section: string]: Request[] };
+            interface AllChanges {
+                remove: Record<string, Request[]>;
+                move: Record<string, Request[]>;
                 total: number;
-            };
+            }
 
             const changes: AllChanges = { remove: {}, move: {}, total: 0 };
 
@@ -344,10 +352,10 @@ mw.loader.using(['mediawiki.util'], () => {
 });
 
 /**
- * Shows a diff edit preview for the given wikitext on a given page
- * @param {string} title The title of the page to edit
- * @param {string} text The resulting wikitext of the page
- * @param {string} summary The edit summary
+ * Shows a diff edit preview for the given wikitext on a given page.
+ * @param title The title of the page to edit.
+ * @param text The resulting wikitext of the page.
+ * @param summary The edit summary.
  */
 function showEditPreview(title: string, text: string, summary: string): void {
     const baseUrl = mw.config.get('wgServer') + mw.config.get('wgScriptPath') + '/';

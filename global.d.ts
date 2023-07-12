@@ -1,3 +1,7 @@
-type MediaWikiDataError = { error: { code: string; info: string } };
+interface MediaWikiDataError {
+    error: { code: string; info: string };
+}
 
-type PageRevisionsResult = { query: { pages: { revisions: { slots: { main: { content: string } } }[] }[] } };
+interface PageRevisionsResult {
+    query: { pages: { revisions: { slots: { main: { content: string } } }[] }[] };
+}

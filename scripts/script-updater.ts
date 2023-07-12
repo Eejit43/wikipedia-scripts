@@ -1,4 +1,4 @@
-type Script = {
+interface Script {
     name: string;
     'use-instead'?: string; // eslint-disable-line @typescript-eslint/naming-convention
     'image-size'?: string; // eslint-disable-line @typescript-eslint/naming-convention
@@ -12,7 +12,7 @@ type Script = {
     released: string;
     updated: string;
     css?: true;
-};
+}
 
 mw.loader.using(['mediawiki.util'], () => {
     if (mw.config.get('wgUserName') !== 'Eejit43' || mw.config.get('wgPageName') !== 'User:Eejit43') return;
@@ -94,19 +94,19 @@ mw.loader.using(['mediawiki.util'], () => {
         mw.notify(`Synced ${scriptData.length} scripts from GitHub!`, { type: 'success', tag: 'sync-scripts-notification' });
 
         /**
-         * Maps scripts to a bulleted list
-         * @param {Script[]} scripts The scripts to map
-         * @returns {string} The mapped scripts
+         * Maps scripts to a bulleted list.
+         * @param scripts The scripts to map.
+         * @returns The mapped scripts.
          */
-        function mapScripts(scripts: Script[]): string {
+        function mapScripts(scripts: Script[]) {
             return scripts.map((script) => `* [[User:Eejit43/scripts/${script.name}${script.personal ? '.js' : ''}|${script.name}]] - ${script['short-description'] || script.description}${script['use-instead'] ? ' (<span style="color: #bd2828">deprecated</span>)' : ''}`).join('\n');
         }
 
         /**
-         * Edits a page, or creates it if it doesn't exist
-         * @param {string} title the title of the page to edit
-         * @param {string} text the page content to set
-         * @param {string} summary the edit summary (will append script notice)
+         * Edits a page, or creates it if it doesn't exist.
+         * @param title The title of the page to edit.
+         * @param text The page content to set.
+         * @param summary The edit summary (will append script notice).
          */
         async function editOrCreate(title: string, text: string, summary: string): Promise<void> {
             summary += ' (via [[User:Eejit43/scripts/script-updater.js|script]])';

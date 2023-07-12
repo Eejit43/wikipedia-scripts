@@ -10,9 +10,9 @@
     });
 
     /**
-     * Marks homographs in a string with a red background color
-     * @param {string} string The string to mark homographs in
-     * @returns {string} The string with homographs marked
+     * Marks homographs in a string with a red background color.
+     * @param string The string to mark homographs in.
+     * @returns The string with homographs marked.
      */
     function markHomographs(string: string): string {
         return string

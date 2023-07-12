@@ -850,8 +850,8 @@
      * @param {string} title the page title to edit
      * @param {string} newText the new text to insert
      * @param {string} summary the edit summary
-     * @param {boolean} createOnly whether or not to only create the page if it doesn't exist
-     * @param {boolean} noPatrol whether or not to not mark the edit as patrolled
+     * @param {boolean} createOnly whether to only create the page if it doesn't exist
+     * @param {boolean} noPatrol whether to not mark the edit as patrolled
      */
     function editPage(title, newText, summary, createOnly, noPatrol) {
         const wgArticlePath = mw.config.get('wgArticlePath');

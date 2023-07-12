@@ -1,13 +1,19 @@
-type SearchData = {
+interface SearchData {
     categories: { id: string; category: string; namespace?: string; notNamespace?: string }[];
     searches: { id: string; search: string; namespace?: string; notNamespace?: string }[];
     whatLinksHere: { id: string; title: string; namespace?: string; notNamespace?: string }[];
     transclusions: { id: string; title: string; namespace?: string; notNamespace?: string }[];
-};
+}
 
-type SearchResult = { query: { searchinfo: { totalhits: number } } };
-type BacklinksResult = { query: { backlinks: object[] } };
-type EmbeddedinResult = { query: { embeddedin: object[] } };
+interface SearchResult {
+    query: { searchinfo: { totalhits: number } };
+}
+interface BacklinksResult {
+    query: { backlinks: object[] };
+}
+interface EmbeddedinResult {
+    query: { embeddedin: object[] };
+}
 
 mw.loader.using(['mediawiki.util'], () => {
     if (mw.config.get('wgPageName') !== 'User:Eejit43') return;
@@ -127,11 +133,11 @@ mw.loader.using(['mediawiki.util'], () => {
 });
 
 /**
- * Parses the searched categories from the check object
- * @param {object} check the check object
- * @param {string} [check.namespace] the namespace to search in
- * @param {string} [check.notNamespace] the namespace to exclude from the search
- * @returns {number|string} the category ID or list of category IDs (separated by '|')
+ * Parses the searched categories from the check object.
+ * @param check The check object.
+ * @param check.namespace The namespace to search in.
+ * @param check.notNamespace The namespace to exclude from the search.
+ * @returns The category ID or list of category IDs (separated by '|').
  */
 function getCategory({ namespace, notNamespace }: { namespace?: string; notNamespace?: string }): number | string {
     if (!namespace && !notNamespace) return 0;

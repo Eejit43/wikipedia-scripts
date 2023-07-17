@@ -48,7 +48,7 @@
 
 #rmtr-review-loading::after {
     animation: rmtr-review-loading 0.8s steps(10) infinite;
-    content: '⠋\A⠙\A⠹\A⠸\A⠼\A⠴\A⠦\A⠧\A⠇\A⠏';
+    content: "⠋\A⠙\A⠹\A⠸\A⠼\A⠴\A⠦\A⠧\A⠇\A⠏";
     display: inline-table;
     text-align: left;
     white-space: pre;

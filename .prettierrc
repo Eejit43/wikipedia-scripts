@@ -8,6 +8,10 @@
     "trailingComma": "none",
     "overrides": [
         {
+            "files": ["*.css"],
+            "options": { "singleQuote": false }
+        },
+        {
             "files": ["scripts.json"],
             "options": { "printWidth": 100 }
         }

@@ -1,25 +1,5 @@
 "use strict";
-var __async = (__this, __arguments, generator) => {
-  return new Promise((resolve, reject) => {
-    var fulfilled = (value) => {
-      try {
-        step(generator.next(value));
-      } catch (e) {
-        reject(e);
-      }
-    };
-    var rejected = (value) => {
-      try {
-        step(generator.throw(value));
-      } catch (e) {
-        reject(e);
-      }
-    };
-    var step = (x) => x.done ? resolve(x.value) : Promise.resolve(x.value).then(fulfilled, rejected);
-    step((generator = generator.apply(__this, __arguments)).next());
-  });
-};
-mw.loader.using(["mediawiki.util"], () => __async(this, null, function* () {
+mw.loader.using(["mediawiki.util"], async () => {
   if (mw.config.get("wgNamespaceNumber") !== 0)
     return;
   if (mw.config.get("wgAction") !== "view")
@@ -58,7 +38,7 @@ mw.loader.using(["mediawiki.util"], () => __async(this, null, function* () {
   const titleElement = document.getElementById("firstHeading");
   if (!titleElement)
     return mw.notify("Could not find title element", { type: "error" });
-  const deletionResult = yield new mw.Api().get({
+  const deletionResult = await new mw.Api().get({
     action: "query",
     leaction: "delete/delete",
     lelimit: "1",
@@ -73,7 +53,7 @@ mw.loader.using(["mediawiki.util"], () => __async(this, null, function* () {
     link.textContent = "Previously deleted";
     titleElement.appendChild(link);
   }
-  const afdExists = yield new mw.Api().get({ action: "query", formatversion: 2, titles: `Wikipedia:Articles_for_deletion/${mw.config.get("wgPageName")}` });
+  const afdExists = await new mw.Api().get({ action: "query", formatversion: 2, titles: `Wikipedia:Articles_for_deletion/${mw.config.get("wgPageName")}` });
   if (!afdExists.query.pages[0].missing) {
     const link = document.createElement("a");
     link.id = "deletion-finder-previous-afd";
@@ -82,4 +62,4 @@ mw.loader.using(["mediawiki.util"], () => __async(this, null, function* () {
     link.textContent = "Previously at AfD";
     titleElement.appendChild(link);
   }
-}));
+});

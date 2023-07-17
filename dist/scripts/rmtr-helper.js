@@ -1,24 +1,4 @@
 "use strict";
-var __async = (__this, __arguments, generator) => {
-  return new Promise((resolve, reject) => {
-    var fulfilled = (value) => {
-      try {
-        step(generator.next(value));
-      } catch (e) {
-        reject(e);
-      }
-    };
-    var rejected = (value) => {
-      try {
-        step(generator.throw(value));
-      } catch (e) {
-        reject(e);
-      }
-    };
-    var step = (x) => x.done ? resolve(x.value) : Promise.resolve(x.value).then(fulfilled, rejected);
-    step((generator = generator.apply(__this, __arguments)).next());
-  });
-};
 mw.loader.using(["mediawiki.util"], () => {
   const devMode = false;
   if (mw.config.get("wgPageName") !== (devMode ? "User:Eejit43/sandbox" : "Wikipedia:Requested_moves/Technical_requests"))
@@ -27,26 +7,25 @@ mw.loader.using(["mediawiki.util"], () => {
   const namespaces = mw.config.get("wgNamespaceIds");
   let displayed = false;
   const link = mw.util.addPortletLink(mw.config.get("skin") === "minerva" ? "p-tb" : "p-cactions", "#", `Review move requests${devMode ? " (DEV)" : ""}`, "review-rmtr-requests");
-  link.addEventListener("click", (event) => __async(this, null, function* () {
-    var _a;
+  link.addEventListener("click", async (event) => {
     event.preventDefault();
     if (displayed)
-      return (_a = document.getElementById("rmtr-review-result")) == null ? void 0 : _a.scrollIntoView();
+      return document.getElementById("rmtr-review-result")?.scrollIntoView();
     else
       displayed = true;
-    const pageContent = (yield new mw.Api().get({ action: "query", formatversion: 2, prop: "revisions", rvprop: "content", rvslots: "*", titles: mw.config.get("wgPageName") })).query.pages[0].revisions[0].slots.main.content;
+    const pageContent = (await new mw.Api().get({ action: "query", formatversion: 2, prop: "revisions", rvprop: "content", rvslots: "*", titles: mw.config.get("wgPageName") })).query.pages[0].revisions[0].slots.main.content;
     const sections = ["Uncontroversial technical requests", "Requests to revert undiscussed moves", "Contested technical requests", "Administrator needed"];
     const allRequests = {};
     sections.forEach((section) => {
       const sectionContent = pageContent.split(new RegExp(`={3,} ?${section} ?={3,}`))[1].split(/={3,}/m)[0].trim();
-      const matchedRequests = sectionContent.match(new RegExp("(?:\\* ?\\n)?\\* {{RMassist\\/core.+?(?=\\* {{RMassist\\/core|$)", "gis"));
+      const matchedRequests = sectionContent.match(/(?:\* ?\n)?\* {{RMassist\/core.+?(?=\* {{RMassist\/core|$)/gis);
       if (!matchedRequests)
         return allRequests[section] = [];
       else
         allRequests[section] = matchedRequests.map((request) => {
           request = request.trim();
           const full = request;
-          const params = request.replace(new RegExp("(?:\\* ?\\n)?\\* {{RMassist\\/core \\||}}.*", "gis"), "").split(" | ").map((param) => param.trim());
+          const params = request.replace(/(?:\* ?\n)?\* {{RMassist\/core \||}}.*/gis, "").split(" | ").map((param) => param.trim());
           const finalParams = Object.fromEntries(params.map((param) => param.split(" = ").map((value) => value.trim())));
           finalParams.full = full;
           finalParams.original = finalParams[1];
@@ -56,11 +35,10 @@ mw.loader.using(["mediawiki.util"], () => {
           return finalParams;
         });
     });
-    yield Promise.all(
-      Object.entries(allRequests).map((_0) => __async(this, [_0], function* ([, requests]) {
-        yield Promise.all(
-          requests.map((request) => __async(this, null, function* () {
-            var _a2, _b;
+    await Promise.all(
+      Object.entries(allRequests).map(async ([, requests]) => {
+        await Promise.all(
+          requests.map(async (request) => {
             const mwOldTitle = mw.Title.newFromText(request.original);
             const mwNewTitle = mw.Title.newFromText(request.destination);
             if (!mwOldTitle)
@@ -75,16 +53,16 @@ mw.loader.using(["mediawiki.util"], () => {
             const invalidNamespaceWarning = document.createElement("span");
             invalidNamespaceWarning.classList.add("rmtr-review-invalid-warning");
             invalidNamespaceWarning.textContent = `Warning: original or destination page is in namespace "${mwNewTitle.namespace === namespaces.file ? "file" : "category"}"!`;
-            const parsedWikitext = yield new mw.Api().parse(`[[:${request.original}]] \u2192 ${validTitle ? `[[:${request.destination}]]` : invalidTitleWarning.outerHTML} requested by ${mw.util.isIPAddress(request.requester) ? `[[Special:Contributions/${request.requester}|${request.requester}]]` : `[[User:${request.requester}|${request.requester}]]`} with reasoning "${request.reason}"`);
+            const parsedWikitext = await new mw.Api().parse(`[[:${request.original}]] \u2192 ${validTitle ? `[[:${request.destination}]]` : invalidTitleWarning.outerHTML} requested by ${mw.util.isIPAddress(request.requester) ? `[[Special:Contributions/${request.requester}|${request.requester}]]` : `[[User:${request.requester}|${request.requester}]]`} with reasoning "${request.reason}"`);
             const parsedHtml = new DOMParser().parseFromString(parsedWikitext, "text/html");
             const requestElement = document.createElement("li");
-            requestElement.innerHTML = (_b = (_a2 = parsedHtml.querySelector("div.mw-parser-output")) == null ? void 0 : _a2.firstElementChild) == null ? void 0 : _b.innerHTML;
+            requestElement.innerHTML = parsedHtml.querySelector("div.mw-parser-output").firstElementChild.innerHTML;
             if (!validNamespace)
               requestElement.appendChild(invalidNamespaceWarning);
             request.element = requestElement;
-          }))
+          })
         );
-      }))
+      })
     );
     const outputElement = document.createElement("div");
     outputElement.id = "rmtr-review-result";
@@ -206,7 +184,7 @@ mw.loader.using(["mediawiki.util"], () => {
     const submitButton = document.createElement("button");
     submitButton.id = "rmtr-review-submit";
     submitButton.textContent = "Submit";
-    submitButton.addEventListener("click", () => __async(this, null, function* () {
+    submitButton.addEventListener("click", async () => {
       submitButton.disabled = true;
       loadingSpinner.style.display = "inline-block";
       let endResult = pageContent;
@@ -246,11 +224,11 @@ ${request.full}${request.result.reason ? `
       if (devMode)
         showEditPreview(mw.config.get("wgPageName"), endResult, editSummary);
       else {
-        yield new mw.Api().edit(mw.config.get("wgPageName"), () => ({ text: endResult, summary: editSummary }));
+        await new mw.Api().edit(mw.config.get("wgPageName"), () => ({ text: endResult, summary: editSummary }));
         mw.notify(`Successfully handled ${changes.total} requests, reloading...`, { type: "success" });
         window.location.reload();
       }
-    }));
+    });
     const loadingSpinner = document.createElement("span");
     loadingSpinner.id = "rmtr-review-loading";
     loadingSpinner.style.display = "none";
@@ -258,7 +236,7 @@ ${request.full}${request.result.reason ? `
     outputElement.appendChild(submitButton);
     mw.util.$content[0].prepend(outputElement);
     outputElement.scrollIntoView();
-  }));
+  });
 });
 function showEditPreview(title, text, summary) {
   const baseUrl = mw.config.get("wgServer") + mw.config.get("wgScriptPath") + "/";

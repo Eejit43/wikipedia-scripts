@@ -2,8 +2,7 @@
     "extends": "@tsconfig/recommended/tsconfig.json",
     "compilerOptions": {
         "removeComments": true,
-        "lib": ["DOM", "DOM.Iterable", "ES2021"],
-        "outDir": "dist"
+        "lib": ["DOM", "DOM.Iterable", "ES2021"]
     },
     "include": ["./global.d.ts", "scripts/*", "./node_modules/types-mediawiki"]
 }

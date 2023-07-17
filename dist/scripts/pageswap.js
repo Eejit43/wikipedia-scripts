@@ -1,31 +1,11 @@
 "use strict";
-var __async = (__this, __arguments, generator) => {
-  return new Promise((resolve, reject) => {
-    var fulfilled = (value) => {
-      try {
-        step(generator.next(value));
-      } catch (e) {
-        reject(e);
-      }
-    };
-    var rejected = (value) => {
-      try {
-        step(generator.throw(value));
-      } catch (e) {
-        reject(e);
-      }
-    };
-    var step = (x) => x.done ? resolve(x.value) : Promise.resolve(x.value).then(fulfilled, rejected);
-    step((generator = generator.apply(__this, __arguments)).next());
-  });
-};
-mw.loader.using(["mediawiki.util", "oojs-ui-core", "oojs-ui-widgets", "oojs-ui-windows", "mediawiki.widgets"]).then(() => __async(this, null, function* () {
+mw.loader.using(["mediawiki.util", "oojs-ui-core", "oojs-ui-widgets", "oojs-ui-windows", "mediawiki.widgets"]).then(async () => {
   const namespace = mw.config.get("wgNamespaceNumber");
   if (namespace < 0 || namespace >= 120 || namespace >= 6 && namespace <= 9 || namespace >= 14 && namespace <= 99)
     return;
   const currentTitle = mw.config.get("wgPageName");
-  const userPermissions = yield fetchUserPermissions();
-  const pageInfo = yield new mw.Api().get({ action: "query", prop: "info", titles: currentTitle });
+  const userPermissions = await fetchUserPermissions();
+  const pageInfo = await new mw.Api().get({ action: "query", prop: "info", titles: currentTitle });
   if (pageInfo.query.pages[-1])
     return;
   const link = mw.util.addPortletLink(mw.config.get("skin") === "minerva" ? "p-tb" : "p-cactions", "#", "Swap", "eejit-pageswap");
@@ -122,7 +102,7 @@ mw.loader.using(["mediawiki.util", "oojs-ui-core", "oojs-ui-widgets", "oojs-ui-w
         return new OO.ui.Process().next(
           () => roundRobin(userPermissions, currentTitle, destination, summary, moveTalk, moveSubpages).catch((error) => {
             console.error(error);
-            return $.Deferred().reject(this.showErrors([new OO.ui.Error((error == null ? void 0 : error.message) || "An unknown error occurred.")]));
+            return $.Deferred().reject(this.showErrors([new OO.ui.Error(error?.message || "An unknown error occurred.")]));
           })
         ).next(() => {
           mw.notify("Moves complete! Reloading...", { type: "success" });
@@ -141,7 +121,7 @@ mw.loader.using(["mediawiki.util", "oojs-ui-core", "oojs-ui-widgets", "oojs-ui-w
     windowManager.addWindows([dialog]);
     windowManager.openWindow(dialog);
   });
-}));
+});
 function fetchUserPermissions() {
   return new mw.Api().get({
     action: "query",
@@ -248,101 +228,96 @@ ${result.destinationTitle} in ns ${result.destinationNamespace}. Disallowing.`;
   }
   return result;
 }
-function talkValidate(checkTalk, firstTalk, secondTalk) {
-  return __async(this, null, function* () {
-    const result = {};
-    result.allowMoveTalk = true;
-    if (!checkTalk)
-      return result;
-    if (firstTalk === void 0 || secondTalk === void 0) {
-      mw.notify("Unable to validate talk. Disallowing movetalk to be safe", { type: "error" });
-      result.allowMoveTalk = false;
-      return result;
-    }
-    result.currTDNE = true;
-    result.destTDNE = true;
-    result.currentTalkCanCreate = true;
-    result.destinationTalkCanCreate = true;
-    const talkTitleArr = [firstTalk, secondTalk];
-    if (talkTitleArr.length > 0) {
-      const talkData = (yield new mw.Api().get({
-        action: "query",
-        prop: "info",
-        intestactions: "move|create",
-        titles: talkTitleArr.join("|")
-      })).query.pages;
-      for (const [, pageData] of Object.entries(talkData))
-        if (pageData.title === firstTalk) {
-          result.currTDNE = pageData.invalid === "" || pageData.missing === "";
-          result.currentTalkTitle = pageData.title;
-          result.currentTalkCanMove = pageData.actions.move === "";
-          result.currentTalkCanCreate = pageData.actions.create === "";
-          result.currentTalkIsRedirect = pageData.redirect === "";
-        } else if (pageData.title === secondTalk) {
-          result.destTDNE = pageData.invalid === "" || pageData.missing === "";
-          result.destinationTalkTitle = pageData.title;
-          result.destinationTalkCanMove = pageData.actions.move === "";
-          result.destinationTalkCanCreate = pageData.actions.create === "";
-          result.destinationTalkIsRedirect = pageData.redirect === "";
-        } else {
-          mw.notify("Found pageid not matching given ids.", { type: "error" });
-          return {};
-        }
-    }
-    result.allowMoveTalk = result.currentTalkCanCreate && result.currentTalkCanMove && result.destinationTalkCanCreate && result.destinationTalkCanMove;
+async function talkValidate(checkTalk, firstTalk, secondTalk) {
+  const result = {};
+  result.allowMoveTalk = true;
+  if (!checkTalk)
     return result;
-  });
+  if (firstTalk === void 0 || secondTalk === void 0) {
+    mw.notify("Unable to validate talk. Disallowing movetalk to be safe", { type: "error" });
+    result.allowMoveTalk = false;
+    return result;
+  }
+  result.currTDNE = true;
+  result.destTDNE = true;
+  result.currentTalkCanCreate = true;
+  result.destinationTalkCanCreate = true;
+  const talkTitleArr = [firstTalk, secondTalk];
+  if (talkTitleArr.length > 0) {
+    const talkData = (await new mw.Api().get({
+      action: "query",
+      prop: "info",
+      intestactions: "move|create",
+      titles: talkTitleArr.join("|")
+    })).query.pages;
+    for (const [, pageData] of Object.entries(talkData))
+      if (pageData.title === firstTalk) {
+        result.currTDNE = pageData.invalid === "" || pageData.missing === "";
+        result.currentTalkTitle = pageData.title;
+        result.currentTalkCanMove = pageData.actions.move === "";
+        result.currentTalkCanCreate = pageData.actions.create === "";
+        result.currentTalkIsRedirect = pageData.redirect === "";
+      } else if (pageData.title === secondTalk) {
+        result.destTDNE = pageData.invalid === "" || pageData.missing === "";
+        result.destinationTalkTitle = pageData.title;
+        result.destinationTalkCanMove = pageData.actions.move === "";
+        result.destinationTalkCanCreate = pageData.actions.create === "";
+        result.destinationTalkIsRedirect = pageData.redirect === "";
+      } else {
+        mw.notify("Found pageid not matching given ids.", { type: "error" });
+        return {};
+      }
+  }
+  result.allowMoveTalk = result.currentTalkCanCreate && result.currentTalkCanMove && result.destinationTalkCanCreate && result.destinationTalkCanMove;
+  return result;
 }
-function getSubpages(namespaceData, title, titleNamespace, isTalk) {
-  return __async(this, null, function* () {
-    var _a, _b;
-    if (!isTalk && namespaceData[titleNamespace.toString()].subpages !== "")
-      return { data: [] };
-    const titlePageData = getTalkPageName(namespaceData, title, titleNamespace);
-    const subpages = (yield new mw.Api().get({
-      action: "query",
-      list: "allpages",
-      apnamespace: isTalk ? titleNamespace + 1 : titleNamespace,
-      apfrom: titlePageData.titleWithoutPrefix + "/",
-      apto: titlePageData.titleWithoutPrefix + "0",
-      aplimit: 101
-    })).query.allpages;
-    const subpageIds = [[], []];
-    for (const id in subpages)
-      subpageIds[id < 50 ? 0 : 1].push(subpages[id].pageid);
-    if (subpageIds[0].length === 0)
-      return { data: [] };
-    if (subpageIds[1].length === 51)
-      return { error: "100+ subpages, too many to move." };
-    const result = [];
-    const subpageDataOne = (yield new mw.Api().get({
-      action: "query",
-      prop: "info",
-      intestactions: "move|create",
-      pageids: subpageIds[0].join("|")
-    })).query.pages;
-    for (const [, pageData] of Object.entries(subpageDataOne))
-      result.push({
-        title: pageData.title,
-        isRedir: pageData.redirect === "",
-        canMove: ((_a = pageData.actions) == null ? void 0 : _a.move) === ""
-      });
-    if (subpageIds[1].length === 0)
-      return { data: result };
-    const subpageDataTwo = (yield new mw.Api().get({
-      action: "query",
-      prop: "info",
-      intestactions: "move|create",
-      pageids: subpageIds[1].join("|")
-    })).query.pages;
-    for (const [, pageData] of Object.entries(subpageDataTwo))
-      result.push({
-        title: pageData.title,
-        isRedirect: pageData.redirect === "",
-        canMove: ((_b = pageData.actions) == null ? void 0 : _b.move) === ""
-      });
+async function getSubpages(namespaceData, title, titleNamespace, isTalk) {
+  if (!isTalk && namespaceData[titleNamespace.toString()].subpages !== "")
+    return { data: [] };
+  const titlePageData = getTalkPageName(namespaceData, title, titleNamespace);
+  const subpages = (await new mw.Api().get({
+    action: "query",
+    list: "allpages",
+    apnamespace: isTalk ? titleNamespace + 1 : titleNamespace,
+    apfrom: titlePageData.titleWithoutPrefix + "/",
+    apto: titlePageData.titleWithoutPrefix + "0",
+    aplimit: 101
+  })).query.allpages;
+  const subpageIds = [[], []];
+  for (const id in subpages)
+    subpageIds[id < 50 ? 0 : 1].push(subpages[id].pageid);
+  if (subpageIds[0].length === 0)
+    return { data: [] };
+  if (subpageIds[1].length === 51)
+    return { error: "100+ subpages, too many to move." };
+  const result = [];
+  const subpageDataOne = (await new mw.Api().get({
+    action: "query",
+    prop: "info",
+    intestactions: "move|create",
+    pageids: subpageIds[0].join("|")
+  })).query.pages;
+  for (const [, pageData] of Object.entries(subpageDataOne))
+    result.push({
+      title: pageData.title,
+      isRedir: pageData.redirect === "",
+      canMove: pageData.actions?.move === ""
+    });
+  if (subpageIds[1].length === 0)
     return { data: result };
-  });
+  const subpageDataTwo = (await new mw.Api().get({
+    action: "query",
+    prop: "info",
+    intestactions: "move|create",
+    pageids: subpageIds[1].join("|")
+  })).query.pages;
+  for (const [, pageData] of Object.entries(subpageDataTwo))
+    result.push({
+      title: pageData.title,
+      isRedirect: pageData.redirect === "",
+      canMove: pageData.actions?.move === ""
+    });
+  return { data: result };
 }
 function printSubpageInfo(basePage, currentSubpage) {
   const result = {};
@@ -397,65 +372,63 @@ function swapPages(titleOne, titleTwo, summary, moveTalk, moveSubpages) {
     return result;
   });
 }
-function roundRobin(userPermissions, currentTitle, destinationTitle, summary, moveTalk, moveSubpages) {
-  return __async(this, null, function* () {
-    const namespacesInformation = (yield new mw.Api().get({
-      action: "query",
-      meta: "siteinfo",
-      siprop: "namespaces"
-    })).query.namespaces;
-    const pagesData = (yield new mw.Api().get({
-      action: "query",
-      prop: "info",
-      inprop: "talkid",
-      intestactions: "move|create",
-      titles: `${currentTitle}|${destinationTitle}`
-    })).query;
-    for (const changes in pagesData.normalized) {
-      if (currentTitle === pagesData.normalized[changes].from)
-        currentTitle = pagesData.normalized[changes].to;
-      if (destinationTitle === pagesData.normalized[changes].from)
-        destinationTitle = pagesData.normalized[changes].to;
-    }
-    const validationData = swapValidate(currentTitle, destinationTitle, pagesData.pages, namespacesInformation, userPermissions);
-    if (!validationData.valid)
-      throw new Error(validationData.error);
-    if (validationData.addLineInfo !== void 0)
-      mw.notify(validationData.addLineInfo);
-    const currentSubpages = yield getSubpages(namespacesInformation, validationData.currentTitle, validationData.currentNamespace, false);
-    if (currentSubpages.error !== void 0)
-      throw new Error(currentSubpages.error);
-    const currentSubpageFlags = printSubpageInfo(validationData.currentTitle, currentSubpages);
-    const destinationSubpages = yield getSubpages(namespacesInformation, validationData.destinationTitle, validationData.destinationNamespace, false);
-    if (destinationSubpages.error !== void 0)
-      throw new Error(destinationSubpages.error);
-    const destinationSubpageFlags = printSubpageInfo(validationData.destinationTitle, destinationSubpages);
-    const talkValidationData = yield talkValidate(validationData.checkTalk, validationData.currentTalkName, validationData.destinationTalkName);
-    const currentTalkSubpages = yield getSubpages(namespacesInformation, validationData.currentTitle, validationData.currentNamespace, true);
-    if (currentTalkSubpages.error !== void 0)
-      throw new Error(currentTalkSubpages.error);
-    const currentTalkSubpageFlags = printSubpageInfo(validationData.currentTalkName, currentTalkSubpages);
-    const destinationTalkSubpages = yield getSubpages(namespacesInformation, validationData.destinationTitle, validationData.destinationNamespace, true);
-    if (destinationTalkSubpages.error !== void 0)
-      throw new Error(destinationTalkSubpages.error);
-    const destinationTalkSubpageFlags = printSubpageInfo(validationData.destinationTalkName, destinationTalkSubpages);
-    const noSubpages = currentSubpageFlags.noNeed && destinationSubpageFlags.noNeed && currentTalkSubpageFlags.noNeed && destinationTalkSubpageFlags.noNeed;
-    const subpageCollision = validationData.currentNamespaceAllowSubpages && !destinationSubpageFlags.noNeed || validationData.destinationNamespaceAllowSubpages && !currentSubpageFlags.noNeed;
-    if (moveTalk && validationData.checkTalk && !talkValidationData.allowMoveTalk) {
-      moveTalk = false;
-      mw.notify(`Disallowing moving talk. ${!talkValidationData.currentTalkCanCreate ? `${validationData.currentTalkName} is create-protected` : !talkValidationData.destinationTalkCanCreate ? `${validationData.destinationTalkName} is create-protected` : "Talk page is immovable"}`);
-    }
-    let finalMoveSubpages = false;
-    if (!subpageCollision && !noSubpages && validationData.allowMoveSubpages && currentSubpageFlags.allowMoveSubpages && destinationSubpageFlags.allowMoveSubpages && currentTalkSubpageFlags.allowMoveSubpages && destinationTalkSubpageFlags.allowMoveSubpages)
-      finalMoveSubpages = moveSubpages;
-    else if (subpageCollision) {
-      finalMoveSubpages = false;
-      mw.notify("One namespace does not have subpages enabled. Disallowing move subpages.");
-    }
-    console.log(`[Pageswap] Swapping "${currentTitle}" with "${destinationTitle}" with summary "${summary}" and moveTalk ${moveTalk} and moveSubpages ${finalMoveSubpages}`);
-    const result = yield swapPages(currentTitle, destinationTitle, summary, moveTalk, finalMoveSubpages);
-    console.log(result);
-    if (!result.success)
-      throw new Error(result.error);
-  });
+async function roundRobin(userPermissions, currentTitle, destinationTitle, summary, moveTalk, moveSubpages) {
+  const namespacesInformation = (await new mw.Api().get({
+    action: "query",
+    meta: "siteinfo",
+    siprop: "namespaces"
+  })).query.namespaces;
+  const pagesData = (await new mw.Api().get({
+    action: "query",
+    prop: "info",
+    inprop: "talkid",
+    intestactions: "move|create",
+    titles: `${currentTitle}|${destinationTitle}`
+  })).query;
+  for (const changes in pagesData.normalized) {
+    if (currentTitle === pagesData.normalized[changes].from)
+      currentTitle = pagesData.normalized[changes].to;
+    if (destinationTitle === pagesData.normalized[changes].from)
+      destinationTitle = pagesData.normalized[changes].to;
+  }
+  const validationData = swapValidate(currentTitle, destinationTitle, pagesData.pages, namespacesInformation, userPermissions);
+  if (!validationData.valid)
+    throw new Error(validationData.error);
+  if (validationData.addLineInfo !== void 0)
+    mw.notify(validationData.addLineInfo);
+  const currentSubpages = await getSubpages(namespacesInformation, validationData.currentTitle, validationData.currentNamespace, false);
+  if (currentSubpages.error !== void 0)
+    throw new Error(currentSubpages.error);
+  const currentSubpageFlags = printSubpageInfo(validationData.currentTitle, currentSubpages);
+  const destinationSubpages = await getSubpages(namespacesInformation, validationData.destinationTitle, validationData.destinationNamespace, false);
+  if (destinationSubpages.error !== void 0)
+    throw new Error(destinationSubpages.error);
+  const destinationSubpageFlags = printSubpageInfo(validationData.destinationTitle, destinationSubpages);
+  const talkValidationData = await talkValidate(validationData.checkTalk, validationData.currentTalkName, validationData.destinationTalkName);
+  const currentTalkSubpages = await getSubpages(namespacesInformation, validationData.currentTitle, validationData.currentNamespace, true);
+  if (currentTalkSubpages.error !== void 0)
+    throw new Error(currentTalkSubpages.error);
+  const currentTalkSubpageFlags = printSubpageInfo(validationData.currentTalkName, currentTalkSubpages);
+  const destinationTalkSubpages = await getSubpages(namespacesInformation, validationData.destinationTitle, validationData.destinationNamespace, true);
+  if (destinationTalkSubpages.error !== void 0)
+    throw new Error(destinationTalkSubpages.error);
+  const destinationTalkSubpageFlags = printSubpageInfo(validationData.destinationTalkName, destinationTalkSubpages);
+  const noSubpages = currentSubpageFlags.noNeed && destinationSubpageFlags.noNeed && currentTalkSubpageFlags.noNeed && destinationTalkSubpageFlags.noNeed;
+  const subpageCollision = validationData.currentNamespaceAllowSubpages && !destinationSubpageFlags.noNeed || validationData.destinationNamespaceAllowSubpages && !currentSubpageFlags.noNeed;
+  if (moveTalk && validationData.checkTalk && !talkValidationData.allowMoveTalk) {
+    moveTalk = false;
+    mw.notify(`Disallowing moving talk. ${!talkValidationData.currentTalkCanCreate ? `${validationData.currentTalkName} is create-protected` : !talkValidationData.destinationTalkCanCreate ? `${validationData.destinationTalkName} is create-protected` : "Talk page is immovable"}`);
+  }
+  let finalMoveSubpages = false;
+  if (!subpageCollision && !noSubpages && validationData.allowMoveSubpages && currentSubpageFlags.allowMoveSubpages && destinationSubpageFlags.allowMoveSubpages && currentTalkSubpageFlags.allowMoveSubpages && destinationTalkSubpageFlags.allowMoveSubpages)
+    finalMoveSubpages = moveSubpages;
+  else if (subpageCollision) {
+    finalMoveSubpages = false;
+    mw.notify("One namespace does not have subpages enabled. Disallowing move subpages.");
+  }
+  console.log(`[Pageswap] Swapping "${currentTitle}" with "${destinationTitle}" with summary "${summary}" and moveTalk ${moveTalk} and moveSubpages ${finalMoveSubpages}`);
+  const result = await swapPages(currentTitle, destinationTitle, summary, moveTalk, finalMoveSubpages);
+  console.log(result);
+  if (!result.success)
+    throw new Error(result.error);
 }

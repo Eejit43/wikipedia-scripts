@@ -1,8 +1,7 @@
 "use strict";
 if (mw.config.get("wgCanonicalSpecialPageName") === "Search")
   document.querySelectorAll(".mw-search-result-heading").forEach((header) => {
-    var _a;
-    const link = (_a = header.querySelector("a")) == null ? void 0 : _a.href;
+    const link = header.querySelector("a")?.href;
     if (!link)
       return;
     const links = ["edit", "history"].map((action) => {

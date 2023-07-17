@@ -44,14 +44,14 @@
     height: 1.3em;
     overflow: hidden;
     line-height: 1.5em;
-}
 
-#rmtr-review-loading::after {
-    display: inline-table;
-    animation: rmtr-review-loading 0.8s steps(10) infinite;
-    content: "⠋\A⠙\A⠹\A⠸\A⠼\A⠴\A⠦\A⠧\A⠇\A⠏";
-    text-align: left;
-    white-space: pre;
+    &::after {
+        display: inline-table;
+        animation: rmtr-review-loading 0.8s steps(10) infinite;
+        content: "⠋\A⠙\A⠹\A⠸\A⠼\A⠴\A⠦\A⠧\A⠇\A⠏";
+        text-align: left;
+        white-space: pre;
+    }
 }
 
 @keyframes rmtr-review-loading {

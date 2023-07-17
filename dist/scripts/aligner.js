@@ -8,7 +8,6 @@
   mw.loader.using(["mediawiki.util", "mediawiki.notification", "jquery.textSelection"], () => {
     const link = mw.util.addPortletLink(mw.config.get("skin") === "minerva" ? "p-navigation" : "p-cactions", "#", "Align template params", "align-params");
     link.addEventListener("click", (event) => {
-      var _a;
       event.preventDefault();
       function splitParam(string) {
         const split = string.split("=");
@@ -27,8 +26,7 @@
         const params = [];
         let temp = "";
         let open2 = 0;
-        for (let i = 0; i < string.length; i++) {
-          const char = string[i];
+        for (const char of string) {
           temp += char;
           if (char === "{" || char === "[")
             open2 += 1;
@@ -42,7 +40,7 @@
         params.push(temp);
         return params;
       }
-      if ((_a = window.wikEd) == null ? void 0 : _a.useWikEd)
+      if (window.wikEd?.useWikEd)
         window.wikEd.UpdateTextarea();
       const editBox = $("#wpTextbox1");
       if (!editBox)
@@ -52,7 +50,6 @@
         return mw.notification.notify("Edit box value not found!", { type: "error", autoHideSeconds: "short" });
       let count = 0;
       function processInfobox(template2) {
-        var _a2;
         if (template2 === "")
           return mw.notification.notify("Infobox not found!", { type: "error", autoHideSeconds: "short" });
         if (open !== 0)
@@ -92,7 +89,7 @@
         if (output.endsWith("\n"))
           output = output.slice(0, -1);
         editBox.textSelection("setContents", editBox.textSelection("getContents").replace(origTemplate, output).replace(/\n+$/, ""));
-        if ((_a2 = window.wikEd) == null ? void 0 : _a2.useWikEd)
+        if (window.wikEd?.useWikEd)
           window.wikEd.UpdateFrame();
       }
       let template = "";

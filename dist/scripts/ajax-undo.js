@@ -1,24 +1,4 @@
 "use strict";
-var __async = (__this, __arguments, generator) => {
-  return new Promise((resolve, reject) => {
-    var fulfilled = (value) => {
-      try {
-        step(generator.next(value));
-      } catch (e) {
-        reject(e);
-      }
-    };
-    var rejected = (value) => {
-      try {
-        step(generator.throw(value));
-      } catch (e) {
-        reject(e);
-      }
-    };
-    var step = (x) => x.done ? resolve(x.value) : Promise.resolve(x.value).then(fulfilled, rejected);
-    step((generator = generator.apply(__this, __arguments)).next());
-  });
-};
 mw.loader.using(["mediawiki.util"], () => {
   const isDiff = mw.config.get("wgDiffOldId");
   if (mw.config.get("wgAction") !== "history" && !isDiff)
@@ -67,9 +47,8 @@ padding: revert;` : ""}
 }
 `);
   document.querySelectorAll(".mw-history-undo, .mw-diff-undo").forEach((undoSpan) => {
-    var _a, _b;
     const undoLink = undoSpan.querySelector("a");
-    if (!(undoLink == null ? void 0 : undoLink.href))
+    if (!undoLink?.href)
       return mw.notify("Could not find undo link!", { type: "error" });
     const undoUrl = new URL(undoLink.href);
     const span = document.createElement("span");
@@ -79,8 +58,7 @@ padding: revert;` : ""}
     ajaxUndoLink.href = undoUrl.href;
     if (isMinerva && !isDiff)
       ajaxUndoLink.style.marginLeft = "1em";
-    ajaxUndoLink.addEventListener("click", (event) => __async(this, null, function* () {
-      var _a2, _b2;
+    ajaxUndoLink.addEventListener("click", async (event) => {
       event.preventDefault();
       if (stage === STAGES.awaitingClick) {
         stage = STAGES.awaitingConfirmation;
@@ -98,10 +76,10 @@ padding: revert;` : ""}
         const undoAfter = undoUrl.searchParams.get("undoafter");
         if (!undoId || !undoAfter)
           return mw.notify("Could not find undo parameters in URL!", { type: "error" });
-        const revisionUser = (_b2 = (_a2 = undoSpan.closest(isDiff ? "td" : "li")) == null ? void 0 : _a2.querySelector(".mw-userlink bdi")) == null ? void 0 : _b2.textContent;
+        const revisionUser = undoSpan.closest(isDiff ? "td" : "li")?.querySelector(".mw-userlink bdi")?.textContent;
         if (!revisionUser)
           return mw.notify("Could not find revision user!", { type: "error" });
-        const success = yield new mw.Api().postWithEditToken({
+        const success = await new mw.Api().postWithEditToken({
           action: "edit",
           title: mw.config.get("wgPageName"),
           undo: undoId,
@@ -117,7 +95,7 @@ padding: revert;` : ""}
         mw.notify("Revision successfully undone, reloading...", { type: "success" });
         window.location.reload();
       }
-    }));
+    });
     if (isDiff)
       span.appendChild(document.createTextNode("("));
     span.appendChild(ajaxUndoLink);
@@ -143,8 +121,8 @@ padding: revert;` : ""}
       undoSpan.after(span);
       undoSpan.after(document.createTextNode(" "));
     } else if (isMinerva)
-      (_a = undoSpan.parentElement) == null ? void 0 : _a.before(span);
+      undoSpan.parentElement?.before(span);
     else
-      (_b = undoSpan.parentElement) == null ? void 0 : _b.after(span);
+      undoSpan.parentElement?.after(span);
   });
 });

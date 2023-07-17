@@ -1,0 +1,51 @@
+#rmtr-review-result {
+  margin: 1em;
+  border: solid 1px #ddd;
+  background-color: #b4d3ff;
+  padding: 2.5%;
+  font-size: 0.8em;
+}
+#rmtr-review-header {
+  margin-bottom: 0.5em;
+  font-weight: bold;
+  font-size: 1.5em;
+}
+.rmtr-review-header {
+  margin: 0.5em 0;
+  font-weight: bold;
+  font-size: 1em;
+}
+.rmtr-review-invalid-warning {
+  color: indianred;
+  font-weight: bold;
+}
+.rmtr-review-request-checkbox {
+  margin: 3px 3px 0;
+}
+.rmtr-review-section-content {
+  margin-left: 1em;
+}
+#rmtr-review-submit {
+  margin-top: 0.2em;
+}
+#rmtr-review-loading {
+  display: inline-block;
+  vertical-align: text-bottom;
+  margin-top: -0.3em;
+  margin-left: 3px;
+  height: 1.3em;
+  overflow: hidden;
+  line-height: 1.5em;
+}
+#rmtr-review-loading::after {
+  display: inline-table;
+  animation: rmtr-review-loading 0.8s steps(10) infinite;
+  content: "\280b\a\2819\a\2839\a\2838\a\283c\a\2834\a\2826\a\2827\a\2807\a\280f";
+  text-align: left;
+  white-space: pre;
+}
+@keyframes rmtr-review-loading {
+  to {
+    transform: translateY(-15em);
+  }
+}

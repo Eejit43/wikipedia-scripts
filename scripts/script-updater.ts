@@ -54,13 +54,13 @@ mw.loader.using(['mediawiki.util'], () => {
                     '}}'
                 ].filter(Boolean);
 
-                const scriptContent = await (await fetch(`https://raw.githubusercontent.com/${repoOwner}/${repoName}/${latestCommitHash}/dist/${script.name}.js`)).text().catch((error) => {
+                const scriptContent = await (await fetch(`https://raw.githubusercontent.com/${repoOwner}/${repoName}/${latestCommitHash}/dist/scripts/${script.name}.js`)).text().catch((error) => {
                     console.error(error);
                     return null;
                 });
 
                 const styleContent = script.css
-                    ? await (await fetch(`https://raw.githubusercontent.com/${repoOwner}/${repoName}/${latestCommitHash}/styles/${script.name}.css`)).text().catch((error) => {
+                    ? await (await fetch(`https://raw.githubusercontent.com/${repoOwner}/${repoName}/${latestCommitHash}/dist/styles/${script.name}.css`)).text().catch((error) => {
                           console.error(error);
                           return null;
                       })
@@ -73,7 +73,7 @@ mw.loader.using(['mediawiki.util'], () => {
                     await editOrCreate(subpageTalkName, '#REDIRECT [[User talk:Eejit43]]', 'Redirecting script documentation talk page to main user talk page');
                 }
                 await editOrCreate(scriptName, `// <nowiki>\n// Note: This script was compiled from TypeScript. For a more readable version, see https://github.com/${repoOwner}/${repoName}/blob/main/scripts/${script.name}.ts\n\n${scriptContent}\n// </nowiki>`, 'Syncing script from GitHub');
-                if (script.css && styleContent) await editOrCreate(styleName, styleContent, 'Syncing CSS from GitHub');
+                if (script.css && styleContent) await editOrCreate(styleName, `/* <nowiki> */\n/* Note: This script was compiled from modern CSS. For a more readable version, see https://github.com/${repoOwner}/${repoName}/blob/main/styles/${script.name}.ts\n\n${styleContent}\n/* </nowiki> */`, 'Syncing styles from GitHub');
             })
         );
 

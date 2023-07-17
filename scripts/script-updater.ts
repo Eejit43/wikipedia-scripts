@@ -73,7 +73,7 @@ mw.loader.using(['mediawiki.util'], () => {
                     await editOrCreate(subpageTalkName, '#REDIRECT [[User talk:Eejit43]]', 'Redirecting script documentation talk page to main user talk page');
                 }
                 await editOrCreate(scriptName, `// <nowiki>\n// Note: This script was compiled from TypeScript. For a more readable version, see https://github.com/${repoOwner}/${repoName}/blob/main/scripts/${script.name}.ts\n\n${scriptContent}\n// </nowiki>`, 'Syncing script from GitHub');
-                if (script.css && styleContent) await editOrCreate(styleName, `/* <nowiki> */\n/* Note: This script was compiled from modern CSS. For a more readable version, see https://github.com/${repoOwner}/${repoName}/blob/main/styles/${script.name}.ts\n\n${styleContent}\n/* </nowiki> */`, 'Syncing styles from GitHub');
+                if (script.css && styleContent) await editOrCreate(styleName, `/* <nowiki> */\n/* Note: This script was compiled from modern CSS. For a more readable version, see https://github.com/${repoOwner}/${repoName}/blob/main/styles/${script.name}.css\n\n${styleContent}\n/* </nowiki> */`, 'Syncing styles from GitHub');
             })
         );
 

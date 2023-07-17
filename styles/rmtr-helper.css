@@ -1,21 +1,21 @@
 #rmtr-review-result {
-    background-color: #b4d3ff;
-    border: solid 1px #ddd;
-    font-size: 0.8em;
     margin: 1em;
+    border: solid 1px #ddd;
+    background-color: #b4d3ff;
     padding: 2.5%;
+    font-size: 0.8em;
 }
 
 #rmtr-review-header {
-    font-size: 1.5em;
-    font-weight: bold;
     margin-bottom: 0.5em;
+    font-weight: bold;
+    font-size: 1.5em;
 }
 
 .rmtr-review-header {
-    font-size: 1em;
-    font-weight: bold;
     margin: 0.5em 0;
+    font-weight: bold;
+    font-size: 1em;
 }
 
 .rmtr-review-invalid-warning {
@@ -38,18 +38,18 @@
 /* Modified from Max Beier's "text-spinners" (https://github.com/maxbeier/text-spinners) */
 #rmtr-review-loading {
     display: inline-block;
-    height: 1.3em;
-    line-height: 1.5em;
-    margin-left: 3px;
-    margin-top: -0.3em;
-    overflow: hidden;
     vertical-align: text-bottom;
+    margin-top: -0.3em;
+    margin-left: 3px;
+    height: 1.3em;
+    overflow: hidden;
+    line-height: 1.5em;
 }
 
 #rmtr-review-loading::after {
+    display: inline-table;
     animation: rmtr-review-loading 0.8s steps(10) infinite;
     content: "⠋\A⠙\A⠹\A⠸\A⠼\A⠴\A⠦\A⠧\A⠇\A⠏";
-    display: inline-table;
     text-align: left;
     white-space: pre;
 }

@@ -15,5 +15,6 @@
             "files": ["scripts.json"],
             "options": { "printWidth": 100 }
         }
-    ]
+    ],
+    "plugins": ["prettier-plugin-css-order"]
 }

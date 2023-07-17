@@ -51,7 +51,7 @@ ${scriptContent}
 // </nowiki>`, "Syncing script from GitHub");
         if (script.css && styleContent)
           await editOrCreate(styleName, `/* <nowiki> */
-/* Note: This script was compiled from modern CSS. For a more readable version, see https://github.com/${repoOwner}/${repoName}/blob/main/styles/${script.name}.ts
+/* Note: This script was compiled from modern CSS. For a more readable version, see https://github.com/${repoOwner}/${repoName}/blob/main/styles/${script.name}.css */
 
 ${styleContent}
 /* </nowiki> */`, "Syncing styles from GitHub");

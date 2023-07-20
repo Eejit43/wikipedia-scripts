@@ -16,5 +16,5 @@
             "options": { "printWidth": 100 }
         }
     ],
-    "plugins": ["prettier-plugin-css-order"]
+    "plugins": ["prettier-plugin-css-order", "prettier-plugin-packagejson"]
 }

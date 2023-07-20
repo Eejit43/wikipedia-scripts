@@ -1,6 +1,5 @@
 {
     "name": "wikipedia-scripts",
-    "private": true,
     "type": "module",
     "scripts": {
         "build": "node compile.js"

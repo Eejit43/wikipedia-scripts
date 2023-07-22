@@ -29,7 +29,7 @@ mw.loader.using(["mediawiki.util"], () => {
       if (!data)
         return;
       const count = data.query.searchinfo.totalhits;
-      const element = document.getElementById(`to-monitor-list-${check.id}`);
+      const element = document.querySelector(`#to-monitor-list-${check.id}`);
       if (!element)
         return mw.notify(`Failed to find element for ID "${check.id}"`);
       element.innerHTML = count === 0 ? '<span style="color: #00733f">None</span>' : `<b><span style="color: #bd2828">${count === 500 ? "500+" : count}</span></b>`;
@@ -48,7 +48,7 @@ mw.loader.using(["mediawiki.util"], () => {
       if (!data)
         return;
       const count = data.query.searchinfo.totalhits;
-      const element = document.getElementById(`to-monitor-list-${check.id}`);
+      const element = document.querySelector(`#to-monitor-list-${check.id}`);
       if (!element)
         return mw.notify(`Failed to find element for ID "${check.id}"`);
       element.innerHTML = count === 0 ? '<span style="color: #00733f">None</span>' : `<b><span style="color: #bd2828">${count.toLocaleString()}</span></b>`;
@@ -67,7 +67,7 @@ mw.loader.using(["mediawiki.util"], () => {
       if (!data)
         return;
       const count = data.query.backlinks.length;
-      const element = document.getElementById(`to-monitor-list-${check.id}`);
+      const element = document.querySelector(`#to-monitor-list-${check.id}`);
       if (!element)
         return mw.notify(`Failed to find element for ID "${check.id}"`);
       element.innerHTML = count === 0 ? '<span style="color: #00733f">None</span>' : `<b><span style="color: #bd2828">${count === 500 ? "500+" : count}</span></b>`;
@@ -86,7 +86,7 @@ mw.loader.using(["mediawiki.util"], () => {
       if (!data)
         return;
       const count = data.query.embeddedin.length;
-      const element = document.getElementById(`to-monitor-list-${check.id}`);
+      const element = document.querySelector(`#to-monitor-list-${check.id}`);
       if (!element)
         return mw.notify(`Failed to find element for ID "${check.id}"`);
       element.innerHTML = count === 0 ? '<span style="color: #00733f">None</span>' : `<b><span style="color: #bd2828">${count === 500 ? "500+" : count}</span></b>`;

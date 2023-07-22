@@ -5,16 +5,13 @@
         "build": "node compile.js"
     },
     "devDependencies": {
-        "@eejit/eslint-config-typescript": "^1.0.4",
+        "@eejit/eslint-config-typescript": "^2.2.0",
         "@tsconfig/recommended": "^1.0.2",
         "@types/node": "^20.4.2",
         "@types/oojs": "^7.0.0",
         "@types/oojs-ui": "^0.47.0",
-        "@typescript-eslint/eslint-plugin": "^6.1.0",
-        "@typescript-eslint/parser": "^6.1.0",
         "esbuild": "^0.18.14",
         "esbuild-postcss": "^0.0.4",
-        "eslint": "^8.45.0",
         "glob": "^10.3.3",
         "postcss-preset-env": "^9.0.0",
         "prettier": "^3.0.0",

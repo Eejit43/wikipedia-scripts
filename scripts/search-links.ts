@@ -1,7 +1,7 @@
 if (mw.config.get('wgCanonicalSpecialPageName') === 'Search')
-    document.querySelectorAll('.mw-search-result-heading').forEach((header) => {
+    for (const header of document.querySelectorAll('.mw-search-result-heading')) {
         const link = header.querySelector('a')?.href;
-        if (!link) return;
+        if (!link) continue;
 
         const links = ['edit', 'history'].map((action) => {
             const url = new mw.Uri(link).extend({ action }).toString();
@@ -13,11 +13,8 @@ if (mw.config.get('wgCanonicalSpecialPageName') === 'Search')
         });
 
         header.append(
-            document.createTextNode(' ('),
-            ...links
-                .map((link) => [link, document.createTextNode(' | ')])
-                .flat()
-                .slice(0, -1),
+            document.createTextNode(' ('), //
+            ...links.flatMap((link) => [link, document.createTextNode(' | ')]).slice(0, -1),
             document.createTextNode(')')
         );
-    });
+    }

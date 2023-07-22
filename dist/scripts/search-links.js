@@ -1,9 +1,9 @@
 "use strict";
 if (mw.config.get("wgCanonicalSpecialPageName") === "Search")
-  document.querySelectorAll(".mw-search-result-heading").forEach((header) => {
+  for (const header of document.querySelectorAll(".mw-search-result-heading")) {
     const link = header.querySelector("a")?.href;
     if (!link)
-      return;
+      continue;
     const links = ["edit", "history"].map((action) => {
       const url = new mw.Uri(link).extend({ action }).toString();
       const linkElement = document.createElement("a");
@@ -13,7 +13,7 @@ if (mw.config.get("wgCanonicalSpecialPageName") === "Search")
     });
     header.append(
       document.createTextNode(" ("),
-      ...links.map((link2) => [link2, document.createTextNode(" | ")]).flat().slice(0, -1),
+      ...links.flatMap((link2) => [link2, document.createTextNode(" | ")]).slice(0, -1),
       document.createTextNode(")")
     );
-  });
+  }

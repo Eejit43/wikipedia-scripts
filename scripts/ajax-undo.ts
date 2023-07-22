@@ -18,7 +18,7 @@ mw.loader.using(['mediawiki.util'], () => {
     ${isMinerva && !isDiff ? 'float: right;' : ''}
     height: ${isDiff ? '1.55' : '1.3'}em;
     line-height: 1.5em;
-    ${!isDiff ? `margin: ${isMinerva ? '0' : '-0.3em'} 3px 0 2px;` : ''}
+    ${isDiff ? '' : `margin: ${isMinerva ? '0' : '-0.3em'} 3px 0 2px;`}
     overflow: hidden;
     vertical-align: text-bottom;
 }
@@ -57,10 +57,13 @@ padding: revert;`
 }
 `);
 
-    document.querySelectorAll('.mw-history-undo, .mw-diff-undo').forEach((undoSpan) => {
+    for (const undoSpan of document.querySelectorAll('.mw-history-undo, .mw-diff-undo')) {
         const undoLink = undoSpan.querySelector('a');
 
-        if (!undoLink?.href) return mw.notify('Could not find undo link!', { type: 'error' });
+        if (!undoLink?.href) {
+            mw.notify('Could not find undo link!', { type: 'error' });
+            continue;
+        }
 
         const undoUrl = new URL(undoLink.href);
 
@@ -88,7 +91,7 @@ padding: revert;`
                 ajaxUndoLink.style.color = 'gray';
                 reasonInput.disabled = true;
 
-                if (isMinerva && !isDiff) ajaxUndoLink.appendChild(loadingSpinner);
+                if (isMinerva && !isDiff) ajaxUndoLink.append(loadingSpinner);
 
                 const undoId = undoUrl.searchParams.get('undo');
                 const undoAfter = undoUrl.searchParams.get('undoafter');
@@ -120,13 +123,13 @@ padding: revert;`
             }
         });
 
-        if (isDiff) span.appendChild(document.createTextNode('('));
-        span.appendChild(ajaxUndoLink);
+        if (isDiff) span.append(document.createTextNode('('));
+        span.append(ajaxUndoLink);
 
         const loadingSpinner = document.createElement('span');
         loadingSpinner.id = 'ajax-undo-loading';
 
-        if (!isMinerva) span.appendChild(loadingSpinner);
+        if (!isMinerva) span.append(loadingSpinner);
 
         const reasonInput = document.createElement('input');
         reasonInput.type = 'text';
@@ -137,14 +140,14 @@ padding: revert;`
         });
 
         if (isMinerva) span.prepend(reasonInput);
-        else span.appendChild(reasonInput);
+        else span.append(reasonInput);
 
-        if (isDiff) span.appendChild(document.createTextNode(')'));
+        if (isDiff) span.append(document.createTextNode(')'));
 
         if (isDiff) {
             undoSpan.after(span);
             undoSpan.after(document.createTextNode(' '));
         } else if (isMinerva) undoSpan.parentElement?.before(span);
         else undoSpan.parentElement?.after(span);
-    });
+    }
 });

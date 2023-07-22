@@ -1,9 +1,9 @@
 declare function importStylesheet(page: string): void;
 
 mw.loader.using(['mediawiki.util'], () => {
-    const devMode = false;
+    const developmentMode = false;
 
-    if (mw.config.get('wgPageName') !== (devMode ? 'User:Eejit43/sandbox' : 'Wikipedia:Requested_moves/Technical_requests')) return;
+    if (mw.config.get('wgPageName') !== (developmentMode ? 'User:Eejit43/sandbox' : 'Wikipedia:Requested_moves/Technical_requests')) return;
 
     importStylesheet('User:Eejit43/scripts/rmtr-helper.css');
 
@@ -11,12 +11,12 @@ mw.loader.using(['mediawiki.util'], () => {
 
     let displayed = false;
 
-    const link = mw.util.addPortletLink(mw.config.get('skin') === 'minerva' ? 'p-tb' : 'p-cactions', '#', `Review move requests${devMode ? ' (DEV)' : ''}`, 'review-rmtr-requests');
+    const link = mw.util.addPortletLink(mw.config.get('skin') === 'minerva' ? 'p-tb' : 'p-cactions', '#', `Review move requests${developmentMode ? ' (DEV)' : ''}`, 'review-rmtr-requests');
 
     link.addEventListener('click', async (event) => {
         event.preventDefault();
 
-        if (displayed) return document.getElementById('rmtr-review-result')?.scrollIntoView();
+        if (displayed) return document.querySelector('#rmtr-review-result')?.scrollIntoView();
         else displayed = true;
 
         const pageContent = ((await new mw.Api().get({ action: 'query', formatversion: 2, prop: 'revisions', rvprop: 'content', rvslots: '*', titles: mw.config.get('wgPageName') })) as PageRevisionsResult).query.pages[0].revisions[0].slots.main.content;
@@ -46,37 +46,40 @@ mw.loader.using(['mediawiki.util'], () => {
 
         const allRequests: Record<string, Request[]> = {};
 
-        sections.forEach((section) => {
+        for (const section of sections) {
             const sectionContent = pageContent
                 .split(new RegExp(`={3,} ?${section} ?={3,}`))[1]
                 .split(/={3,}/m)[0]
                 .trim();
 
-            const matchedRequests = sectionContent.match(/(?:\* ?\n)?\* {{RMassist\/core.+?(?=\* {{RMassist\/core|$)/gis);
+            const matchedRequests = sectionContent.match(/(?:\* ?\n)?\* {{rmassist\/core.+?(?=\* {{rmassist\/core|$)/gis);
 
-            if (!matchedRequests) return (allRequests[section] = []);
-            else
+            if (matchedRequests)
                 allRequests[section] = matchedRequests.map((request) => {
                     request = request.trim();
                     const full = request;
-                    const params = request
-                        .replace(/(?:\* ?\n)?\* {{RMassist\/core \||}}.*/gis, '')
+                    const parameters = request
+                        .replaceAll(/(?:\* ?\n)?\* {{rmassist\/core \||}}.*/gis, '')
                         .split(' | ')
-                        .map((param) => param.trim());
+                        .map((parameter) => parameter.trim());
 
-                    const finalParams = Object.fromEntries(params.map((param) => param.split(' = ').map((value) => value.trim()))) as Record<string, string>;
+                    const finalParameters = Object.fromEntries(parameters.map((parameter) => parameter.split(' = ').map((value) => value.trim()))) as Record<string, string>;
 
-                    finalParams.full = full;
+                    finalParameters.full = full;
 
-                    finalParams.original = finalParams[1];
-                    finalParams.destination = finalParams[2];
+                    finalParameters.original = finalParameters[1];
+                    finalParameters.destination = finalParameters[2];
 
-                    delete finalParams[1];
-                    delete finalParams[2];
+                    delete finalParameters[1];
+                    delete finalParameters[2];
 
-                    return finalParams as unknown as Request;
+                    return finalParameters as unknown as Request;
                 });
-        });
+            else {
+                allRequests[section] = [];
+                continue;
+            }
+        }
 
         await Promise.all(
             Object.entries(allRequests).map(async ([, requests]) => {
@@ -88,7 +91,7 @@ mw.loader.using(['mediawiki.util'], () => {
                         if (!mwOldTitle) return mw.notify(`Invalid title "${request.original}"!`, { type: 'error' });
                         if (!mwNewTitle) return mw.notify(`Invalid title "${request.destination}"!`, { type: 'error' });
 
-                        const validTitle = !/[#<>[\]|{}]/.test(request.destination) && mwNewTitle;
+                        const validTitle = !/[#<>[\]{|}]/.test(request.destination) && mwNewTitle;
 
                         const invalidTitleWarning = document.createElement('span');
                         invalidTitleWarning.classList.add('rmtr-review-invalid-warning');
@@ -106,7 +109,7 @@ mw.loader.using(['mediawiki.util'], () => {
                         const requestElement = document.createElement('li');
                         requestElement.innerHTML = parsedHtml.querySelector('div.mw-parser-output')!.firstElementChild!.innerHTML!;
 
-                        if (!validNamespace) requestElement.appendChild(invalidNamespaceWarning);
+                        if (!validNamespace) requestElement.append(invalidNamespaceWarning);
 
                         request.element = requestElement;
                     })
@@ -121,14 +124,14 @@ mw.loader.using(['mediawiki.util'], () => {
         header.id = 'rmtr-review-header';
         header.textContent = 'Technical move requests review';
 
-        outputElement.appendChild(header);
+        outputElement.append(header);
 
-        Object.entries(allRequests).forEach(([section, requests], sectionIndex) => {
+        for (const [sectionIndex, [section, requests]] of Object.entries(allRequests).entries()) {
             const sectionHeader = document.createElement('div');
             sectionHeader.classList.add('rmtr-review-header');
             sectionHeader.textContent = section;
 
-            outputElement.appendChild(sectionHeader);
+            outputElement.append(sectionHeader);
 
             const sectionContent = document.createElement('div');
             sectionContent.classList.add('rmtr-review-section-content');
@@ -137,11 +140,11 @@ mw.loader.using(['mediawiki.util'], () => {
                 const noRequests = document.createElement('div');
                 noRequests.textContent = 'No requests in this section';
 
-                sectionContent.appendChild(noRequests);
+                sectionContent.append(noRequests);
             } else {
                 const requestsList = document.createElement('ul');
 
-                requests.forEach((request, requestIndex) => {
+                for (const [requestIndex, request] of requests.entries()) {
                     const requestElement = request.element;
 
                     const removeRequestCheckbox = document.createElement('input');
@@ -164,13 +167,13 @@ mw.loader.using(['mediawiki.util'], () => {
                     removeRequestLabel.htmlFor = `rmtr-review-remove-request-${sectionIndex}-${requestIndex}`;
                     removeRequestLabel.textContent = 'Remove request';
 
-                    requestElement.appendChild(removeRequestCheckbox);
-                    requestElement.appendChild(removeRequestLabel);
+                    requestElement.append(removeRequestCheckbox);
+                    requestElement.append(removeRequestLabel);
 
                     const removeRequestExtraInputs = document.createElement('span');
                     removeRequestExtraInputs.style.display = 'none';
 
-                    removeRequestExtraInputs.appendChild(document.createTextNode(' as '));
+                    removeRequestExtraInputs.append(document.createTextNode(' as '));
 
                     const removeRequestDropdown = document.createElement('select');
                     if (section === 'Contested technical requests') removeRequestDropdown.value = 'Contested';
@@ -186,17 +189,17 @@ mw.loader.using(['mediawiki.util'], () => {
                         'Incorrect venue'
                     ];
 
-                    removeRequestDropdownOptions.forEach((option) => {
+                    for (const option of removeRequestDropdownOptions) {
                         const optionElement = document.createElement('option');
                         optionElement.value = option;
                         optionElement.textContent = option;
 
-                        removeRequestDropdown.appendChild(optionElement);
-                    });
+                        removeRequestDropdown.append(optionElement);
+                    }
 
-                    removeRequestExtraInputs.appendChild(removeRequestDropdown);
+                    removeRequestExtraInputs.append(removeRequestDropdown);
 
-                    requestElement.appendChild(removeRequestExtraInputs);
+                    requestElement.append(removeRequestExtraInputs);
 
                     const switchSectionCheckbox = document.createElement('input');
                     switchSectionCheckbox.type = 'checkbox';
@@ -218,32 +221,32 @@ mw.loader.using(['mediawiki.util'], () => {
                     switchSectionLabel.htmlFor = `rmtr-review-move-request-${sectionIndex}-${requestIndex}`;
                     switchSectionLabel.textContent = 'Switch section';
 
-                    requestElement.appendChild(switchSectionCheckbox);
-                    requestElement.appendChild(switchSectionLabel);
+                    requestElement.append(switchSectionCheckbox);
+                    requestElement.append(switchSectionLabel);
 
                     const switchSectionExtraInputs = document.createElement('span');
                     switchSectionExtraInputs.style.display = 'none';
 
-                    switchSectionExtraInputs.appendChild(document.createTextNode(' to '));
+                    switchSectionExtraInputs.append(document.createTextNode(' to '));
 
                     const switchSectionDropdown = document.createElement('select');
                     switchSectionDropdown.addEventListener('change', () => {
                         (allRequests[section][requestIndex].result as RequestResultMove).section = switchSectionDropdown.value;
                     });
 
-                    sections.forEach((option) => {
-                        if (option === section) return;
+                    for (const option of sections) {
+                        if (option === section) continue;
 
                         const optionElement = document.createElement('option');
                         optionElement.value = option;
                         optionElement.textContent = option;
 
-                        switchSectionDropdown.appendChild(optionElement);
-                    });
+                        switchSectionDropdown.append(optionElement);
+                    }
 
-                    switchSectionExtraInputs.appendChild(switchSectionDropdown);
+                    switchSectionExtraInputs.append(switchSectionDropdown);
 
-                    switchSectionExtraInputs.appendChild(document.createTextNode(' with reasoning '));
+                    switchSectionExtraInputs.append(document.createTextNode(' with reasoning '));
 
                     const switchSectionReasoning = document.createElement('input');
                     switchSectionReasoning.type = 'text';
@@ -251,20 +254,20 @@ mw.loader.using(['mediawiki.util'], () => {
                         (allRequests[section][requestIndex].result as RequestResultRemove).reason = switchSectionReasoning.value;
                     });
 
-                    switchSectionExtraInputs.appendChild(switchSectionReasoning);
+                    switchSectionExtraInputs.append(switchSectionReasoning);
 
-                    switchSectionExtraInputs.appendChild(document.createTextNode(' (optional, automatically signed)'));
+                    switchSectionExtraInputs.append(document.createTextNode(' (optional, automatically signed)'));
 
-                    requestElement.appendChild(switchSectionExtraInputs);
+                    requestElement.append(switchSectionExtraInputs);
 
-                    requestsList.appendChild(requestElement);
-                });
+                    requestsList.append(requestElement);
+                }
 
-                sectionContent.appendChild(requestsList);
+                sectionContent.append(requestsList);
             }
 
-            outputElement.appendChild(sectionContent);
-        });
+            outputElement.append(sectionContent);
+        }
 
         const submitButton = document.createElement('button');
         submitButton.id = 'rmtr-review-submit';
@@ -283,9 +286,9 @@ mw.loader.using(['mediawiki.util'], () => {
 
             const changes: AllChanges = { remove: {}, move: {}, total: 0 };
 
-            Object.values(allRequests).forEach((section) => {
-                section.forEach((request) => {
-                    if (!request.result) return;
+            for (const section of Object.values(allRequests))
+                for (const request of section) {
+                    if (!request.result) continue;
 
                     if ('remove' in request.result) {
                         endResult = endResult.replace(request.full + '\n', '').replace(request.full, '');
@@ -302,8 +305,7 @@ mw.loader.using(['mediawiki.util'], () => {
                         changes.move[request.result.section].push(request);
                         changes.total++;
                     }
-                });
-            });
+                }
 
             if (changes.total === 0) {
                 submitButton.disabled = false;
@@ -327,7 +329,7 @@ mw.loader.using(['mediawiki.util'], () => {
                     : ''
             } ${noRemaining ? '(no requests remain)' : ''} (via [[User:Eejit43/scripts/rmtr-helper|script]])`;
 
-            if (devMode) showEditPreview(mw.config.get('wgPageName'), endResult, editSummary);
+            if (developmentMode) showEditPreview(mw.config.get('wgPageName'), endResult, editSummary);
             else {
                 await new mw.Api().edit(mw.config.get('wgPageName'), () => ({ text: endResult, summary: editSummary }));
 
@@ -341,9 +343,9 @@ mw.loader.using(['mediawiki.util'], () => {
         loadingSpinner.id = 'rmtr-review-loading';
         loadingSpinner.style.display = 'none';
 
-        submitButton.appendChild(loadingSpinner);
+        submitButton.append(loadingSpinner);
 
-        outputElement.appendChild(submitButton);
+        outputElement.append(submitButton);
 
         mw.util.$content[0].prepend(outputElement);
 
@@ -368,32 +370,32 @@ function showEditPreview(title: string, text: string, summary: string): void {
     textboxInput.type = 'hidden';
     textboxInput.name = 'wpTextbox1';
     textboxInput.value = text;
-    form.appendChild(textboxInput);
+    form.append(textboxInput);
 
     const summaryInput = document.createElement('input');
     summaryInput.type = 'hidden';
     summaryInput.name = 'wpSummary';
     summaryInput.value = summary;
-    form.appendChild(summaryInput);
+    form.append(summaryInput);
 
     const previewInput = document.createElement('input');
     previewInput.type = 'hidden';
     previewInput.name = 'mode';
     previewInput.value = 'preview';
-    form.appendChild(previewInput);
+    form.append(previewInput);
 
     const showChangesInput = document.createElement('input');
     showChangesInput.type = 'hidden';
     showChangesInput.name = 'wpDiff';
     showChangesInput.value = 'Show changes';
-    form.appendChild(showChangesInput);
+    form.append(showChangesInput);
 
-    const ultimateParamInput = document.createElement('input');
-    ultimateParamInput.type = 'hidden';
-    ultimateParamInput.name = 'wpUltimateParam';
-    ultimateParamInput.value = '1';
-    form.appendChild(ultimateParamInput);
+    const ultimateParameterInput = document.createElement('input');
+    ultimateParameterInput.type = 'hidden';
+    ultimateParameterInput.name = 'wpUltimateParam';
+    ultimateParameterInput.value = '1';
+    form.append(ultimateParameterInput);
 
-    document.body.appendChild(form);
+    document.body.append(form);
     form.submit();
 }

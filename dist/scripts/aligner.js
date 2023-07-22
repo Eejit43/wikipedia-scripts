@@ -9,37 +9,6 @@
     const link = mw.util.addPortletLink(mw.config.get("skin") === "minerva" ? "p-navigation" : "p-cactions", "#", "Align template params", "align-params");
     link.addEventListener("click", (event) => {
       event.preventDefault();
-      function splitParam(string) {
-        const split = string.split("=");
-        if (split.length <= 2)
-          return split;
-        const first = split.shift();
-        return [first, split.join("=")];
-      }
-      function splitIntoParams(string) {
-        if (string.startsWith("{{") && string.endsWith("}}")) {
-          if (!string.includes("|"))
-            return [string];
-          const results = splitIntoParams(string.slice(2, -2));
-          return ["{{" + results[0]].concat(splitIntoParams(string.slice(2, -2)).slice(1), ["}}"]);
-        }
-        const params = [];
-        let temp = "";
-        let open2 = 0;
-        for (const char of string) {
-          temp += char;
-          if (char === "{" || char === "[")
-            open2 += 1;
-          else if (char === "" || char === "]")
-            open2--;
-          else if (char === "|" && open2 === 0 && temp.trim() !== "|") {
-            params.push(temp.slice(0, -1).trim());
-            temp = "|";
-          }
-        }
-        params.push(temp);
-        return params;
-      }
       if (window.wikEd?.useWikEd)
         window.wikEd.UpdateTextarea();
       const editBox = $("#wpTextbox1");
@@ -59,14 +28,14 @@
         const lines = template2.split("\n");
         const newLines = [];
         for (const line of lines) {
-          const paramsInLine = splitIntoParams(line.trim());
-          for (const param of paramsInLine) {
-            const line2 = param.trim();
+          const parametersInLine = splitIntoParameters(line.trim());
+          for (const parameter of parametersInLine) {
+            const line2 = parameter.trim();
             if (!line2.startsWith("|") || line2.split("=").length !== 2) {
               newLines.push(line2);
               continue;
             }
-            let [firstPart, lastPart] = splitParam(line2);
+            let [firstPart, lastPart] = splitParameter(line2);
             firstPart = firstPart.slice(1).trim();
             if (firstPart.length > maxLength)
               maxLength = firstPart.length;
@@ -76,7 +45,7 @@
         let output = "";
         maxLength += 2;
         for (let line of newLines) {
-          const parts = splitParam(line);
+          const parts = splitParameter(line);
           if (parts.length < 2) {
             output += line += "\n";
             continue;
@@ -94,24 +63,22 @@
       }
       let template = "";
       let open = 0;
-      for (let i = 0; i < text.length; i++) {
+      for (let index = 0; index < text.length; index++) {
         let foo = false;
         for (let search of searches) {
           search = "{{" + search;
           const searchLength = search.length;
-          if (text.length - i > searchLength) {
-            if (text.slice(i, i + searchLength).toLowerCase() === search || text.slice(i, i + searchLength).toLowerCase() === search.replace(" ", "_")) {
-              open++;
-              template += text[i];
-              foo = true;
-            }
+          if (text.length - index > searchLength && (text.slice(index, index + searchLength).toLowerCase() === search || text.slice(index, index + searchLength).toLowerCase() === search.replace(" ", "_"))) {
+            open++;
+            template += text[index];
+            foo = true;
           }
         }
         if (open >= 1 && !foo) {
-          template += text[i];
-          if (text[i] === "{")
+          template += text[index];
+          if (text[index] === "{")
             open++;
-          else if (text[i] === "}") {
+          else if (text[index] === "}") {
             open--;
             if (open === 0) {
               count++;
@@ -125,3 +92,34 @@
     });
   });
 })();
+function splitParameter(string) {
+  const split = string.split("=");
+  if (split.length <= 2)
+    return split;
+  const first = split.shift();
+  return [first, split.join("=")];
+}
+function splitIntoParameters(string) {
+  if (string.startsWith("{{") && string.endsWith("}}")) {
+    if (!string.includes("|"))
+      return [string];
+    const results = splitIntoParameters(string.slice(2, -2));
+    return ["{{" + results[0], ...splitIntoParameters(string.slice(2, -2)).slice(1), "}}"];
+  }
+  const parameters = [];
+  let temporary = "";
+  let open = 0;
+  for (const char of string) {
+    temporary += char;
+    if (char === "{" || char === "[")
+      open += 1;
+    else if (char === "" || char === "]")
+      open--;
+    else if (char === "|" && open === 0 && temporary.trim() !== "|") {
+      parameters.push(temporary.slice(0, -1).trim());
+      temporary = "|";
+    }
+  }
+  parameters.push(temporary);
+  return parameters;
+}

@@ -35,7 +35,7 @@ mw.loader.using(["mediawiki.util"], async () => {
     transform: translateY(2px);
 }
 `);
-  const titleElement = document.getElementById("firstHeading");
+  const titleElement = document.querySelector("#firstHeading");
   if (!titleElement)
     return mw.notify("Could not find title element", { type: "error" });
   const deletionResult = await new mw.Api().get({
@@ -51,7 +51,7 @@ mw.loader.using(["mediawiki.util"], async () => {
     link.href = mw.util.getUrl("Special:Log/delete", { page: mw.config.get("wgPageName").replaceAll("_", " "), subtype: "delete" });
     link.target = "_blank";
     link.textContent = "Previously deleted";
-    titleElement.appendChild(link);
+    titleElement.append(link);
   }
   const afdExists = await new mw.Api().get({ action: "query", formatversion: 2, titles: `Wikipedia:Articles_for_deletion/${mw.config.get("wgPageName")}` });
   if (!afdExists.query.pages[0].missing) {
@@ -60,6 +60,6 @@ mw.loader.using(["mediawiki.util"], async () => {
     link.href = mw.util.getUrl("Special:AllPages", { from: `Articles for deletion/${mw.config.get("wgPageName").replaceAll("_", " ")}`, to: `Articles for deletion/${mw.config.get("wgPageName").replaceAll("_", " ")} (9z)`, namespace: "4" });
     link.target = "_blank";
     link.textContent = "Previously at AfD";
-    titleElement.appendChild(link);
+    titleElement.append(link);
   }
 });

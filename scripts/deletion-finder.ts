@@ -32,7 +32,7 @@ mw.loader.using(['mediawiki.util'], async () => {
     transform: translateY(2px);
 }
 `);
-    const titleElement = document.getElementById('firstHeading');
+    const titleElement = document.querySelector('#firstHeading');
 
     if (!titleElement) return mw.notify('Could not find title element', { type: 'error' });
 
@@ -51,7 +51,7 @@ mw.loader.using(['mediawiki.util'], async () => {
         link.target = '_blank';
         link.textContent = 'Previously deleted';
 
-        titleElement.appendChild(link);
+        titleElement.append(link);
     }
 
     const afdExists = (await new mw.Api().get({ action: 'query', formatversion: 2, titles: `Wikipedia:Articles_for_deletion/${mw.config.get('wgPageName')}` })) as { query: { pages: { missing?: true }[] } };
@@ -63,6 +63,6 @@ mw.loader.using(['mediawiki.util'], async () => {
         link.target = '_blank';
         link.textContent = 'Previously at AfD';
 
-        titleElement.appendChild(link);
+        titleElement.append(link);
     }
 });

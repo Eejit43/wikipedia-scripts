@@ -12,7 +12,7 @@ mw.loader.using(['mediawiki.util'], async () => {
 
         const mainPageContent: string = mainPageInfoRevisions.query.pages[0].revisions[0].slots.main.content;
 
-        const redirectTarget = /#REDIRECT:? *\[\[(.+)\]\]/i.exec(mainPageContent)?.[1].replaceAll('_', ' ').split('|')[0].split('#')[0].trim();
+        const redirectTarget = /#redirect:? *\[\[(.+)]]/i.exec(mainPageContent)?.[1].replaceAll('_', ' ').split('|')[0].split('#')[0].trim();
         if (!redirectTarget) return mw.notify('Failed to parse redirect target!', { type: 'error', tag: 'sync-redirect-notification' });
 
         const redirectTargetParsed = new DOMParser().parseFromString(redirectTarget, 'text/html').documentElement.textContent;

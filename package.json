@@ -7,6 +7,7 @@
     },
     "devDependencies": {
         "@eejit/eslint-config-typescript": "^2.5.2",
+        "@eejit/stylelint-config": "^1.1.0",
         "@tsconfig/recommended": "^1.0.2",
         "@types/node": "^20.4.8",
         "@types/oojs": "^7.0.0",
@@ -18,9 +19,6 @@
         "prettier": "^3.0.1",
         "prettier-plugin-css-order": "^2.0.0",
         "prettier-plugin-packagejson": "^2.4.5",
-        "stylelint": "^15.10.2",
-        "stylelint-config-standard": "^34.0.0",
-        "stylelint-use-nesting": "^4.1.0",
         "types-mediawiki": "^1.4.0",
         "typescript": "^5.1.6"
     }

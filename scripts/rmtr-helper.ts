@@ -1,3 +1,5 @@
+import { PageRevisionsResult } from '../global-types';
+
 declare function importStylesheet(page: string): void;
 
 mw.loader.using(['mediawiki.util'], () => {

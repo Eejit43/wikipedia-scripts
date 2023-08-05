@@ -1,7 +1,7 @@
-interface MediaWikiDataError {
+export interface MediaWikiDataError {
     error: { code: string; info: string };
 }
 
-interface PageRevisionsResult {
+export interface PageRevisionsResult {
     query: { pages: { revisions: { slots: { main: { content: string } } }[] }[] };
 }

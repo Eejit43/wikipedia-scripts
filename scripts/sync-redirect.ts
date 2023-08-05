@@ -1,3 +1,5 @@
+import { MediaWikiDataError, PageRevisionsResult } from '../global-types';
+
 mw.loader.using(['mediawiki.util'], async () => {
     if (!mw.Title.isTalkNamespace(mw.config.get('wgNamespaceNumber'))) return;
     const mainPageInfoRevisions = (await new mw.Api().get({ action: 'query', formatversion: 2, prop: 'info|revisions', rvprop: 'content', rvslots: '*', titles: `${mw.config.get('wgFormattedNamespaces')[mw.config.get('wgNamespaceNumber') - 1]}:${mw.config.get('wgTitle')}` })) as PageRevisionsResult & { query: { pages: { redirect?: boolean }[] } };

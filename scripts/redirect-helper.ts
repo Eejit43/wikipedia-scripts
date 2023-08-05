@@ -1,3 +1,5 @@
+import { MediaWikiDataError, PageRevisionsResult } from '../global-types';
+
 interface PageInfoResult {
     query: { pages: { missing?: string; redirect?: string }[] };
 }

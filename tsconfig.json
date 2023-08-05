@@ -1,8 +1,9 @@
 {
     "extends": "@tsconfig/recommended/tsconfig.json",
     "compilerOptions": {
-        "removeComments": true,
-        "lib": ["DOM", "DOM.Iterable", "ESNext"]
+        "target": "ES2022",
+        "module": "NodeNext",
+        "removeComments": true
     },
-    "include": ["./global.d.ts", "scripts/*", "./node_modules/types-mediawiki"]
+    "include": ["compile.ts"]
 }

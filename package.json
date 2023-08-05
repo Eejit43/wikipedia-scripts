@@ -2,7 +2,8 @@
     "name": "wikipedia-scripts",
     "type": "module",
     "scripts": {
-        "build": "node compile.js"
+        "build": "cp compile.ts compile.js && node compile.js",
+        "remove-compiled": "rm -f compile.js"
     },
     "devDependencies": {
         "@eejit/eslint-config-typescript": "^2.5.0",

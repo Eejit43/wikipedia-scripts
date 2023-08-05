@@ -1,3 +1,5 @@
+import { MediaWikiDataError } from '../global-types';
+
 interface Script {
     name: string;
     'use-instead'?: string; // eslint-disable-line @typescript-eslint/naming-convention

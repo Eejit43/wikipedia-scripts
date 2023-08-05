@@ -1,3 +1,5 @@
+import { MediaWikiDataError } from '../global-types';
+
 mw.loader.using(['mediawiki.util'], () => {
     const isDiff = mw.config.get('wgDiffOldId');
 

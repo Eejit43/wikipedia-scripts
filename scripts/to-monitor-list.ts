@@ -1,3 +1,5 @@
+import { MediaWikiDataError, PageRevisionsResult } from '../global-types';
+
 interface SearchData {
     categories: { id: string; category: string; namespace?: string; notNamespace?: string }[];
     searches: { id: string; search: string; namespace?: string; notNamespace?: string }[];

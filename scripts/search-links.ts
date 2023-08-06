@@ -15,6 +15,6 @@ if (mw.config.get('wgCanonicalSpecialPageName') === 'Search')
         header.append(
             document.createTextNode(' ('), //
             ...links.flatMap((link) => [link, document.createTextNode(' | ')]).slice(0, -1),
-            document.createTextNode(')')
+            document.createTextNode(')'),
         );
     }

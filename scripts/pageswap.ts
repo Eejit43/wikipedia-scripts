@@ -26,20 +26,20 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
             $('<a>')
                 .attr({ href: mw.util.getUrl('WP:ROUNDROBIN'), target: '_blank' })
                 .text('Swap'),
-            ' two pages'
+            ' two pages',
         );
         SwapDialog.static.actions = [
             {
                 action: 'swap',
                 label: 'Swap',
                 flags: ['primary', 'progressive'],
-                disabled: true
+                disabled: true,
             },
             {
                 action: 'cancel',
                 label: 'Cancel',
-                flags: ['safe', 'close']
-            }
+                flags: ['safe', 'close'],
+            },
         ];
 
         SwapDialog.prototype.initialize = function () {
@@ -47,7 +47,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
 
             this.panel = new OO.ui.PanelLayout({
                 padded: true,
-                expanded: false
+                expanded: false,
             });
 
             this.content = new OO.ui.FieldsetLayout();
@@ -63,7 +63,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                 validate: (value) => {
                     if (value === '' || value === mw.config.get('wgPageName')) return false;
                     return true;
-                }
+                },
             });
             this.destinationInput.on('change', () => {
                 let value = this.destinationInput.getValue().replaceAll('_', ' ').replace(/^\s+/, '');
@@ -85,8 +85,8 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                     { data: 'Move to [[WP:COMMONNAME|common name]]' },
                     { data: 'Fixing typo' },
                     { data: 'Fixing capitalization' },
-                    { data: 'Fixing per [[WP:NC|naming conventions]]' }
-                ]
+                    { data: 'Fixing per [[WP:NC|naming conventions]]' },
+                ],
             });
 
             this.summaryInput.connect(this, { change: 'updateActionState' });
@@ -122,7 +122,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                         roundRobin(userPermissions, currentTitle, destination, summary, moveTalk, moveSubpages).catch((error) => {
                             console.error(error);
                             return $.Deferred().reject(this.showErrors([new OO.ui.Error(error?.message || 'An unknown error occurred.')]));
-                        })
+                        }),
                     )
                     .next(() => {
                         mw.notify('Moves complete! Reloading...', { type: 'success' });
@@ -156,13 +156,13 @@ function fetchUserPermissions() {
         .get({
             action: 'query',
             meta: 'userinfo',
-            uiprop: 'rights'
+            uiprop: 'rights',
         })
         .then((data) => {
             const rightsList = data.query.userinfo.rights;
             return {
                 canSwap: rightsList.includes('suppressredirect') && rightsList.includes('move-subpages'), // Page mover right on the English Wikipedia
-                allowSwapTemplates: rightsList.includes('templateeditor')
+                allowSwapTemplates: rightsList.includes('templateeditor'),
             };
         });
 }
@@ -197,7 +197,12 @@ function swapValidate(startTitle, endTitle, pagesData, namespacesData, userPermi
             return result;
         }
         // Enable only in Main, Talk, User, User talk, Wikipedia, Wikipedia talk, Help, Help talk, Draft, and Draft talk
-        if ((pageData.ns >= 6 && pageData.ns <= 9) || (pageData.ns >= 10 && pageData.ns <= 11 && !userPermissions.allowSwapTemplates) || (pageData.ns >= 14 && pageData.ns <= 117) || pageData.ns >= 120) {
+        if (
+            (pageData.ns >= 6 && pageData.ns <= 9) ||
+            (pageData.ns >= 10 && pageData.ns <= 11 && !userPermissions.allowSwapTemplates) ||
+            (pageData.ns >= 14 && pageData.ns <= 117) ||
+            pageData.ns >= 120
+        ) {
             result.valid = false;
             result.error = `Namespace of ${pageData.title} (${pageData.ns}) not supported.\n\nLikely reasons:\n- Names of pages in this namespace relies on other pages\n- Namespace features heavily-transcluded pages\n- Namespace involves subpages: swaps produce many redlinks\n\n\nIf the move is legitimate, consider a careful manual swap.`;
             return result;
@@ -298,7 +303,7 @@ async function talkValidate(checkTalk, firstTalk, secondTalk) {
                 action: 'query',
                 prop: 'info',
                 intestactions: 'move|create',
-                titles: talkTitleArr.join('|')
+                titles: talkTitleArr.join('|'),
             })
         ).query.pages;
 
@@ -342,7 +347,7 @@ async function getSubpages(namespaceData, title, titleNamespace, isTalk) {
             apnamespace: isTalk ? titleNamespace + 1 : titleNamespace,
             apfrom: titlePageData.titleWithoutPrefix + '/',
             apto: titlePageData.titleWithoutPrefix + '0',
-            aplimit: 101
+            aplimit: 101,
         })
     ).query.allpages;
 
@@ -360,14 +365,14 @@ async function getSubpages(namespaceData, title, titleNamespace, isTalk) {
             action: 'query',
             prop: 'info',
             intestactions: 'move|create',
-            pageids: subpageIds[0].join('|')
+            pageids: subpageIds[0].join('|'),
         })
     ).query.pages;
     for (const [, pageData] of Object.entries(subpageDataOne))
         result.push({
             title: pageData.title,
             isRedir: pageData.redirect === '',
-            canMove: pageData.actions?.move === ''
+            canMove: pageData.actions?.move === '',
         });
 
     if (subpageIds[1].length === 0) return { data: result };
@@ -377,14 +382,14 @@ async function getSubpages(namespaceData, title, titleNamespace, isTalk) {
             action: 'query',
             prop: 'info',
             intestactions: 'move|create',
-            pageids: subpageIds[1].join('|')
+            pageids: subpageIds[1].join('|'),
         })
     ).query.pages;
     for (const [, pageData] of Object.entries(subpageDataTwo))
         result.push({
             title: pageData.title,
             isRedirect: pageData.redirect === '',
-            canMove: pageData.actions?.move === ''
+            canMove: pageData.actions?.move === '',
         });
 
     return { data: result };
@@ -406,7 +411,14 @@ function printSubpageInfo(basePage, currentSubpage) {
         if (pageData.isRedirect) redirectCount++;
     }
 
-    if (currentSubpages.length > 0) mw.notify(subpagesCannotMove.length > 0 ? `Disabling move-subpages.\nThe following ${subpagesCannotMove.length} (of ${currentSubpages.length}) total subpages of ${basePage} CANNOT be moved:\n\n${subpagesCannotMove.join(', ')}` : `${currentSubpages.length} total subpages of ${basePage}.${redirectCount !== 0 ? ` ${redirectCount} redirects, labeled (R)` : ''}: ${currentSubpages.join(', ')}`);
+    if (currentSubpages.length > 0)
+        mw.notify(
+            subpagesCannotMove.length > 0
+                ? `Disabling move-subpages.\nThe following ${subpagesCannotMove.length} (of ${currentSubpages.length}) total subpages of ${basePage} CANNOT be moved:\n\n${subpagesCannotMove.join(
+                      ', ',
+                  )}`
+                : `${currentSubpages.length} total subpages of ${basePage}.${redirectCount !== 0 ? ` ${redirectCount} redirects, labeled (R)` : ''}: ${currentSubpages.join(', ')}`,
+        );
 
     result.allowMoveSubpages = subpagesCannotMove.length === 0;
     result.noNeed = currentSubpages.length === 0;
@@ -421,9 +433,23 @@ function swapPages(titleOne, titleTwo, summary, moveTalk, moveSubpages) {
     const intermediateTitle = `Draft:Move/${titleOne}`;
 
     const moves = [
-        { action: 'move', from: titleTwo, to: intermediateTitle, reason: '[[WP:ROUNDROBIN|Round-robin page move]] step 1 (with [[User:Eejit43/scripts/pageswap|pageswap 2]])', watchlist: 'unwatch', noredirect: 1 },
+        {
+            action: 'move',
+            from: titleTwo,
+            to: intermediateTitle,
+            reason: '[[WP:ROUNDROBIN|Round-robin page move]] step 1 (with [[User:Eejit43/scripts/pageswap|pageswap 2]])',
+            watchlist: 'unwatch',
+            noredirect: 1,
+        },
         { action: 'move', from: titleOne, to: titleTwo, reason: summary, watchlist: 'unwatch', noredirect: 1 },
-        { action: 'move', from: intermediateTitle, to: titleOne, reason: '[[WP:ROUNDROBIN|Round-robin page move]] step 3 (with [[User:Eejit43/scripts/pageswap|pageswap 2]])', watchlist: 'unwatch', noredirect: 1 }
+        {
+            action: 'move',
+            from: intermediateTitle,
+            to: titleOne,
+            reason: '[[WP:ROUNDROBIN|Round-robin page move]] step 3 (with [[User:Eejit43/scripts/pageswap|pageswap 2]])',
+            watchlist: 'unwatch',
+            noredirect: 1,
+        },
     ];
 
     for (const move of moves) {
@@ -468,7 +494,7 @@ async function roundRobin(userPermissions, currentTitle, destinationTitle, summa
         await new mw.Api().get({
             action: 'query',
             meta: 'siteinfo',
-            siprop: 'namespaces'
+            siprop: 'namespaces',
         })
     ).query.namespaces;
 
@@ -479,7 +505,7 @@ async function roundRobin(userPermissions, currentTitle, destinationTitle, summa
             prop: 'info',
             inprop: 'talkid',
             intestactions: 'move|create',
-            titles: `${currentTitle}|${destinationTitle}`
+            titles: `${currentTitle}|${destinationTitle}`,
         })
     ).query;
 
@@ -519,12 +545,29 @@ async function roundRobin(userPermissions, currentTitle, destinationTitle, summa
 
     if (moveTalk && validationData.checkTalk && !talkValidationData.allowMoveTalk) {
         moveTalk = false;
-        mw.notify(`Disallowing moving talk. ${!talkValidationData.currentTalkCanCreate ? `${validationData.currentTalkName} is create-protected` : !talkValidationData.destinationTalkCanCreate ? `${validationData.destinationTalkName} is create-protected` : 'Talk page is immovable'}`);
+        mw.notify(
+            `Disallowing moving talk. ${
+                !talkValidationData.currentTalkCanCreate
+                    ? `${validationData.currentTalkName} is create-protected`
+                    : !talkValidationData.destinationTalkCanCreate
+                    ? `${validationData.destinationTalkName} is create-protected`
+                    : 'Talk page is immovable'
+            }`,
+        );
     }
 
     let finalMoveSubpages = false;
     // TODO future: currTSpFlags.allowMoveSubpages && destTSpFlags.allowMoveSubpages needs to be separate check. If talk subpages immovable, should not affect subjspace
-    if (!subpageCollision && !noSubpages && validationData.allowMoveSubpages && currentSubpageFlags.allowMoveSubpages && destinationSubpageFlags.allowMoveSubpages && currentTalkSubpageFlags.allowMoveSubpages && destinationTalkSubpageFlags.allowMoveSubpages) finalMoveSubpages = moveSubpages;
+    if (
+        !subpageCollision &&
+        !noSubpages &&
+        validationData.allowMoveSubpages &&
+        currentSubpageFlags.allowMoveSubpages &&
+        destinationSubpageFlags.allowMoveSubpages &&
+        currentTalkSubpageFlags.allowMoveSubpages &&
+        destinationTalkSubpageFlags.allowMoveSubpages
+    )
+        finalMoveSubpages = moveSubpages;
     else if (subpageCollision) {
         finalMoveSubpages = false;
         mw.notify('One namespace does not have subpages enabled. Disallowing move subpages.');

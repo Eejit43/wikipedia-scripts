@@ -53,7 +53,7 @@ mw.loader.using(['mediawiki.util'], () => {
                         .join('|')}}}`,
                     `| released          = {{start date and age|${script.released}}}`,
                     `| updated           = {{start date and age|${script.updated}}}`,
-                    '}}'
+                    '}}',
                 ].filter(Boolean);
 
                 const scriptContent = await (await fetch(`https://raw.githubusercontent.com/${repoOwner}/${repoName}/${latestCommitHash}/dist/scripts/${script.name}.js`)).text().catch((error) => {
@@ -74,9 +74,18 @@ mw.loader.using(['mediawiki.util'], () => {
                     await editOrCreate(subpageName, fullSubpageInfo.join('\n'), 'Syncing script documentation from GitHub');
                     await editOrCreate(subpageTalkName, '#REDIRECT [[User talk:Eejit43]]', 'Redirecting script documentation talk page to main user talk page');
                 }
-                await editOrCreate(scriptName, `// <nowiki>\n// Note: This script was compiled from TypeScript. For a more readable version, see https://github.com/${repoOwner}/${repoName}/blob/main/scripts/${script.name}.ts\n\n${scriptContent}\n// </nowiki>`, 'Syncing script from GitHub');
-                if (script.css && styleContent) await editOrCreate(styleName, `/* <nowiki> */\n/* Note: This script was compiled from modern CSS. For a more readable version, see https://github.com/${repoOwner}/${repoName}/blob/main/styles/${script.name}.css */\n\n${styleContent}\n/* </nowiki> */`, 'Syncing styles from GitHub');
-            })
+                await editOrCreate(
+                    scriptName,
+                    `// <nowiki>\n// Note: This script was compiled from TypeScript. For a more readable version, see https://github.com/${repoOwner}/${repoName}/blob/main/scripts/${script.name}.ts\n\n${scriptContent}\n// </nowiki>`,
+                    'Syncing script from GitHub',
+                );
+                if (script.css && styleContent)
+                    await editOrCreate(
+                        styleName,
+                        `/* <nowiki> */\n/* Note: This script was compiled from modern CSS. For a more readable version, see https://github.com/${repoOwner}/${repoName}/blob/main/styles/${script.name}.css */\n\n${styleContent}\n/* </nowiki> */`,
+                        'Syncing styles from GitHub',
+                    );
+            }),
         );
 
         await editOrCreate(
@@ -88,9 +97,9 @@ mw.loader.using(['mediawiki.util'], () => {
                 mapScripts(scriptData.filter((script) => script.personal)),
                 '',
                 '=== Forks ===',
-                mapScripts(scriptData.filter((script) => script.fork))
+                mapScripts(scriptData.filter((script) => script.fork)),
             ].join('\n'),
-            'Syncing script list from GitHub'
+            'Syncing script list from GitHub',
         );
 
         mw.notify(`Synced ${scriptData.length} scripts from GitHub!`, { type: 'success', tag: 'sync-scripts-notification' });
@@ -101,7 +110,14 @@ mw.loader.using(['mediawiki.util'], () => {
          * @returns The mapped scripts.
          */
         function mapScripts(scripts: Script[]) {
-            return scripts.map((script) => `* [[User:Eejit43/scripts/${script.name}${script.personal ? '.js' : ''}|${script.name}]] - ${script['short-description'] || script.description}${script['use-instead'] ? ' (<span style="color: #bd2828">deprecated</span>)' : ''}`).join('\n');
+            return scripts
+                .map(
+                    (script) =>
+                        `* [[User:Eejit43/scripts/${script.name}${script.personal ? '.js' : ''}|${script.name}]] - ${script['short-description'] || script.description}${
+                            script['use-instead'] ? ' (<span style="color: #bd2828">deprecated</span>)' : ''
+                        }`,
+                )
+                .join('\n');
         }
 
         /**

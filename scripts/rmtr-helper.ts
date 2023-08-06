@@ -21,7 +21,9 @@ mw.loader.using(['mediawiki.util'], () => {
         if (displayed) return document.querySelector('#rmtr-review-result')?.scrollIntoView();
         else displayed = true;
 
-        const pageContent = ((await new mw.Api().get({ action: 'query', formatversion: 2, prop: 'revisions', rvprop: 'content', rvslots: '*', titles: mw.config.get('wgPageName') })) as PageRevisionsResult).query.pages[0].revisions[0].slots.main.content;
+        const pageContent = (
+            (await new mw.Api().get({ action: 'query', formatversion: 2, prop: 'revisions', rvprop: 'content', rvslots: '*', titles: mw.config.get('wgPageName') })) as PageRevisionsResult
+        ).query.pages[0].revisions[0].slots.main.content;
 
         const sections = ['Uncontroversial technical requests', 'Requests to revert undiscussed moves', 'Contested technical requests', 'Administrator needed'];
 
@@ -105,7 +107,11 @@ mw.loader.using(['mediawiki.util'], () => {
                         invalidNamespaceWarning.classList.add('rmtr-review-invalid-warning');
                         invalidNamespaceWarning.textContent = `Warning: original or destination page is in namespace "${mwNewTitle.namespace === namespaces.file ? 'file' : 'category'}"!`;
 
-                        const parsedWikitext = await new mw.Api().parse(`[[:${request.original}]] → ${validTitle ? `[[:${request.destination}]]` : invalidTitleWarning.outerHTML} requested by ${mw.util.isIPAddress(request.requester) ? `[[Special:Contributions/${request.requester}|${request.requester}]]` : `[[User:${request.requester}|${request.requester}]]`} with reasoning "${request.reason}"`);
+                        const parsedWikitext = await new mw.Api().parse(
+                            `[[:${request.original}]] → ${validTitle ? `[[:${request.destination}]]` : invalidTitleWarning.outerHTML} requested by ${
+                                mw.util.isIPAddress(request.requester) ? `[[Special:Contributions/${request.requester}|${request.requester}]]` : `[[User:${request.requester}|${request.requester}]]`
+                            } with reasoning "${request.reason}"`,
+                        );
                         const parsedHtml = new DOMParser().parseFromString(parsedWikitext, 'text/html');
 
                         const requestElement = document.createElement('li');
@@ -114,9 +120,9 @@ mw.loader.using(['mediawiki.util'], () => {
                         if (!validNamespace) requestElement.append(invalidNamespaceWarning);
 
                         request.element = requestElement;
-                    })
+                    }),
                 );
-            })
+            }),
         );
 
         const outputElement = document.createElement('div');
@@ -188,7 +194,7 @@ mw.loader.using(['mediawiki.util'], () => {
                         'Contested',
                         'Already done',
                         'Invalid page name',
-                        'Incorrect venue'
+                        'Incorrect venue',
                     ];
 
                     for (const option of removeRequestDropdownOptions) {
@@ -301,7 +307,10 @@ mw.loader.using(['mediawiki.util'], () => {
                         const sectionTitleAfter = sections[sections.indexOf(request.result.section) + 1];
 
                         endResult = endResult.replace(request.full + '\n', '').replace(request.full, '');
-                        endResult = endResult.replace(new RegExp(`(\n?\n?(?:={3,} ?${sectionTitleAfter} ?={3,}|$))`), `\n${request.full}${request.result.reason ? `\n:: ${request.result.reason} ~~~~` : ''}$1`);
+                        endResult = endResult.replace(
+                            new RegExp(`(\n?\n?(?:={3,} ?${sectionTitleAfter} ?={3,}|$))`),
+                            `\n${request.full}${request.result.reason ? `\n:: ${request.result.reason} ~~~~` : ''}$1`,
+                        );
                         if (!changes.move[request.result.section]) changes.move[request.result.section] = [];
 
                         changes.move[request.result.section].push(request);

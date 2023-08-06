@@ -10,7 +10,7 @@ mw.loader.using(['mediawiki.util'], () => {
     const STAGES = {
         awaitingClick: 0,
         awaitingConfirmation: 1,
-        awaitingReload: 2
+        awaitingReload: 2,
     };
 
     mw.util.addCSS(`
@@ -110,7 +110,9 @@ padding: revert;`
                         title: mw.config.get('wgPageName'),
                         undo: undoId,
                         undoafter: undoAfter,
-                        summary: `Undid revision ${undoId} by [[Special:Contributions/${revisionUser}|${revisionUser}]] ([[User talk:${revisionUser}|talk]])${reasonInput.value ? `: ${reasonInput.value}` : ''}`
+                        summary: `Undid revision ${undoId} by [[Special:Contributions/${revisionUser}|${revisionUser}]] ([[User talk:${revisionUser}|talk]])${
+                            reasonInput.value ? `: ${reasonInput.value}` : ''
+                        }`,
                     })
                     .catch((errorCode: string, { error }: MediaWikiDataError) => {
                         mw.notify(`${error.info} (${errorCode})`, { type: 'error' });

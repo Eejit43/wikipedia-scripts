@@ -6,14 +6,14 @@ settings:
 
 devDependencies:
   '@eejit/eslint-config-typescript':
-    specifier: ^2.5.2
-    version: 2.5.2(typescript@5.1.6)
+    specifier: ^2.6.0
+    version: 2.6.0(typescript@5.1.6)
   '@eejit/prettier-config':
-    specifier: ^1.3.0
-    version: 1.3.0(postcss@8.4.25)(typescript@5.1.6)
+    specifier: ^2.0.0
+    version: 2.0.0(postcss@8.4.25)(typescript@5.1.6)
   '@eejit/stylelint-config':
-    specifier: ^1.1.0
-    version: 1.1.0(stylelint@15.10.2)
+    specifier: ^1.1.1
+    version: 1.1.1(stylelint@15.10.2)
   '@tsconfig/recommended':
     specifier: ^1.0.2
     version: 1.0.2
@@ -428,8 +428,8 @@ packages:
       postcss-selector-parser: 6.0.13
     dev: true
 
-  /@eejit/eslint-config-typescript@2.5.2(typescript@5.1.6):
-    resolution: {integrity: sha512-FVpQd6agxhuotBYznGbtpQzwkzBR9z0zZzvAg3CjM/o01pS6/5czT+sTWKqKivxBZdAhri8kxeYRgyUbu8ECgA==}
+  /@eejit/eslint-config-typescript@2.6.0(typescript@5.1.6):
+    resolution: {integrity: sha512-PkvippEcJyD/jLuRhnaZlM5nucTpEO97cjw+oeg3N3QbxpeDZNzMgdE7TEwVSvnrT8LKDTfVCprhFQ6TI4ZBpg==}
     dependencies:
       '@typescript-eslint/eslint-plugin': 6.2.1(@typescript-eslint/parser@6.2.1)(eslint@8.46.0)(typescript@5.1.6)
       '@typescript-eslint/parser': 6.2.1(eslint@8.46.0)(typescript@5.1.6)
@@ -441,8 +441,8 @@ packages:
       - typescript
     dev: true
 
-  /@eejit/prettier-config@1.3.0(postcss@8.4.25)(typescript@5.1.6):
-    resolution: {integrity: sha512-GC73htmuHj3SxP2ClYZKcjXf88qRaIxIgypA+Rp5Dd6y+1ej664+auSfZ+cQnFvh4ynz1ydMfp6GolphFdiWZg==}
+  /@eejit/prettier-config@2.0.0(postcss@8.4.25)(typescript@5.1.6):
+    resolution: {integrity: sha512-GEPZBeHDMMioPaXlgTDOlA7CRFI7HOjg1qckchOD4qWHLgFTSjkkLj52XzaJxlEgItC/W/gwwzRbMVDYzjBUeg==}
     dependencies:
       prettier: 3.0.1
       prettier-plugin-css-order: 2.0.0(postcss@8.4.25)(prettier@3.0.1)
@@ -455,8 +455,8 @@ packages:
       - typescript
     dev: true
 
-  /@eejit/stylelint-config@1.1.0(stylelint@15.10.2):
-    resolution: {integrity: sha512-biyrBtvEqIWUsJZdwz9bo38LWiv0SF7Xy8VRy7Kz8DzQosF8dilW7ExBuFpJIR9rmGDet3u8z0qN8lnoIqJ0pA==}
+  /@eejit/stylelint-config@1.1.1(stylelint@15.10.2):
+    resolution: {integrity: sha512-BfVqDv/BicL4sEu7MWLnGRML5RC4sLdhedrAlaAK8zFHiTg88AZXjuZJBAb5m8JNdXG5J8m/FeXp1XdJMsLVLQ==}
     dependencies:
       stylelint-config-standard: 34.0.0(stylelint@15.10.2)
       stylelint-use-nesting: 4.1.0(stylelint@15.10.2)

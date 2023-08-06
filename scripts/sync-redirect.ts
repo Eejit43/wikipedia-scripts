@@ -2,7 +2,14 @@ import { MediaWikiDataError, PageRevisionsResult } from '../global-types';
 
 mw.loader.using(['mediawiki.util'], async () => {
     if (!mw.Title.isTalkNamespace(mw.config.get('wgNamespaceNumber'))) return;
-    const mainPageInfoRevisions = (await new mw.Api().get({ action: 'query', formatversion: 2, prop: 'info|revisions', rvprop: 'content', rvslots: '*', titles: `${mw.config.get('wgFormattedNamespaces')[mw.config.get('wgNamespaceNumber') - 1]}:${mw.config.get('wgTitle')}` })) as PageRevisionsResult & { query: { pages: { redirect?: boolean }[] } };
+    const mainPageInfoRevisions = (await new mw.Api().get({
+        action: 'query',
+        formatversion: 2,
+        prop: 'info|revisions',
+        rvprop: 'content',
+        rvslots: '*',
+        titles: `${mw.config.get('wgFormattedNamespaces')[mw.config.get('wgNamespaceNumber') - 1]}:${mw.config.get('wgTitle')}`,
+    })) as PageRevisionsResult & { query: { pages: { redirect?: boolean }[] } };
     if (!mainPageInfoRevisions.query.pages[0].redirect) return;
 
     const link = mw.util.addPortletLink(mw.config.get('skin') === 'minerva' ? 'p-tb' : 'p-cactions', '#', 'Sync with main page redirect', 'sync-redirect');
@@ -28,12 +35,22 @@ mw.loader.using(['mediawiki.util'], async () => {
         const pageMove = /{{ *r(edirect)?( from)?(( a)? page)? (move|rename|pm) *}}/i.test(mainPageContent);
         const destinationTalkNamespaceName = mw.config.get('wgFormattedNamespaces')[mwRedirectTarget.getNamespaceId() + 1];
         await new mw.Api()
-            .edit(mw.config.get('wgPageName'), () => ({ text: `#REDIRECT [[${destinationTalkNamespaceName}:${mainTargetText}]]${pageMove ? '\n\n{{Redirect category shell|\n{{R from move}}\n}}' : ''}`, summary: `Sync redirect with main page, to [[${destinationTalkNamespaceName}:${mainTargetText}]] (via [[User:Eejit43/scripts/sync-redirect|script]])`, minor: true }))
+            .edit(mw.config.get('wgPageName'), () => ({
+                text: `#REDIRECT [[${destinationTalkNamespaceName}:${mainTargetText}]]${pageMove ? '\n\n{{Redirect category shell|\n{{R from move}}\n}}' : ''}`,
+                summary: `Sync redirect with main page, to [[${destinationTalkNamespaceName}:${mainTargetText}]] (via [[User:Eejit43/scripts/sync-redirect|script]])`,
+                minor: true,
+            }))
             .catch(async (errorCode: string, { error }: MediaWikiDataError) => {
                 if (errorCode === 'nocreate-missing')
-                    await new mw.Api().create(mw.config.get('wgPageName'), { summary: `Create redirect matching main page, to [[${destinationTalkNamespaceName}:${mainTargetText}]] (via [[User:Eejit43/scripts/sync-redirect|script]])` }, `#REDIRECT [[${destinationTalkNamespaceName}:${mainTargetText}]]${pageMove ? '\n\n{{Redirect category shell|\n{{R from move}}\n}}' : ''}`).catch((errorCode: string, { error }: MediaWikiDataError) => {
-                        mw.notify(`Failed to redirect page: ${error.info} (${errorCode})`, { type: 'error', tag: 'sync-redirect-notification' });
-                    });
+                    await new mw.Api()
+                        .create(
+                            mw.config.get('wgPageName'),
+                            { summary: `Create redirect matching main page, to [[${destinationTalkNamespaceName}:${mainTargetText}]] (via [[User:Eejit43/scripts/sync-redirect|script]])` },
+                            `#REDIRECT [[${destinationTalkNamespaceName}:${mainTargetText}]]${pageMove ? '\n\n{{Redirect category shell|\n{{R from move}}\n}}' : ''}`,
+                        )
+                        .catch((errorCode: string, { error }: MediaWikiDataError) => {
+                            mw.notify(`Failed to redirect page: ${error.info} (${errorCode})`, { type: 'error', tag: 'sync-redirect-notification' });
+                        });
                 else mw.notify(`Failed to redirect page: ${error.info} (${errorCode})`, { type: 'error', tag: 'sync-redirect-notification' });
             });
 

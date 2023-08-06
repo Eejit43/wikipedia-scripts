@@ -15,14 +15,14 @@
         'no-target': ' A redirect cannot be created unless the target is an existing article. Either you have not specified the target, or the target does not exist',
         unlikely: 'The title you suggested seems unlikely. Could you provide a source showing that it is a commonly used alternate name?',
         'not-redirect': 'This request is not a redirect request',
-        custom: ''
+        custom: '',
     };
     const categoryDeclineReasons = {
         exists: 'The category you suggested already exists on Wikipedia',
         blank: 'We cannot accept empty submissions',
         unlikely: 'It seems unlikely that there are enough pages to support this category',
         'not-category': 'This request is not a category request',
-        custom: ''
+        custom: '',
     };
 
     /**
@@ -71,7 +71,7 @@
                         to,
                         title: to,
                         reason,
-                        source
+                        source,
                     };
                     for (let j = 0; j < links.length; j++) {
                         const sub = {
@@ -79,7 +79,7 @@
                             to,
                             id: numTotal,
                             title: links[j],
-                            action: ''
+                            action: '',
                         };
                         submission.from.push(sub);
                         submissions.push(sub);
@@ -121,7 +121,7 @@
                         section: i,
                         id: numTotal,
                         action: '',
-                        parents: parentCategories.join(',')
+                        parents: parentCategories.join(','),
                     };
                     numTotal++;
                     redirectSubmissions.push(submission);
@@ -140,7 +140,7 @@
             { label: 'Accept', value: 'accept' },
             { label: 'Decline', value: 'decline' },
             { label: 'Comment', value: 'comment' },
-            { label: 'None', selected: true, value: 'none' }
+            { label: 'None', selected: true, value: 'none' },
         ];
         for (let k = 0; k < redirectSubmissions.length; k++) {
             let submissionName;
@@ -154,14 +154,14 @@
                     for (let i = redirectSubmissions[k].from.length - 1; i >= 0; i--) {
                         needsUpdate.push({
                             id: redirectSubmissions[k].from[i].id,
-                            reason: 'no-target'
+                            reason: 'no-target',
                         });
                     }
                 } else if (!redirectSubmissions[k].to) {
                     for (let i = redirectSubmissions[k].from.length - 1; i >= 0; i--) {
                         needsUpdate.push({
                             id: redirectSubmissions[k].from[i].id,
-                            reason: 'not-redirect'
+                            reason: 'not-redirect',
                         });
                     }
                 }
@@ -173,7 +173,7 @@
                         $('<a>')
                             .attr('href', mw.config.get('wgArticlePath').replace('$1', encodeURIComponent(redirectSubmissions[k].to)))
                             .attr('target', '_blank')
-                            .text(redirectSubmissions[k].to)
+                            .text(redirectSubmissions[k].to),
                     );
                 } else {
                     $thisSubListElement.append('<b>no target given</b>: ');
@@ -191,15 +191,23 @@
                     const googleSearchUrl = 'http://www.google.com/search?q="' + encodeURIComponent(toArticle) + '"+-wikipedia.org';
                     $fromList.append(
                         $('<li>')
-                            .append('From: ' + toArticle + " (<small><a href='" + googleSearchUrl + '\'" target="_blank">Google</a> <b>&middot;</b> <a href="https://en.wikipedia.org/wiki/Special:WhatLinksHere/' + encodeURIComponent(toArticle) + '" target="_blank">what links here</a>)</small><br/>')
+                            .append(
+                                'From: ' +
+                                    toArticle +
+                                    " (<small><a href='" +
+                                    googleSearchUrl +
+                                    '\'" target="_blank">Google</a> <b>&middot;</b> <a href="https://en.wikipedia.org/wiki/Special:WhatLinksHere/' +
+                                    encodeURIComponent(toArticle) +
+                                    '" target="_blank">what links here</a>)</small><br/>',
+                            )
                             .append(reasonAndSource)
                             .append(
                                 $('<label>')
                                     .attr('for', 'afcHelper_redirect_action_' + from.id)
-                                    .text('Action: ')
+                                    .text('Action: '),
                             )
                             .append(generateSelectObject('afcHelper_redirect_action_' + from.id, ACTIONS, redirectMakeActionChange(from.id)))
-                            .append($('<div>').attr('id', 'afcHelper_redirect_extra_' + from.id))
+                            .append($('<div>').attr('id', 'afcHelper_redirect_extra_' + from.id)),
                     );
                 }
             } else {
@@ -210,13 +218,13 @@
                         $('<a>')
                             .attr('href', '/wiki/' + redirectSubmissions[k].title)
                             .attr('title', redirectSubmissions[k].title)
-                            .text(redirectSubmissions[k].title)
+                            .text(redirectSubmissions[k].title),
                     )
                     .append('<br />')
                     .append(
                         $('<label>')
                             .attr('for', 'afcHelper_redirect_action_' + subId)
-                            .text('Action: ')
+                            .text('Action: '),
                     )
                     .append(generateSelectObject('afcHelper_redirect_action_' + subId, ACTIONS, redirectMakeActionChange(subId)))
                     .append($('<div>').attr('id', 'afcHelper_redirect_extra_' + subId));
@@ -259,11 +267,27 @@
                         .attr('type', 'text')
                         .attr('name', 'afcHelper_redirect_from_' + id)
                         .attr('id', 'afcHelper_redirect_from_' + id)
-                        .attr('value', submissions[id].title)
+                        .attr('value', submissions[id].title),
                 );
 
-                $extra.html($extra.html() + '&nbsp;<br /><label for="afcHelper_redirect_to_' + id + '">To: </label><input type="text" name="afcHelper_redirect_to_' + id + '" id="afcHelper_redirect_to_' + id + '" value="' + submissions[id].to + '" />');
-                $extra.html($extra.html() + '<br /><label for="afcHelper_redirect_append_' + id + '">Template to append: (<a href="https://en.wikipedia.org/wiki/Wikipedia:TMR" target="_blank">Help</a>)</label>');
+                $extra.html(
+                    $extra.html() +
+                        '&nbsp;<br /><label for="afcHelper_redirect_to_' +
+                        id +
+                        '">To: </label><input type="text" name="afcHelper_redirect_to_' +
+                        id +
+                        '" id="afcHelper_redirect_to_' +
+                        id +
+                        '" value="' +
+                        submissions[id].to +
+                        '" />',
+                );
+                $extra.html(
+                    $extra.html() +
+                        '<br /><label for="afcHelper_redirect_append_' +
+                        id +
+                        '">Template to append: (<a href="https://en.wikipedia.org/wiki/Wikipedia:TMR" target="_blank">Help</a>)</label>',
+                );
                 $extra.html(
                     $extra.html() +
                         generateSelect('afcHelper_redirect_append_' + id, [
@@ -433,19 +457,51 @@
                             { labelAndValue: 'R to subpage' },
                             { labelAndValue: 'R to subtopic' },
                             { labelAndValue: 'R to TV episode list entry' },
-                            { label: 'Custom - prompt me', value: 'custom' }
-                        ])
+                            { label: 'Custom - prompt me', value: 'custom' },
+                        ]),
                 );
             } else {
                 // Now categories
-                $extra.html('<label for="afcHelper_redirect_name_' + id + '">Category name: </label><input type="text" size="100" name="afcHelper_redirect_name_' + id + '" id="afcHelper_redirect_name_' + id + '" value="' + submissions[id].title + '" />');
-                $extra.html($extra.html() + '<br /><label for="afcHelper_redirect_parents_' + id + '">Parent categories (comma-separated):</label><input type="text" size="100" id="afcHelper_redirect_parents_' + id + '" name="afcHelper_redirect_parents_' + id + '" value="' + submissions[id].parents + '" />');
+                $extra.html(
+                    '<label for="afcHelper_redirect_name_' +
+                        id +
+                        '">Category name: </label><input type="text" size="100" name="afcHelper_redirect_name_' +
+                        id +
+                        '" id="afcHelper_redirect_name_' +
+                        id +
+                        '" value="' +
+                        submissions[id].title +
+                        '" />',
+                );
+                $extra.html(
+                    $extra.html() +
+                        '<br /><label for="afcHelper_redirect_parents_' +
+                        id +
+                        '">Parent categories (comma-separated):</label><input type="text" size="100" id="afcHelper_redirect_parents_' +
+                        id +
+                        '" name="afcHelper_redirect_parents_' +
+                        id +
+                        '" value="' +
+                        submissions[id].parents +
+                        '" />',
+                );
                 $extra.append('<br />');
                 $extra.append($('<input>', { type: 'checkbox', name: 'afcHelper_redirect_container_' + id, id: 'afcHelper_redirect_container_' + id }));
-                $extra.append('<label for="afcHelper_redirect_container_' + id + '">This is a <a href="/wiki/Wikipedia:Container_category" title="Wikipedia:Container category">container category</a></label>');
+                $extra.append(
+                    '<label for="afcHelper_redirect_container_' + id + '">This is a <a href="/wiki/Wikipedia:Container_category" title="Wikipedia:Container category">container category</a></label>',
+                );
                 $extra.html($extra.html() + '<br /><input type="checkbox" name="afcHelper_redirect_container_' + id + '"');
             }
-            $extra.html($extra.html() + '<br /><label for="afcHelper_redirect_comment_' + id + '">Comment:</label><input type="text" size="100" id="afcHelper_redirect_comment_' + id + '" name="afcHelper_redirect_comment_' + id + '"/>');
+            $extra.html(
+                $extra.html() +
+                    '<br /><label for="afcHelper_redirect_comment_' +
+                    id +
+                    '">Comment:</label><input type="text" size="100" id="afcHelper_redirect_comment_' +
+                    id +
+                    '" name="afcHelper_redirect_comment_' +
+                    id +
+                    '"/>',
+            );
         } else if (selectValue === 'decline') {
             if (submissions[id].type === 'redirect') {
                 $extra.html(
@@ -455,30 +511,30 @@
                         generateSelect('afcHelper_redirect_decline_' + id, [
                             {
                                 label: 'Already exists',
-                                value: 'exists'
+                                value: 'exists',
                             },
                             {
                                 label: 'Blank request',
-                                value: 'blank'
+                                value: 'blank',
                             },
                             {
                                 label: 'No valid target specified',
-                                value: 'no-target'
+                                value: 'no-target',
                             },
                             {
                                 label: 'Unlikely search term',
-                                value: 'unlikely'
+                                value: 'unlikely',
                             },
                             {
                                 label: 'Not a redirect request',
-                                value: 'not-redirect'
+                                value: 'not-redirect',
                             },
                             {
                                 label: 'Custom - reason below',
                                 selected: true,
-                                value: 'custom'
-                            }
-                        ])
+                                value: 'custom',
+                            },
+                        ]),
                 );
             } else {
                 // Now categories
@@ -489,34 +545,52 @@
                         generateSelect('afcHelper_redirect_decline_' + id, [
                             {
                                 label: 'Already exists',
-                                value: 'exists'
+                                value: 'exists',
                             },
                             {
                                 label: 'Blank request',
-                                value: 'blank'
+                                value: 'blank',
                             },
                             {
                                 label: 'Unlikely category',
-                                value: 'unlikely'
+                                value: 'unlikely',
                             },
                             {
                                 label: 'Not a category request',
-                                value: 'not-category'
+                                value: 'not-category',
                             },
                             {
                                 label: 'Custom - reason below',
                                 selected: true,
-                                value: 'custom'
-                            }
-                        ])
+                                value: 'custom',
+                            },
+                        ]),
                 );
             }
-            $extra.html($extra.html() + '<br/><label for="afcHelper_redirect_comment_' + id + '">Comment: </label><input type="text" size="100" id="afcHelper_redirect_comment_' + id + '" name="afcHelper_redirect_comment_' + id + '"/>');
+            $extra.html(
+                $extra.html() +
+                    '<br/><label for="afcHelper_redirect_comment_' +
+                    id +
+                    '">Comment: </label><input type="text" size="100" id="afcHelper_redirect_comment_' +
+                    id +
+                    '" name="afcHelper_redirect_comment_' +
+                    id +
+                    '"/>',
+            );
         } else if (selectValue === 'none') {
             // For categories and redirects
             $extra.html('');
         } else {
-            $extra.html($extra.html() + '<label for="afcHelper_redirect_comment_' + id + '">Comment: </label><input type="text" size="100" id="afcHelper_redirect_comment_' + id + '" name="afcHelper_redirect_comment_' + id + '"/>');
+            $extra.html(
+                $extra.html() +
+                    '<label for="afcHelper_redirect_comment_' +
+                    id +
+                    '">Comment: </label><input type="text" size="100" id="afcHelper_redirect_comment_' +
+                    id +
+                    '" name="afcHelper_redirect_comment_' +
+                    id +
+                    '"/>',
+            );
         }
     }
 
@@ -554,7 +628,14 @@
         const addStatus = function (status) {
             $('#afcHelper_status').append(status);
         };
-        $('#afcHelper_finish').html($('#afcHelper_finish').html() + '<span id="afcHelper_finished_wrapper"><span id="afcHelper_finished_main" style="display:none"><li id="afcHelper_done"><b>Done (<a href="' + mw.config.get('wgArticlePath').replace('$1', encodeURI(redirectPageName)) + '?action=purge" title="' + redirectPageName + '">Reload page</a>)</b></li></span></span>');
+        $('#afcHelper_finish').html(
+            $('#afcHelper_finish').html() +
+                '<span id="afcHelper_finished_wrapper"><span id="afcHelper_finished_main" style="display:none"><li id="afcHelper_done"><b>Done (<a href="' +
+                mw.config.get('wgArticlePath').replace('$1', encodeURI(redirectPageName)) +
+                '?action=purge" title="' +
+                redirectPageName +
+                '">Reload page</a>)</b></li></span></span>',
+        );
         let pageText = getPageText(redirectPageName, addStatus);
         let totalAccept = 0;
         let totalDecline = 0;
@@ -715,7 +796,9 @@
      */
     function getPageText(title, addStatus) {
         addStatus = typeof addStatus !== 'undefined' ? addStatus : function () {}; // eslint-disable-line @typescript-eslint/no-empty-function
-        addStatus('<li id="afcHelper_get' + jqEscape(title) + '">Getting <a href="' + mw.config.get('wgArticlePath').replace('$1', encodeURI(title)) + '" title="' + title + '">' + title + '</a></li>');
+        addStatus(
+            '<li id="afcHelper_get' + jqEscape(title) + '">Getting <a href="' + mw.config.get('wgArticlePath').replace('$1', encodeURI(title)) + '" title="' + title + '">' + title + '</a></li>',
+        );
 
         const request = {
             action: 'query',
@@ -723,15 +806,15 @@
             rvprop: 'content',
             format: 'json',
             indexpageids: true,
-            titles: title
+            titles: title,
         };
 
         const response = JSON.parse(
             $.ajax({
                 url: mw.util.wikiScript('api'),
                 data: request,
-                async: false
-            }).responseText
+                async: false,
+            }).responseText,
         );
 
         const pageId = response.query.pageids[0];
@@ -859,12 +942,23 @@
         $('#afcHelper_finished_wrapper').html('<span id="afcHelper_AJAX_finished_' + ajaxNumber + '" style="display:none">' + $('#afcHelper_finished_wrapper').html() + '</span>');
         const functionId = ajaxNumber;
         ajaxNumber++;
-        $('#afcHelper_status').html($('#afcHelper_status').html() + '<li id="afcHelper_edit' + jqEscape(title) + '">Editing <a href="' + wgArticlePath.replace('$1', encodeURI(title)) + '" title="' + title + '">' + title + '</a></li>');
+        $('#afcHelper_status').html(
+            $('#afcHelper_status').html() +
+                '<li id="afcHelper_edit' +
+                jqEscape(title) +
+                '">Editing <a href="' +
+                wgArticlePath.replace('$1', encodeURI(title)) +
+                '" title="' +
+                title +
+                '">' +
+                title +
+                '</a></li>',
+        );
         const request = {
             action: 'edit',
             title,
             text: newText,
-            summary
+            summary,
         };
         if (createOnly) request.createonly = true;
 
@@ -874,13 +968,41 @@
                 if (data && data.edit && data.edit.result && data.edit.result === 'Success') {
                     $('#afcHelper_edit' + jqEscape(title)).html('Saved <a href="' + wgArticlePath.replace('$1', encodeURI(title)) + '" title="' + title + '">' + title + '</a>');
                 } else {
-                    $('#afcHelper_edit' + jqEscape(title)).html('<span class="afcHelper_notice"><b>Edit failed on <a href="' + wgArticlePath.replace('$1', encodeURI(title)) + '" title="' + title + '">' + title + '</a></b></span>. Error info: ' + JSON.stringify(data));
+                    $('#afcHelper_edit' + jqEscape(title)).html(
+                        '<span class="afcHelper_notice"><b>Edit failed on <a href="' +
+                            wgArticlePath.replace('$1', encodeURI(title)) +
+                            '" title="' +
+                            title +
+                            '">' +
+                            title +
+                            '</a></b></span>. Error info: ' +
+                            JSON.stringify(data),
+                    );
                     console.error('Edit failed on %s (%s). Error info: %s', wgArticlePath.replace('$1', encodeURI(title)), title, JSON.stringify(data));
                 }
             })
             .fail((error) => {
-                if (createOnly && error === 'articleexists') $('#afcHelper_edit' + jqEscape(title)).html('<span class="afcHelper_notice"><b>Edit failed on <a href="' + wgArticlePath.replace('$1', encodeURI(title)) + '" title="' + title + '">' + title + '</a></b></span>. Error info: The article already exists!');
-                else $('#afcHelper_edit' + jqEscape(title)).html('<span class="afcHelper_notice"><b>Edit failed on <a href="' + wgArticlePath.replace('$1', encodeURI(title)) + '" title="' + title + '">' + title + '</a></b></span>. Error info: ' + error);
+                if (createOnly && error === 'articleexists')
+                    $('#afcHelper_edit' + jqEscape(title)).html(
+                        '<span class="afcHelper_notice"><b>Edit failed on <a href="' +
+                            wgArticlePath.replace('$1', encodeURI(title)) +
+                            '" title="' +
+                            title +
+                            '">' +
+                            title +
+                            '</a></b></span>. Error info: The article already exists!',
+                    );
+                else
+                    $('#afcHelper_edit' + jqEscape(title)).html(
+                        '<span class="afcHelper_notice"><b>Edit failed on <a href="' +
+                            wgArticlePath.replace('$1', encodeURI(title)) +
+                            '" title="' +
+                            title +
+                            '">' +
+                            title +
+                            '</a></b></span>. Error info: ' +
+                            error,
+                    );
             })
             .always(() => {
                 $('#afcHelper_AJAX_finished_' + functionId).css('display', '');
@@ -894,23 +1016,53 @@
                 const rcId = mw.util.getParamValue('rcid', patrolHref);
 
                 if (rcId) {
-                    $('#afcHelper_status').html($('#afcHelper_status').html() + '<li id="afcHelper_patrol' + jqEscape(title) + '">Marking <a href="' + wgArticlePath.replace('$1', encodeURI(title)) + '" title="' + title + '">' + title + ' as patrolled</a></li>');
+                    $('#afcHelper_status').html(
+                        $('#afcHelper_status').html() +
+                            '<li id="afcHelper_patrol' +
+                            jqEscape(title) +
+                            '">Marking <a href="' +
+                            wgArticlePath.replace('$1', encodeURI(title)) +
+                            '" title="' +
+                            title +
+                            '">' +
+                            title +
+                            ' as patrolled</a></li>',
+                    );
                     const patrolRequest = {
                         action: 'patrol',
                         format: 'json',
-                        rcid: rcId
+                        rcid: rcId,
                     };
                     api.postWithToken('patrol', patrolRequest)
                         .done((data) => {
                             if (data) {
-                                $('#afcHelper_patrol' + jqEscape(title)).html('Marked <a href="' + wgArticlePath.replace('$1', encodeURI(title)) + '" title="' + title + '">' + title + '</a> as patrolled');
+                                $('#afcHelper_patrol' + jqEscape(title)).html(
+                                    'Marked <a href="' + wgArticlePath.replace('$1', encodeURI(title)) + '" title="' + title + '">' + title + '</a> as patrolled',
+                                );
                             } else {
-                                $('#afcHelper_patrol' + jqEscape(title)).html('<span class="afcHelper_notice"><b>Patrolling failed on <a href="' + wgArticlePath.replace('$1', encodeURI(title)) + '" title="' + title + '">' + title + '</a></b></span> with an unknown error');
+                                $('#afcHelper_patrol' + jqEscape(title)).html(
+                                    '<span class="afcHelper_notice"><b>Patrolling failed on <a href="' +
+                                        wgArticlePath.replace('$1', encodeURI(title)) +
+                                        '" title="' +
+                                        title +
+                                        '">' +
+                                        title +
+                                        '</a></b></span> with an unknown error',
+                                );
                                 console.error('Patrolling failed on %s (%s) with an unknown error.', wgArticlePath.replace('$1', encodeURI(title)), title);
                             }
                         })
                         .fail((error) => {
-                            $('#afcHelper_patrol' + jqEscape(title)).html('<span class="afcHelper_notice"><b>Patrolling failed on <a href="' + wgArticlePath.replace('$1', encodeURI(title)) + '" title="' + title + '">' + title + '</a></b></span>. Error info: ' + error);
+                            $('#afcHelper_patrol' + jqEscape(title)).html(
+                                '<span class="afcHelper_notice"><b>Patrolling failed on <a href="' +
+                                    wgArticlePath.replace('$1', encodeURI(title)) +
+                                    '" title="' +
+                                    title +
+                                    '">' +
+                                    title +
+                                    '</a></b></span>. Error info: ' +
+                                    error,
+                            );
                         });
                 }
             }

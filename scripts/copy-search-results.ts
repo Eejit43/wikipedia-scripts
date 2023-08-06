@@ -12,7 +12,7 @@ mw.loader.using(['mediawiki.util'], () => {
 
         navigator.clipboard.writeText(titles).then(
             () => mw.notify('Successfully copied search results to clipboard!', { type: 'success' }),
-            () => mw.notify('An error occurred when copying search results to clipboard!', { type: 'error' })
+            () => mw.notify('An error occurred when copying search results to clipboard!', { type: 'error' }),
         );
     });
 });

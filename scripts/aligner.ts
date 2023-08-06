@@ -105,7 +105,10 @@ interface JQuery<TElement extends Node = HTMLElement> extends Iterable<TElement>
                     search = '{{' + search;
                     const searchLength = search.length;
 
-                    if (text.length - index > searchLength && (text.slice(index, index + searchLength).toLowerCase() === search || text.slice(index, index + searchLength).toLowerCase() === search.replace(' ', '_'))) {
+                    if (
+                        text.length - index > searchLength &&
+                        (text.slice(index, index + searchLength).toLowerCase() === search || text.slice(index, index + searchLength).toLowerCase() === search.replace(' ', '_'))
+                    ) {
                         open++;
                         template += text[index];
                         foo = true;

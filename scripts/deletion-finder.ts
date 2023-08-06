@@ -41,7 +41,7 @@ mw.loader.using(['mediawiki.util'], async () => {
         leaction: 'delete/delete',
         lelimit: '1',
         letitle: mw.config.get('wgPageName'),
-        list: 'logevents'
+        list: 'logevents',
     })) as { query: { logevents: [] } };
 
     if (deletionResult.query.logevents.length > 0) {
@@ -54,12 +54,18 @@ mw.loader.using(['mediawiki.util'], async () => {
         titleElement.append(link);
     }
 
-    const afdExists = (await new mw.Api().get({ action: 'query', formatversion: 2, titles: `Wikipedia:Articles_for_deletion/${mw.config.get('wgPageName')}` })) as { query: { pages: { missing?: true }[] } };
+    const afdExists = (await new mw.Api().get({ action: 'query', formatversion: 2, titles: `Wikipedia:Articles_for_deletion/${mw.config.get('wgPageName')}` })) as {
+        query: { pages: { missing?: true }[] };
+    };
 
     if (!afdExists.query.pages[0].missing) {
         const link = document.createElement('a');
         link.id = 'deletion-finder-previous-afd';
-        link.href = mw.util.getUrl('Special:AllPages', { from: `Articles for deletion/${mw.config.get('wgPageName').replaceAll('_', ' ')}`, to: `Articles for deletion/${mw.config.get('wgPageName').replaceAll('_', ' ')} (9z)`, namespace: '4' });
+        link.href = mw.util.getUrl('Special:AllPages', {
+            from: `Articles for deletion/${mw.config.get('wgPageName').replaceAll('_', ' ')}`,
+            to: `Articles for deletion/${mw.config.get('wgPageName').replaceAll('_', ' ')} (9z)`,
+            namespace: '4',
+        });
         link.target = '_blank';
         link.textContent = 'Previously at AfD';
 

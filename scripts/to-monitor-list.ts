@@ -33,9 +33,9 @@ mw.loader.using(['mediawiki.util'], () => {
                     prop: 'revisions',
                     rvprop: 'content',
                     rvslots: '*',
-                    titles: 'User:Eejit43/scripts/to-monitor-list.json'
+                    titles: 'User:Eejit43/scripts/to-monitor-list.json',
                 })) as PageRevisionsResult
-            ).query.pages[0].revisions[0].slots.main.content
+            ).query.pages[0].revisions[0].slots.main.content,
         ) as SearchData;
 
         // eslint-disable-next-line unicorn/no-array-for-each
@@ -46,7 +46,7 @@ mw.loader.using(['mediawiki.util'], () => {
                     list: 'search',
                     srinfo: 'totalhits',
                     srnamespace: getCategory(check),
-                    srsearch: `incategory:"${check.category}"`
+                    srsearch: `incategory:"${check.category}"`,
                 })
                 .catch((errorCode: string, { error }: MediaWikiDataError) => {
                     mw.notify(`An error occurred while trying to get category members: ${error.info} (${errorCode})`, { type: 'error' });
@@ -70,7 +70,7 @@ mw.loader.using(['mediawiki.util'], () => {
                     list: 'search',
                     srinfo: 'totalhits',
                     srnamespace: getCategory(check),
-                    srsearch: check.search
+                    srsearch: check.search,
                 })
                 .catch((errorCode: string, { error }: MediaWikiDataError) => {
                     mw.notify(`An error occurred while trying to get search results: ${error.info} (${errorCode})`, { type: 'error' });
@@ -94,7 +94,7 @@ mw.loader.using(['mediawiki.util'], () => {
                     bllimit: 500,
                     blnamespace: getCategory(check),
                     bltitle: check.title,
-                    list: 'backlinks'
+                    list: 'backlinks',
                 })
                 .catch((errorCode: string, { error }: MediaWikiDataError) => {
                     mw.notify(`An error occurred while trying to get backlinks: ${error.info} (${errorCode})`, { type: 'error' });
@@ -118,7 +118,7 @@ mw.loader.using(['mediawiki.util'], () => {
                     eilimit: 500,
                     einamespace: getCategory(check),
                     eititle: check.title,
-                    list: 'embeddedin'
+                    list: 'embeddedin',
                 })
                 .catch((errorCode: string, { error }: MediaWikiDataError) => {
                     mw.notify(`An error occurred while trying to get transclusions: ${error.info} (${errorCode})`, { type: 'error' });

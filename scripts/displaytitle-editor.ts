@@ -62,11 +62,20 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui.styles.icons-editing
             await new mw.Api().edit(mw.config.get('wgPageName'), (revision) => {
                 const text = revision.content.replaceAll(/{{\s*displaytitle\s*:\s*(.*?)\s*}}\n?/gi, '');
 
-                if (!editBox.getValue() || editBox.getValue().replaceAll('_', ' ') === actualTitle) return { text, summary: 'Removing DISPLAYTITLE (via [[User:Eejit43/scripts/displaytitle-editor|script]])' };
+                if (!editBox.getValue() || editBox.getValue().replaceAll('_', ' ') === actualTitle)
+                    return { text, summary: 'Removing DISPLAYTITLE (via [[User:Eejit43/scripts/displaytitle-editor|script]])' };
 
                 const isAdded = text === revision.content;
 
-                return /{{short description/i.test(text) ? { text: text.replace(/{{short description(.*?)}}/i, `{{short description$1}}\n{{DISPLAYTITLE:${editBox.getValue()}}}`), summary: `${isAdded ? 'Adding DISPLAYTITLE of' : 'Changing DISPLAYTITLE to'} "${editBox.getValue()}" (via [[User:Eejit43/scripts/displaytitle-editor|script]])` } : { text: `{{DISPLAYTITLE:${editBox.getValue()}}}\n${text}`, summary: `${isAdded ? 'Adding DISPLAYTITLE of' : 'Changing DISPLAYTITLE to'} "${editBox.getValue()}" (via [[User:Eejit43/scripts/displaytitle-editor|script]])` };
+                return /{{short description/i.test(text)
+                    ? {
+                          text: text.replace(/{{short description(.*?)}}/i, `{{short description$1}}\n{{DISPLAYTITLE:${editBox.getValue()}}}`),
+                          summary: `${isAdded ? 'Adding DISPLAYTITLE of' : 'Changing DISPLAYTITLE to'} "${editBox.getValue()}" (via [[User:Eejit43/scripts/displaytitle-editor|script]])`,
+                      }
+                    : {
+                          text: `{{DISPLAYTITLE:${editBox.getValue()}}}\n${text}`,
+                          summary: `${isAdded ? 'Adding DISPLAYTITLE of' : 'Changing DISPLAYTITLE to'} "${editBox.getValue()}" (via [[User:Eejit43/scripts/displaytitle-editor|script]])`,
+                      };
             });
 
             mw.notify('Successfully updated DISPLAYTITLE, reloading...', { type: 'success' });
@@ -77,7 +86,9 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui.styles.icons-editing
 
         editButton.$element[0].after(editBox.$element[0]);
 
-        const pageContent = ((await new mw.Api().get({ action: 'query', formatversion: 2, prop: 'revisions', rvprop: 'content', rvslots: '*', titles: mw.config.get('wgPageName') })) as PageRevisionsResult).query.pages[0].revisions[0].slots.main.content;
+        const pageContent = (
+            (await new mw.Api().get({ action: 'query', formatversion: 2, prop: 'revisions', rvprop: 'content', rvslots: '*', titles: mw.config.get('wgPageName') })) as PageRevisionsResult
+        ).query.pages[0].revisions[0].slots.main.content;
 
         const foundMagicWords = pageContent.match(/{{\s*displaytitle\s*:\s*(.*?)\s*}}/gi);
         if (foundMagicWords) editBox.setValue(foundMagicWords.at(-1)!.replace(/{{\s*displaytitle\s*:\s*(.*?)\s*}}/i, '$1'));

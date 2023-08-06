@@ -5,6 +5,7 @@
         "build": "cp compile.ts compile.js && node compile.js",
         "remove-compiled": "rm -f compile.js"
     },
+    "prettier": "@eejit/prettier-config",
     "devDependencies": {
         "@eejit/eslint-config-typescript": "^2.5.2",
         "@eejit/prettier-config": "^1.3.0",

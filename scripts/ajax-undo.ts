@@ -154,8 +154,7 @@ mw.loader.using(['mediawiki.util'], () => {
             if (event.key === 'Enter') ajaxUndoLink.click();
         });
 
-        if (isMinerva) span.prepend(reasonInput);
-        else span.append(reasonInput);
+        span.prepend(reasonInput);
 
         if (isDiff) span.append(document.createTextNode(')'));
 

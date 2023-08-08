@@ -62,6 +62,7 @@ mw.loader.using(['mediawiki.util'], async () => {
     if (!afdExists.query.pages[0].missing) {
         const link = document.createElement('a');
         link.id = 'deletion-finder-previous-afd';
+        link.classList.add('deletion-finder-link');
         link.href = mw.util.getUrl('Special:AllPages', {
             from: `Articles for deletion/${mw.config.get('wgPageName').replaceAll('_', ' ')}`,
             to: `Articles for deletion/${mw.config.get('wgPageName').replaceAll('_', ' ')} (9z)`,

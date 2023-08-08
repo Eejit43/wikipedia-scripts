@@ -81,7 +81,7 @@ mw.loader.using(['mediawiki.util'], () => {
         let stage = STAGES.awaitingClick;
 
         const ajaxUndoLink = document.createElement('a');
-        ajaxUndoLink.textContent = 'ajax undo';
+        ajaxUndoLink.textContent = 'ajax undo DEV';
         ajaxUndoLink.href = undoUrl.href;
         if (isMinerva && !isDiff) ajaxUndoLink.style.marginLeft = '1em';
         ajaxUndoLink.addEventListener('click', async (event) => {
@@ -154,7 +154,8 @@ mw.loader.using(['mediawiki.util'], () => {
             if (event.key === 'Enter') ajaxUndoLink.click();
         });
 
-        span.prepend(reasonInput);
+        if (isMinerva && !isDiff) span.prepend(reasonInput);
+        else span.append(reasonInput);
 
         if (isDiff) span.append(document.createTextNode(')'));
 

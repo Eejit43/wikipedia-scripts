@@ -6,18 +6,18 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui.styles.icons-editing
 
     mw.util.addCSS(`
 #displaytitle-edit-button {
-    font-size: 15px;
-    margin-left: 3px;
     margin-right: 0;
+    margin-left: 3px;
+    font-size: 15px;
 }
 
 #displaytitle-edit-box {
     display: inline-block;
-    font-size: 15px;
-    margin-bottom: 2px;
-    max-width: 200px;
-    width: 200px;
     ${mw.config.get('skin') === 'modern' ? 'margin-top: 2px;' : ''}
+    margin-bottom: 2px;
+    width: 200px;
+    max-width: 200px;
+    font-size: 15px;
 }`);
 
     if (mw.config.get('skin') === 'modern')

@@ -14,24 +14,34 @@ mw.loader.using(['mediawiki.util'], () => {
     };
 
     mw.util.addCSS(`
-/* Modified from Max Beier's "text-spinners" (https://github.com/maxbeier/text-spinners) */
 #ajax-undo-loading {
     display: none;
-    ${isMinerva && !isDiff ? 'float: right;' : ''}
-    height: ${isDiff ? '1.55' : '1.3'}em;
-    line-height: 1.5em;
-    ${isDiff ? '' : `margin: ${isMinerva ? '0' : '-0.3em'} 3px 0 2px;`}
-    overflow: hidden;
     vertical-align: text-bottom;
+    height: 1.3em;
+    overflow: hidden;
+    line-height: 1.5em;
 }
 
 #ajax-undo-loading::after {
-    animation: ajax-undo-loading 0.8s steps(10) infinite;
-    color: gray;
-    content: '⠋\\A⠙\\A⠹\\A⠸\\A⠼\\A⠴\\A⠦\\A⠧\\A⠇\\A⠏';
     display: inline-table;
+    animation: ajax-undo-loading 0.8s steps(10) infinite;
+    content: "⠋\\A⠙\\A⠹\\A⠸\\A⠼\\A⠴\\A⠦\\A⠧\\A⠇\\A⠏";
+    color: gray;
     text-align: left;
     white-space: pre;
+}
+
+#ajax-undo-loading.is-diff {
+    height: 1.55em;
+}
+
+#ajax-undo-loading:not(.is-diff) {
+    margin: -0.3em 3px 0 3px;
+}
+
+#ajax-undo-loading.is-minerva:not(.is-diff) {
+    float: right;
+    margin-top: 0px;
 }
 
 @keyframes ajax-undo-loading {
@@ -43,21 +53,18 @@ mw.loader.using(['mediawiki.util'], () => {
 #ajax-undo-reason {
     display: none;
     margin-left: 3px;
-${
-    isMinerva && !isDiff
-        ? `float: right;
-height: 26px;`
-        : ''
 }
-${
-    isMinerva
-        ? `border: revert;
-background: revert;
-padding: revert;`
-        : ''
+
+#ajax-undo-reason.is-minerva {
+    border: revert;
+    background: revert;
+    padding: revert;
 }
-}
-`);
+
+#ajax-undo-reason.is-minerva:not(.is-diff) {
+    float: right;
+    height: 26px;
+}`);
 
     for (const undoSpan of document.querySelectorAll('.mw-history-undo, .mw-diff-undo')) {
         const undoLink = undoSpan.querySelector('a');
@@ -132,12 +139,16 @@ padding: revert;`
 
         const loadingSpinner = document.createElement('span');
         loadingSpinner.id = 'ajax-undo-loading';
+        if (isDiff) loadingSpinner.classList.add('is-diff');
+        if (isMinerva) loadingSpinner.classList.add('is-minerva');
 
         if (!isMinerva) span.append(loadingSpinner);
 
         const reasonInput = document.createElement('input');
         reasonInput.type = 'text';
         reasonInput.id = 'ajax-undo-reason';
+        if (isDiff) reasonInput.classList.add('is-diff');
+        if (isMinerva) reasonInput.classList.add('is-minerva');
         reasonInput.placeholder = 'Insert reason here...';
         reasonInput.addEventListener('keydown', (event) => {
             if (event.key === 'Enter') ajaxUndoLink.click();

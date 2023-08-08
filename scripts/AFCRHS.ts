@@ -1072,12 +1072,12 @@
     mw.loader.using(['mediawiki.api', 'mediawiki.util'], () => {
         mw.util.addCSS(`
 #display-message * {
-    padding: revert;
     margin: revert;
     border: revert;
     background: revert;
-}
-`);
+    padding: revert;
+}`);
+
         const redirectPortletLink = mw.util.addPortletLink(mw.config.get('skin') === 'minerva' ? 'p-tb' : 'p-cactions', '#', 'Review AFC/RC', 'ca-afcrhs', 'Review', 'a');
         $(redirectPortletLink).click((event) => {
             event.preventDefault();

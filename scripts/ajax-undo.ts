@@ -36,7 +36,11 @@ mw.loader.using(['mediawiki.util'], () => {
 }
 
 #ajax-undo-loading:not(.is-diff) {
-    margin: -0.3em 3px 0 3px;
+    margin: -0.3em 3px 0;
+}
+
+#ajax-undo-loading.is-minerva.is-diff {
+    margin: -0.2em 3px;
 }
 
 #ajax-undo-loading.is-minerva:not(.is-diff) {
@@ -81,7 +85,7 @@ mw.loader.using(['mediawiki.util'], () => {
         let stage = STAGES.awaitingClick;
 
         const ajaxUndoLink = document.createElement('a');
-        ajaxUndoLink.textContent = 'ajax undo DEV';
+        ajaxUndoLink.textContent = 'ajax undo';
         ajaxUndoLink.href = undoUrl.href;
         if (isMinerva && !isDiff) ajaxUndoLink.style.marginLeft = '1em';
         ajaxUndoLink.addEventListener('click', async (event) => {
@@ -100,7 +104,7 @@ mw.loader.using(['mediawiki.util'], () => {
                 ajaxUndoLink.style.color = 'gray';
                 reasonInput.disabled = true;
 
-                if (isMinerva && !isDiff) ajaxUndoLink.append(loadingSpinner);
+                if (isMinerva) ajaxUndoLink.append(loadingSpinner);
 
                 const undoId = undoUrl.searchParams.get('undo');
                 const undoAfter = undoUrl.searchParams.get('undoafter');

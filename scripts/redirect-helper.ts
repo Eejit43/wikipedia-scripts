@@ -580,6 +580,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.s
                 pageContent.match(/{{DISPLAYTITLE:.*?}}/)?.[0],
                 pageContent.match(/{{italic title\|?.*?}}/i)?.[0],
                 pageContent.match(/{{DEFAULTSORT:.*?}}/)?.[0],
+                ...(pageContent.match(/\[\[[Cc]ategory:.+?]]/g) ?? []),
             ]
                 .filter(Boolean)
                 .join('\n');

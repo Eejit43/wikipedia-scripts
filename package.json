@@ -10,7 +10,7 @@
         "@eejit/prettier-config": "^2.0.1",
         "@eejit/stylelint-config": "^1.1.1",
         "@tsconfig/recommended": "^1.0.2",
-        "@types/node": "^20.5.6",
+        "@types/node": "^20.5.7",
         "@types/oojs": "^7.0.1",
         "@types/oojs-ui": "^0.47.1",
         "esbuild": "^0.19.2",

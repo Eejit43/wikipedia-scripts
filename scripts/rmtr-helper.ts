@@ -195,6 +195,7 @@ mw.loader.using(['mediawiki.util'], () => {
                         'Already done',
                         'Invalid page name',
                         'Incorrect venue',
+                        'Withdrawn',
                     ];
 
                     for (const option of removeRequestDropdownOptions) {

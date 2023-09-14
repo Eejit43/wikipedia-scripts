@@ -6,7 +6,7 @@
     },
     "prettier": "@eejit/prettier-config",
     "devDependencies": {
-        "@eejit/eslint-config-typescript": "^2.15.0",
+        "@eejit/eslint-config-typescript": "^2.17.0",
         "@eejit/prettier-config": "^2.0.2",
         "@eejit/stylelint-config": "^1.1.1",
         "@tsconfig/recommended": "^1.0.2",

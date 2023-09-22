@@ -344,14 +344,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.s
                 /* Improperly tagged as redirect to disambiguation page */
                 if (
                     !('disambiguation' in destinationData!.query.pages[0].pageprops) &&
-                    [
-                        'R from ambiguous sort name',
-                        'R from ambiguous term',
-                        'R to disambiguation page',
-                        'R from incomplete disambiguation',
-                        'R from incorrect disambiguation',
-                        'R from other disambiguation',
-                    ].some((template) => tagSelect.getValue().includes(template))
+                    ['R from ambiguous sort name', 'R from ambiguous term', 'R to disambiguation page', 'R from incomplete disambiguation'].some((template) => tagSelect.getValue().includes(template))
                 )
                     errors.push({ message: 'is not a redirect to a disambiguation page, but it is tagged with a disambiguation categorization template!' });
 

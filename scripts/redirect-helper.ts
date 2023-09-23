@@ -56,7 +56,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.s
 
     if (pageInfo.query.pages[0].missing) {
         const button = new OO.ui.ButtonWidget({ label: 'Create redirect', icon: 'articleRedirect', flags: ['progressive'] });
-        button.$element[0].style.marginBottom = '10px';
+        button.$element[0].style.marginBottom = '20px';
         button.on('click', () => {
             button.$element[0].remove();
             showRedirectInfo(false);

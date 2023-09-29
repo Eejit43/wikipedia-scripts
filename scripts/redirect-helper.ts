@@ -486,6 +486,10 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.s
             syncTalkLayout.$element[0].style.marginBottom = '0';
         }
 
+        const markButton = document.querySelector('#mwe-pt-mark .mwe-pt-tool-icon') as HTMLImageElement | null;
+        markButton?.click();
+        markButton?.click();
+
         let shouldPromptPatrol;
         if (mw.config.get('wgNamespaceNumber') !== 0) shouldPromptPatrol = false;
         else if (document.querySelector('.patrollink')) shouldPromptPatrol = true;

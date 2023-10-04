@@ -535,7 +535,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.s
 
             if (!redirectValue) (summaryInput.$tabIndexed[0] as HTMLInputElement).placeholder = '';
             else if (exists) {
-                const targetChanged = redirectValue.replace('_', ' ') !== oldRedirectTarget?.replace('_', ' ');
+                const targetChanged = redirectValue !== oldRedirectTarget?.replaceAll('_', ' ');
                 const tagsChanged = tagSelect.getValue().join(';') !== oldRedirectTags?.join(';');
 
                 if (targetChanged && tagsChanged) (summaryInput.$tabIndexed[0] as HTMLInputElement).placeholder = `Changing redirect to [[${redirectValue}]] and changing categorization templates`;
@@ -585,6 +585,8 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.s
             if (oldRedirectTarget) redirectInput.setValue(oldRedirectTarget.replaceAll('_', ' '));
             else mw.notify('Could not find redirect target!', { type: 'error' });
             tagSelect.setValue(oldRedirectTags);
+
+            updateSummary();
         }
     }
 });

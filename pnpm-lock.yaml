@@ -9,8 +9,8 @@ devDependencies:
     specifier: ^2.20.0
     version: 2.20.0(typescript@5.2.2)
   '@eejit/prettier-config':
-    specifier: ^2.0.4
-    version: 2.0.4(postcss@8.4.25)(typescript@5.2.2)
+    specifier: ^2.0.5
+    version: 2.0.5(postcss@8.4.25)(typescript@5.2.2)
   '@eejit/stylelint-config':
     specifier: ^1.1.1
     version: 1.1.1(stylelint@15.10.2)
@@ -122,17 +122,6 @@ packages:
   /@csstools/css-tokenizer@2.2.1:
     resolution: {integrity: sha512-Zmsf2f/CaEPWEVgw29odOj+WEVoiJy9s9NOv5GgNY9mZ1CZ7394By6wONrONrTsnNDv6F9hR02nvFihrGVGHBg==}
     engines: {node: ^14 || ^16 || >=18}
-    dev: true
-
-  /@csstools/media-query-list-parser@2.1.4(@csstools/css-parser-algorithms@2.3.2)(@csstools/css-tokenizer@2.2.1):
-    resolution: {integrity: sha512-V/OUXYX91tAC1CDsiY+HotIcJR+vPtzrX8pCplCpT++i8ThZZsq5F5dzZh/bDM3WUOjrvC1ljed1oSJxMfjqhw==}
-    engines: {node: ^14 || ^16 || >=18}
-    peerDependencies:
-      '@csstools/css-parser-algorithms': ^2.3.1
-      '@csstools/css-tokenizer': ^2.2.0
-    dependencies:
-      '@csstools/css-parser-algorithms': 2.3.2(@csstools/css-tokenizer@2.2.1)
-      '@csstools/css-tokenizer': 2.2.1
     dev: true
 
   /@csstools/media-query-list-parser@2.1.5(@csstools/css-parser-algorithms@2.3.2)(@csstools/css-tokenizer@2.2.1):
@@ -459,8 +448,8 @@ packages:
       - typescript
     dev: true
 
-  /@eejit/prettier-config@2.0.4(postcss@8.4.25)(typescript@5.2.2):
-    resolution: {integrity: sha512-O6K16ckksu0/HLueiRLRapotwVqbTr89AWCT8aMwXb9u2we4bkwawmOu7C/T08m++RSolEsTwzejwOitYfAcmA==}
+  /@eejit/prettier-config@2.0.5(postcss@8.4.25)(typescript@5.2.2):
+    resolution: {integrity: sha512-mChaYD7FFTQjSTBMMhOcsHzUnnBbVL5FUipyq6i8C0WZJXCLalkN+53F2sGd42wL0HBtTTTcIgvlM5jrJLTysw==}
     dependencies:
       prettier: 3.0.3
       prettier-plugin-css-order: 2.0.1(postcss@8.4.25)(prettier@3.0.3)
@@ -3101,7 +3090,7 @@ packages:
     dependencies:
       '@csstools/css-parser-algorithms': 2.3.2(@csstools/css-tokenizer@2.2.1)
       '@csstools/css-tokenizer': 2.2.1
-      '@csstools/media-query-list-parser': 2.1.4(@csstools/css-parser-algorithms@2.3.2)(@csstools/css-tokenizer@2.2.1)
+      '@csstools/media-query-list-parser': 2.1.5(@csstools/css-parser-algorithms@2.3.2)(@csstools/css-tokenizer@2.2.1)
       '@csstools/selector-specificity': 3.0.0(postcss-selector-parser@6.0.13)
       balanced-match: 2.0.0
       colord: 2.9.3

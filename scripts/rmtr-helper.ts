@@ -339,7 +339,7 @@ mw.loader.using(['mediawiki.util'], () => {
                           .map(([destination, pages]) => `${pages.map((page) => `[[${page.original}]]`).join(', ')} to "${destination}"`)
                           .join(', ')}`
                     : ''
-            } ${noRemaining ? '(no requests remain)' : ''} (via [[User:Eejit43/scripts/rmtr-helper|script]])`;
+            }${noRemaining ? '(no requests remain)' : ''} (via [[User:Eejit43/scripts/rmtr-helper|script]])`;
 
             if (developmentMode) showEditPreview(mw.config.get('wgPageName'), endResult, editSummary);
             else {

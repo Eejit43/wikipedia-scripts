@@ -325,7 +325,7 @@ mw.loader.using(['mediawiki.util'], () => {
                 return mw.notify('No changes to make!', { type: 'error' });
             }
 
-            const noRemaining = Object.values(allRequests).every((section) => section.every((request) => !(request.result && 'remove' in request.result)));
+            const noRemaining = Object.values(allRequests).every((section) => section.every((request) => request.result && 'remove' in request.result));
 
             const editSummary = `Handled ${changes.total} request${changes.total > 1 ? 's' : ''}: ${
                 Object.entries(changes.remove).length > 0

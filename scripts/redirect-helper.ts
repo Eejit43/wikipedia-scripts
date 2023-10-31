@@ -562,13 +562,20 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.s
                     )
                     .filter(Boolean) as string[]
             ).sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
+
+            const originalRedirectTags = Object.entries(redirectTemplates)
+                .flatMap(([tag, redirects]) => [tag, ...redirects])
+                .map((tagOrRedirect) => (new RegExp(`{{\\s*[${tagOrRedirect[0].toLowerCase()}${tagOrRedirect[0]}]${tagOrRedirect.slice(1)}\\s*(\\||}})`).test(pageContent) ? tagOrRedirect : null))
+                .filter(Boolean) as string[];
+
             oldRedirectTagData = Object.fromEntries(
-                oldRedirectTags
+                originalRedirectTags
                     .map((tag) => {
-                        const match = new RegExp(`{{\\s*(?:${[tag, ...redirectTemplates[tag]].map((tag) => `[${tag[0].toLowerCase()}${tag[0]}]${tag.slice(1)}`).join('|')})\\|?(.*?)\\s*}}`).exec(
-                            pageContent,
-                        );
-                        return match ? [tag, match[1]] : null;
+                        const match = new RegExp(`{{\\s*[${tag[0].toLowerCase()}${tag[0]}]${tag.slice(1)}\\|?(.*?)\\s*}}`).exec(pageContent);
+
+                        const newTag = Object.entries(redirectTemplates).find(([template, redirects]) => [template, ...redirects].includes(tag))?.[0];
+
+                        return match ? [newTag, match[1]] : null;
                     })
                     .filter(Boolean) as [string, string][],
             );

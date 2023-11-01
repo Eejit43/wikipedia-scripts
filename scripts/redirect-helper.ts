@@ -399,13 +399,13 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.s
 
             const result = await new mw.Api()
                 .edit(pageTitle, () => ({ text: output, summary }))
-                .catch((errorCode: string, { error }: MediaWikiDataError) => {
+                .catch((errorCode: string, errorInfo: MediaWikiDataError) => {
                     if (errorCode === 'nocreate-missing')
-                        return new mw.Api().create(pageTitle, { summary }, output).catch((errorCode: string, { error }: MediaWikiDataError) => {
-                            mw.notify(`Error creating ${pageTitle}: ${error.info} (${errorCode})`, { type: 'error' });
+                        return new mw.Api().create(pageTitle, { summary }, output).catch((errorCode: string, errorInfo: MediaWikiDataError) => {
+                            mw.notify(`Error creating ${pageTitle}: ${errorInfo?.error.info ?? 'Unknown error'} (${errorCode})`, { type: 'error' });
                         });
                     else {
-                        mw.notify(`Error editing or creating ${pageTitle}: ${error.info} (${errorCode})`, { type: 'error' });
+                        mw.notify(`Error editing or creating ${pageTitle}: ${errorInfo?.error.info ?? 'Unknown error'} (${errorCode})`, { type: 'error' });
                         return null;
                     }
                 });
@@ -431,15 +431,15 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.s
 
                 const talkResult = await new mw.Api()
                     .edit(talkPage, () => ({ text: output, summary: 'Syncing redirect from main page (via [[User:Eejit43/scripts/redirect-helper|redirect-helper]])' }))
-                    .catch((errorCode: string, { error }: MediaWikiDataError) => {
+                    .catch((errorCode: string, errorInfo: MediaWikiDataError) => {
                         if (errorCode === 'nocreate-missing')
                             return new mw.Api()
                                 .create(talkPage, { summary: 'Syncing redirect from main page (via [[User:Eejit43/scripts/redirect-helper|redirect-helper]])' }, output)
-                                .catch((errorCode: string, { error }: MediaWikiDataError) => {
-                                    mw.notify(`Error creating ${talkPage}: ${error.info} (${errorCode})`, { type: 'error' });
+                                .catch((errorCode: string, errorInfo: MediaWikiDataError) => {
+                                    mw.notify(`Error creating ${talkPage}: ${errorInfo?.error.info ?? 'Unknown error'} (${errorCode})`, { type: 'error' });
                                 });
                         else {
-                            mw.notify(`Error editing or creating ${talkPage}: ${error.info} (${errorCode})`, { type: 'error' });
+                            mw.notify(`Error editing or creating ${talkPage}: ${errorInfo?.error.info ?? 'Unknown error'} (${errorCode})`, { type: 'error' });
                             return null;
                         }
                     });
@@ -459,8 +459,8 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.s
                 if (patrolLink) {
                     const patrolResult = await new mw.Api()
                         .postWithToken('patrol', { action: 'patrol', rcid: new URL(patrolLink.href).searchParams.get('rcid')! })
-                        .catch((errorCode: string, { error }: MediaWikiDataError) => {
-                            mw.notify(`Error patrolling ${pageTitle} via API: ${error.info} (${errorCode})`, { type: 'error' });
+                        .catch((errorCode: string, errorInfo: MediaWikiDataError) => {
+                            mw.notify(`Error patrolling ${pageTitle} via API: ${errorInfo?.error.info ?? 'Unknown error'} (${errorCode})`, { type: 'error' });
                             return null;
                         });
                     if (patrolResult) mw.notify('Redirect patrolled successfully!', { type: 'success' });

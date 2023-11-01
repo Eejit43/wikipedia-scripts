@@ -40,7 +40,7 @@ mw.loader.using(['mediawiki.util'], async () => {
                 summary: `Sync redirect with main page, to [[${destinationTalkNamespaceName}:${mainTargetText}]] (via [[User:Eejit43/scripts/sync-redirect|script]])`,
                 minor: true,
             }))
-            .catch(async (errorCode: string, { error }: MediaWikiDataError) => {
+            .catch(async (errorCode: string, errorInfo: MediaWikiDataError) => {
                 if (errorCode === 'nocreate-missing')
                     await new mw.Api()
                         .create(
@@ -48,10 +48,10 @@ mw.loader.using(['mediawiki.util'], async () => {
                             { summary: `Create redirect matching main page, to [[${destinationTalkNamespaceName}:${mainTargetText}]] (via [[User:Eejit43/scripts/sync-redirect|script]])` },
                             `#REDIRECT [[${destinationTalkNamespaceName}:${mainTargetText}]]${pageMove ? '\n\n{{Redirect category shell|\n{{R from move}}\n}}' : ''}`,
                         )
-                        .catch((errorCode: string, { error }: MediaWikiDataError) => {
-                            mw.notify(`Failed to redirect page: ${error.info} (${errorCode})`, { type: 'error', tag: 'sync-redirect-notification' });
+                        .catch((errorCode: string, errorInfo: MediaWikiDataError) => {
+                            mw.notify(`Failed to redirect page: ${errorInfo?.error.info ?? 'Unknown error'} (${errorCode})`, { type: 'error', tag: 'sync-redirect-notification' });
                         });
-                else mw.notify(`Failed to redirect page: ${error.info} (${errorCode})`, { type: 'error', tag: 'sync-redirect-notification' });
+                else mw.notify(`Failed to redirect page: ${errorInfo?.error.info ?? 'Unknown error'} (${errorCode})`, { type: 'error', tag: 'sync-redirect-notification' });
             });
 
         mw.notify('Successfully redirected page, reloading...', { type: 'success', tag: 'sync-redirect-notification' });

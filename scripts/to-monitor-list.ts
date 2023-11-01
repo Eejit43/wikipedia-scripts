@@ -48,8 +48,8 @@ mw.loader.using(['mediawiki.util'], () => {
                     srnamespace: getCategory(check),
                     srsearch: `incategory:"${check.category}"`,
                 })
-                .catch((errorCode: string, { error }: MediaWikiDataError) => {
-                    mw.notify(`An error occurred while trying to get category members: ${error.info} (${errorCode})`, { type: 'error' });
+                .catch((errorCode: string, errorInfo: MediaWikiDataError) => {
+                    mw.notify(`An error occurred while trying to get category members: ${errorInfo?.error.info ?? 'Unknown error'} (${errorCode})`, { type: 'error' });
                     return null;
                 });
 
@@ -72,8 +72,8 @@ mw.loader.using(['mediawiki.util'], () => {
                     srnamespace: getCategory(check),
                     srsearch: check.search,
                 })
-                .catch((errorCode: string, { error }: MediaWikiDataError) => {
-                    mw.notify(`An error occurred while trying to get search results: ${error.info} (${errorCode})`, { type: 'error' });
+                .catch((errorCode: string, errorInfo: MediaWikiDataError) => {
+                    mw.notify(`An error occurred while trying to get search results: ${errorInfo?.error.info ?? 'Unknown error'} (${errorCode})`, { type: 'error' });
                     return null;
                 });
 
@@ -96,8 +96,8 @@ mw.loader.using(['mediawiki.util'], () => {
                     bltitle: check.title,
                     list: 'backlinks',
                 })
-                .catch((errorCode: string, { error }: MediaWikiDataError) => {
-                    mw.notify(`An error occurred while trying to get backlinks: ${error.info} (${errorCode})`, { type: 'error' });
+                .catch((errorCode: string, errorInfo: MediaWikiDataError) => {
+                    mw.notify(`An error occurred while trying to get backlinks: ${errorInfo?.error.info ?? 'Unknown error'} (${errorCode})`, { type: 'error' });
                     return null;
                 });
 
@@ -120,8 +120,8 @@ mw.loader.using(['mediawiki.util'], () => {
                     eititle: check.title,
                     list: 'embeddedin',
                 })
-                .catch((errorCode: string, { error }: MediaWikiDataError) => {
-                    mw.notify(`An error occurred while trying to get transclusions: ${error.info} (${errorCode})`, { type: 'error' });
+                .catch((errorCode: string, errorInfo: MediaWikiDataError) => {
+                    mw.notify(`An error occurred while trying to get transclusions: ${errorInfo?.error.info ?? 'Unknown error'} (${errorCode})`, { type: 'error' });
                     return null;
                 });
 

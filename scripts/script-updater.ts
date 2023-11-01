@@ -130,14 +130,14 @@ mw.loader.using(['mediawiki.util'], () => {
             summary += ' (via [[User:Eejit43/scripts/script-updater.js|script]])';
             await new mw.Api()
                 .edit(title, () => ({ text, summary, watchlist: 'watch' }))
-                .catch(async (errorCode: string, { error }: MediaWikiDataError) => {
+                .catch(async (errorCode: string, errorInfo: MediaWikiDataError) => {
                     if (errorCode === 'nocreate-missing')
-                        await new mw.Api().create(title, { summary, watchlist: 'watch' }, text).catch((errorCode: string, { error }: MediaWikiDataError) => {
-                            mw.notify(`Error creating ${title}: ${error.info} (${errorCode})`, { type: 'error' });
+                        await new mw.Api().create(title, { summary, watchlist: 'watch' }, text).catch((errorCode: string, errorInfo: MediaWikiDataError) => {
+                            mw.notify(`Error creating ${title}: ${errorInfo?.error.info ?? 'Unknown error'} (${errorCode})`, { type: 'error' });
                             return;
                         });
                     else {
-                        mw.notify(`Error editing or creating ${title}: ${error.info} (${errorCode})`, { type: 'error' });
+                        mw.notify(`Error editing or creating ${title}: ${errorInfo?.error.info ?? 'Unknown error'} (${errorCode})`, { type: 'error' });
                         return;
                     }
                 });

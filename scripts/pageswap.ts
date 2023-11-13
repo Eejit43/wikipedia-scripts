@@ -550,8 +550,8 @@ async function roundRobin(userPermissions, currentTitle, destinationTitle, summa
                 !talkValidationData.currentTalkCanCreate
                     ? `${validationData.currentTalkName} is create-protected`
                     : !talkValidationData.destinationTalkCanCreate
-                    ? `${validationData.destinationTalkName} is create-protected`
-                    : 'Talk page is immovable'
+                      ? `${validationData.destinationTalkName} is create-protected`
+                      : 'Talk page is immovable'
             }`,
         );
     }

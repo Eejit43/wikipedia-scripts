@@ -28,7 +28,8 @@ mw.loader.using(['mediawiki.util'], () => {
         const sections = ['Uncontroversial technical requests', 'Requests to revert undiscussed moves', 'Contested technical requests', 'Administrator needed'];
 
         interface Request {
-            requester: string;
+            sig: string;
+            requester?: string;
             reason: string;
             full: string;
             original: string;
@@ -109,7 +110,11 @@ mw.loader.using(['mediawiki.util'], () => {
 
                         const parsedWikitext = await new mw.Api().parse(
                             `[[:${request.original}]] → ${validTitle ? `[[:${request.destination}]]` : invalidTitleWarning.outerHTML} requested by ${
-                                mw.util.isIPAddress(request.requester) ? `[[Special:Contributions/${request.requester}|${request.requester}]]` : `[[User:${request.requester}|${request.requester}]]`
+                                request.requester
+                                    ? mw.util.isIPAddress(request.requester)
+                                        ? `[[Special:Contributions/${request.requester}|${request.requester}]]`
+                                        : `[[User:${request.requester}|${request.requester}]]`
+                                    : request.sig.match(/(\[{2}Special:Contributions\/(.*?)\|\2]{2})/)![2]
                             } with reasoning "${request.reason}"`,
                         );
                         const parsedHtml = new DOMParser().parseFromString(parsedWikitext, 'text/html');
@@ -196,6 +201,7 @@ mw.loader.using(['mediawiki.util'], () => {
                         'Invalid page name',
                         'Incorrect venue',
                         'Withdrawn',
+                        'Not done',
                     ];
 
                     for (const option of removeRequestDropdownOptions) {

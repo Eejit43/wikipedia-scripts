@@ -6,17 +6,17 @@
     },
     "prettier": "@eejit/prettier-config",
     "devDependencies": {
-        "@eejit/eslint-config-typescript": "^3.2.0",
+        "@eejit/eslint-config-typescript": "^3.4.0",
         "@eejit/prettier-config": "^2.1.0",
         "@eejit/stylelint-config": "^1.1.1",
         "@tsconfig/recommended": "^1.0.3",
-        "@types/node": "^20.9.0",
-        "@types/oojs": "^7.0.5",
+        "@types/node": "^20.9.3",
+        "@types/oojs": "^7.0.6",
         "@types/oojs-ui": "^0.47.5",
-        "esbuild": "^0.19.5",
+        "esbuild": "^0.19.7",
         "esbuild-postcss": "^0.0.4",
         "postcss-preset-env": "^9.3.0",
         "types-mediawiki": "^1.4.0",
-        "typescript": "^5.2.2"
+        "typescript": "^5.3.2"
     }
 }

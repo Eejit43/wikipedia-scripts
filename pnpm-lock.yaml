@@ -18,14 +18,14 @@ devDependencies:
     specifier: ^1.0.3
     version: 1.0.3
   '@types/node':
-    specifier: ^20.9.3
-    version: 20.9.3
+    specifier: ^20.10.0
+    version: 20.10.0
   '@types/oojs':
     specifier: ^7.0.6
     version: 7.0.6
   '@types/oojs-ui':
-    specifier: ^0.47.5
-    version: 0.47.5
+    specifier: ^0.47.6
+    version: 0.47.6
   esbuild:
     specifier: ^0.19.7
     version: 0.19.7
@@ -804,8 +804,8 @@ packages:
     resolution: {integrity: sha512-jhuKLIRrhvCPLqwPcx6INqmKeiA5EWrsCOPhrlFSrbrmU4ZMPjj5Ul/oLCMDO98XRUIwVm78xICz4EPCektzeQ==}
     dev: true
 
-  /@types/node@20.9.3:
-    resolution: {integrity: sha512-nk5wXLAXGBKfrhLB0cyHGbSqopS+nz0BUgZkUQqSHSSgdee0kssp1IAqlQOu333bW+gMNs2QREx7iynm19Abxw==}
+  /@types/node@20.10.0:
+    resolution: {integrity: sha512-D0WfRmU9TQ8I9PFx9Yc+EBHw+vSpIub4IDvQivcp26PtPrdMGAq5SDcpXEo/epqa/DXotVpekHiLNTg3iaKXBQ==}
     dependencies:
       undici-types: 5.26.5
     dev: true
@@ -814,8 +814,8 @@ packages:
     resolution: {integrity: sha512-Gj7cI7z+98M282Tqmp2K5EIsoouUEzbBJhQQzDE3jSIRk6r9gsz0oUokqIUR4u1R3dMHo0pDHM7sNOHyhulypw==}
     dev: true
 
-  /@types/oojs-ui@0.47.5:
-    resolution: {integrity: sha512-naxHtrHsbv7EA1laQJunpFH2wJl3MooEhBybdGpH4V9Nww83oHDCnXR2nmcancGaCt5DgbGu3KLPc70bnYOy7A==}
+  /@types/oojs-ui@0.47.6:
+    resolution: {integrity: sha512-rq24I8qov2hFnfF6PBFx3ECQI81sCr9HqghGpad2LnyUH30j/zHFgtqMqVUSthtxd0Ke4d1ZJmq2Vhg9qJrWrw==}
     dependencies:
       '@types/jquery': 3.5.16
       '@types/oojs': 7.0.6

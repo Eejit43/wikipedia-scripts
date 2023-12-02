@@ -13,7 +13,7 @@ interface PageParseResult {
 }
 
 interface PagepropsResult {
-    query: { pages: { pageprops: { disambiguation?: string } }[] };
+    query: { pages: { pageprops?: { disambiguation?: string } }[] };
 }
 
 interface UserPermissionsResponse {
@@ -329,6 +329,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.s
 
                 /* Redirect to disambiguation page without template */
                 if (
+                    destinationData!.query.pages[0].pageprops &&
                     'disambiguation' in destinationData!.query.pages[0].pageprops &&
                     ![
                         'R from ambiguous sort name',
@@ -343,6 +344,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.s
 
                 /* Improperly tagged as redirect to disambiguation page */
                 if (
+                    destinationData!.query.pages[0].pageprops &&
                     !('disambiguation' in destinationData!.query.pages[0].pageprops) &&
                     ['R from ambiguous sort name', 'R from ambiguous term', 'R to disambiguation page', 'R from incomplete disambiguation'].some((template) => tagSelect.getValue().includes(template))
                 )

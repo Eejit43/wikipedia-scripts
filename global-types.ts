@@ -5,5 +5,5 @@ export type MediaWikiDataError =
     | undefined;
 
 export interface PageRevisionsResult {
-    query: { pages: { revisions: { slots: { main: { content: string } } }[] }[] };
+    query: { pages: { revisions: { revid: number; slots: { main: { content: string } } }[] }[] };
 }

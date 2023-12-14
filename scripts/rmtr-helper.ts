@@ -21,9 +21,10 @@ mw.loader.using(['mediawiki.util'], () => {
         if (displayed) return document.querySelector('#rmtr-review-result')?.scrollIntoView();
         else displayed = true;
 
-        const pageContent = (
-            (await new mw.Api().get({ action: 'query', formatversion: 2, prop: 'revisions', rvprop: 'content', rvslots: '*', titles: mw.config.get('wgPageName') })) as PageRevisionsResult
-        ).query.pages[0].revisions[0].slots.main.content;
+        const pageRevision = await getPageRevision();
+
+        const revId = pageRevision.revid;
+        const pageContent = pageRevision.slots.main.content;
 
         const sections = ['Uncontroversial technical requests', 'Requests to revert undiscussed moves', 'Contested technical requests', 'Administrator needed'];
 
@@ -288,6 +289,10 @@ mw.loader.using(['mediawiki.util'], () => {
         submitButton.id = 'rmtr-review-submit';
         submitButton.textContent = 'Submit';
         submitButton.addEventListener('click', async () => {
+            const newPageRevision = await getPageRevision();
+
+            if (newPageRevision.revid !== revId) return mw.notify('rmtr-helper: Page has been edited since this script was loaded, please start over!', { type: 'error' });
+
             submitButton.disabled = true;
             loadingSpinner.style.display = 'inline-block';
 
@@ -370,6 +375,14 @@ mw.loader.using(['mediawiki.util'], () => {
         outputElement.scrollIntoView();
     });
 });
+
+/**
+ * Gets information about a wiki page's latest revision.
+ */
+async function getPageRevision() {
+    return ((await new mw.Api().get({ action: 'query', formatversion: 2, prop: 'revisions', rvprop: 'content|ids', rvslots: '*', titles: mw.config.get('wgPageName') })) as PageRevisionsResult).query
+        .pages[0].revisions[0];
+}
 
 /**
  * Shows a diff edit preview for the given wikitext on a given page.

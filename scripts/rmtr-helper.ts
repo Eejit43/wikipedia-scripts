@@ -291,7 +291,7 @@ mw.loader.using(['mediawiki.util'], () => {
         submitButton.addEventListener('click', async () => {
             const newPageRevision = await getPageRevision();
 
-            if (newPageRevision.revid !== revId) return mw.notify('rmtr-helper: Page has been edited since this script was loaded, please start over!', { type: 'error' });
+            if (newPageRevision.revid !== revId) return mw.notify('rmtr-helper: An edit conflict occurred, please start over!', { type: 'error' });
 
             submitButton.disabled = true;
             loadingSpinner.style.display = 'inline-block';

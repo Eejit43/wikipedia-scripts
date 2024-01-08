@@ -20,7 +20,7 @@ interface EmbeddedinResult {
 mw.loader.using(['mediawiki.util'], () => {
     if (mw.config.get('wgPageName') !== 'User:Eejit43') return;
 
-    const link = mw.util.addPortletLink(mw.config.get('skin') === 'minerva' ? 'p-tb' : 'p-cactions', '#', 'Add counts to monitoring list', 'add-monitoring-counts');
+    const link = mw.util.addPortletLink(mw.config.get('skin') === 'minerva' ? 'p-tb' : 'p-cactions', '#', 'Add counts to monitoring list', 'add-monitoring-counts')!;
 
     link.addEventListener('click', async (event) => {
         event.preventDefault();

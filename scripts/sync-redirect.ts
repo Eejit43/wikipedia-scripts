@@ -12,7 +12,7 @@ mw.loader.using(['mediawiki.util'], async () => {
     })) as PageRevisionsResult & { query: { pages: { redirect?: boolean }[] } };
     if (!mainPageInfoRevisions.query.pages[0].redirect) return;
 
-    const link = mw.util.addPortletLink(mw.config.get('skin') === 'minerva' ? 'p-tb' : 'p-cactions', '#', 'Sync with main page redirect', 'sync-redirect');
+    const link = mw.util.addPortletLink(mw.config.get('skin') === 'minerva' ? 'p-tb' : 'p-cactions', '#', 'Sync with main page redirect', 'sync-redirect')!;
 
     link.addEventListener('click', async (event) => {
         event.preventDefault();

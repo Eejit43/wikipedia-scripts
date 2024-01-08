@@ -28,6 +28,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.s
     if (mw.config.get('wgNamespaceNumber') < 0) return; // Don't run in virtual namespaces
     if (!mw.config.get('wgIsProbablyEditable')) return; // Don't run if user can't edit page
     if (mw.config.get('wgAction') !== 'view' || !mw.config.get('wgIsArticle')) return; // Don't run if not viewing page
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     if (mw.util.getParamValue('oldid') || mw.config.get('wgDiffOldId')) return; // Don't run if viewing old revision or diff
 
     const contentText = document.querySelector('#mw-content-text') as HTMLDivElement;
@@ -65,7 +66,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.s
         contentText.prepend(button.$element[0]);
     } else if (pageInfo.query.pages[0].redirect) showRedirectInfo(true);
     else {
-        const portletLink = mw.util.addPortletLink(mw.config.get('skin') === 'minerva' ? 'p-tb' : 'p-cactions', '#', 'Redirect page', 'redirect-helper');
+        const portletLink = mw.util.addPortletLink(mw.config.get('skin') === 'minerva' ? 'p-tb' : 'p-cactions', '#', 'Redirect page', 'redirect-helper')!;
         portletLink.addEventListener('click', (event) => {
             event.preventDefault();
             showRedirectInfo(false);
@@ -148,8 +149,8 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.s
                             action: 'query',
                             formatversion: 2,
                             gaplimit: 20,
-                            gapnamespace: parsedTitle?.namespace ?? 0,
-                            gapprefix: parsedTitle?.title ?? value,
+                            gapnamespace: parsedTitle?.getNamespaceId() ?? 0,
+                            gapprefix: parsedTitle?.getMainText() ?? value,
                             generator: 'allpages',
                             prop: 'info|pageprops',
                         })

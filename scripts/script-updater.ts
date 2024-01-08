@@ -22,7 +22,7 @@ mw.loader.using(['mediawiki.util'], () => {
     const repoOwner = 'Eejit43';
     const repoName = 'wikipedia-scripts';
 
-    const link = mw.util.addPortletLink(mw.config.get('skin') === 'minerva' ? 'p-tb' : 'p-cactions', '#', 'Sync user scripts from GitHub', 'sync-scripts');
+    const link = mw.util.addPortletLink(mw.config.get('skin') === 'minerva' ? 'p-tb' : 'p-cactions', '#', 'Sync user scripts from GitHub', 'sync-scripts')!;
 
     link.addEventListener('click', async (event) => {
         event.preventDefault();

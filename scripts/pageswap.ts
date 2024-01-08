@@ -1,4 +1,4 @@
-mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-windows', 'mediawiki.widgets']).then(async () => {
+mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-windows', 'mediawiki.widgets'], async () => {
     const namespace = mw.config.get('wgNamespaceNumber');
     if (namespace < 0 || namespace >= 120 || (namespace >= 6 && namespace <= 9) || (namespace >= 14 && namespace <= 99)) return;
 
@@ -6,10 +6,10 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
 
     const userPermissions = await fetchUserPermissions();
 
-    const pageInfo = await new mw.Api().get({ action: 'query', prop: 'info', titles: currentTitle });
+    const pageInfo = (await new mw.Api().get({ action: 'query', prop: 'info', titles: currentTitle })) as { query: { pages: Record<number, unknown> } };
     if (pageInfo.query.pages[-1]) return;
 
-    const link = mw.util.addPortletLink(mw.config.get('skin') === 'minerva' ? 'p-tb' : 'p-cactions', '#', 'Swap', 'eejit-pageswap');
+    const link = mw.util.addPortletLink(mw.config.get('skin') === 'minerva' ? 'p-tb' : 'p-cactions', '#', 'Swap', 'eejit-pageswap')!;
 
     link.addEventListener('click', (event) => {
         event.preventDefault();

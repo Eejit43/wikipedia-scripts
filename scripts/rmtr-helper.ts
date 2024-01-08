@@ -1,7 +1,5 @@
 import { PageRevisionsResult } from '../global-types';
 
-declare function importStylesheet(page: string): void;
-
 mw.loader.using(['mediawiki.util'], () => {
     const developmentMode = false;
 
@@ -13,7 +11,7 @@ mw.loader.using(['mediawiki.util'], () => {
 
     let displayed = false;
 
-    const link = mw.util.addPortletLink(mw.config.get('skin') === 'minerva' ? 'p-tb' : 'p-cactions', '#', `Review move requests${developmentMode ? ' (DEV)' : ''}`, 'review-rmtr-requests');
+    const link = mw.util.addPortletLink(mw.config.get('skin') === 'minerva' ? 'p-tb' : 'p-cactions', '#', `Review move requests${developmentMode ? ' (DEV)' : ''}`, 'review-rmtr-requests')!;
 
     link.addEventListener('click', async (event) => {
         event.preventDefault();
@@ -103,11 +101,11 @@ mw.loader.using(['mediawiki.util'], () => {
                         invalidTitleWarning.classList.add('rmtr-review-invalid-warning');
                         invalidTitleWarning.textContent = `Invalid title "${request.destination}"!`;
 
-                        const validNamespace = ![namespaces.file, namespaces.category].some((namespace) => mwOldTitle.namespace === namespace || mwNewTitle.namespace === namespace);
+                        const validNamespace = ![namespaces.file, namespaces.category].some((namespace) => mwOldTitle.getNamespaceId() === namespace || mwNewTitle.getNamespaceId() === namespace);
 
                         const invalidNamespaceWarning = document.createElement('span');
                         invalidNamespaceWarning.classList.add('rmtr-review-invalid-warning');
-                        invalidNamespaceWarning.textContent = `Warning: original or destination page is in namespace "${mwNewTitle.namespace === namespaces.file ? 'file' : 'category'}"!`;
+                        invalidNamespaceWarning.textContent = `Warning: original or destination page is in namespace "${mwNewTitle.getNamespaceId() === namespaces.file ? 'file' : 'category'}"!`;
 
                         const parsedWikitext = await new mw.Api().parse(
                             `[[:${request.original}]] → ${validTitle ? `[[:${request.destination}]]` : invalidTitleWarning.outerHTML} requested by ${

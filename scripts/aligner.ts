@@ -19,7 +19,7 @@ interface JQuery<TElement extends Node = HTMLElement> extends Iterable<TElement>
     const searches = ['infobox', 'speciesbox', 'taxobox', 'automatic taxobox', 'osm location map', 'motorsport season'];
 
     mw.loader.using(['mediawiki.util', 'mediawiki.notification', 'jquery.textSelection'], () => {
-        const link = mw.util.addPortletLink(mw.config.get('skin') === 'minerva' ? 'p-navigation' : 'p-cactions', '#', 'Align template params', 'align-params');
+        const link = mw.util.addPortletLink(mw.config.get('skin') === 'minerva' ? 'p-navigation' : 'p-cactions', '#', 'Align template params', 'align-params')!;
         link.addEventListener('click', (event) => {
             event.preventDefault();
 

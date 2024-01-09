@@ -2,15 +2,15 @@ import { MediaWikiDataError } from '../global-types';
 
 interface Script {
     name: string;
-    'use-instead'?: string; // eslint-disable-line @typescript-eslint/naming-convention
-    'image-size'?: string; // eslint-disable-line @typescript-eslint/naming-convention
-    'image-caption'?: string; // eslint-disable-line @typescript-eslint/naming-convention
-    'short-description': string; // eslint-disable-line @typescript-eslint/naming-convention
+    'use-instead'?: string;
+    'image-size'?: string;
+    'image-caption'?: string;
+    'short-description': string;
     description: string;
-    'other-authors'?: string[]; // eslint-disable-line @typescript-eslint/naming-convention
+    'other-authors'?: string[];
     fork?: true;
     personal?: true;
-    'skin-support': Record<string, boolean>; // eslint-disable-line @typescript-eslint/naming-convention
+    'skin-support': Record<string, boolean>;
     released: string;
     updated: string;
     css?: true;
@@ -27,9 +27,20 @@ mw.loader.using(['mediawiki.util'], () => {
     link.addEventListener('click', async (event) => {
         event.preventDefault();
 
-        const latestCommitHash = ((await (await fetch(`https://api.github.com/repos/${repoOwner}/${repoName}/commits`)).json()) as { sha: string }[])[0].sha;
+        const latestCommitHashResponse = await fetch(`https://api.github.com/repos/${repoOwner}/${repoName}/commits`);
+        if (!latestCommitHashResponse.ok)
+            return mw.notify(`Failed to fetch latest commit hash from GitHub: ${latestCommitHashResponse.statusText} (${latestCommitHashResponse.status})`, {
+                type: 'error',
+                tag: 'sync-scripts-notification',
+            });
 
-        const scriptData = (await (await fetch(`https://raw.githubusercontent.com/${repoOwner}/${repoName}/${latestCommitHash}/scripts.json`)).json()) as Script[];
+        const latestCommitHash = ((await latestCommitHashResponse.json()) as { sha: string }[])[0].sha;
+
+        const scriptDataResponse = await fetch(`https://raw.githubusercontent.com/${repoOwner}/${repoName}/${latestCommitHash}/scripts.json`);
+        if (!scriptDataResponse.ok)
+            return mw.notify(`Failed to fetch script data from GitHub: ${scriptDataResponse.statusText} (${scriptDataResponse.status})`, { type: 'error', tag: 'sync-scripts-notification' });
+
+        const scriptData = (await scriptDataResponse.json()) as Script[];
 
         mw.notify('Syncing scripts...', { autoHide: false, tag: 'sync-scripts-notification' });
 
@@ -56,29 +67,40 @@ mw.loader.using(['mediawiki.util'], () => {
                     '}}',
                 ].filter(Boolean);
 
-                const scriptContent = await (await fetch(`https://raw.githubusercontent.com/${repoOwner}/${repoName}/${latestCommitHash}/dist/scripts/${script.name}.js`)).text().catch((error) => {
-                    console.error(error);
-                    return null;
-                });
+                let scriptContent = null;
 
-                const styleContent = script.css
-                    ? await (await fetch(`https://raw.githubusercontent.com/${repoOwner}/${repoName}/${latestCommitHash}/dist/styles/${script.name}.css`)).text().catch((error) => {
-                          console.error(error);
-                          return null;
-                      })
-                    : null;
+                const scriptContentResponse = await fetch(`https://raw.githubusercontent.com/${repoOwner}/${repoName}/${latestCommitHash}/dist/scripts/${script.name}.js`);
+                if (scriptContentResponse.ok) scriptContent = await scriptContentResponse.text();
+                else
+                    return mw.notify(`Failed to fetch "${script.name}.js" from GitHub: ${scriptContentResponse.statusText} (${scriptContentResponse.status})`, {
+                        type: 'error',
+                        tag: 'sync-scripts-notification',
+                    });
 
-                if (!scriptContent || (script.css && !styleContent)) return mw.notify(`Error syncing "${script.name}" from GitHub, skipping...`, { type: 'error' });
+                let styleContent = null;
+                if (script.css) {
+                    const styleContentResponse = await fetch(`https://raw.githubusercontent.com/${repoOwner}/${repoName}/${latestCommitHash}/dist/styles/${script.name}.css`);
+
+                    if (styleContentResponse.ok) styleContent = await styleContentResponse.text();
+                    else
+                        mw.notify(`Failed to fetch "${script.name}.css" from GitHub: ${styleContentResponse.statusText} (${styleContentResponse.status})`, {
+                            type: 'error',
+                            tag: 'sync-scripts-notification',
+                        });
+                }
 
                 if (!script.personal) {
                     await editOrCreate(subpageName, fullSubpageInfo.join('\n'), 'Syncing script documentation from GitHub');
                     await editOrCreate(subpageTalkName, '#REDIRECT [[User talk:Eejit43]]', 'Redirecting script documentation talk page to main user talk page');
                 }
-                await editOrCreate(
-                    scriptName,
-                    `// <nowiki>\n// Note: This script was compiled from TypeScript. For a more readable version, see https://github.com/${repoOwner}/${repoName}/blob/main/scripts/${script.name}.ts\n\n${scriptContent}\n// </nowiki>`,
-                    'Syncing script from GitHub',
-                );
+
+                if (scriptContent)
+                    await editOrCreate(
+                        scriptName,
+                        `// <nowiki>\n// Note: This script was compiled from TypeScript. For a more readable version, see https://github.com/${repoOwner}/${repoName}/blob/main/scripts/${script.name}.ts\n\n${scriptContent}\n// </nowiki>`,
+                        'Syncing script from GitHub',
+                    );
+
                 if (script.css && styleContent)
                     await editOrCreate(
                         styleName,

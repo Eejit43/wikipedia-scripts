@@ -28,8 +28,8 @@
     /**
      * Initializes the redirect handler
      */
-    function redirectInit() {
-        let pageText = getPageText(redirectPageName);
+    async function redirectInit() {
+        let pageText = await getPageText(redirectPageName);
         // Cleanup the wikipedia links for preventing stuff like https://en.wikipedia.org/w/index.php?diff=576244067&oldid=576221437
         pageText = cleanupLinks(pageText);
 
@@ -597,7 +597,7 @@
     /**
      * Perform the redirect actions specified by the user
      */
-    function redirectPerformActions() {
+    async function redirectPerformActions() {
         // Load all of the data
         for (let i = 0; i < submissions.length; i++) {
             const action = $('#afcHelper_redirect_action_' + i).val();
@@ -636,7 +636,7 @@
                 redirectPageName +
                 '">Reload page</a>)</b></li></span></span>',
         );
-        let pageText = getPageText(redirectPageName, addStatus);
+        let pageText = await getPageText(redirectPageName, addStatus);
         let totalAccept = 0;
         let totalDecline = 0;
         let totalComment = 0;
@@ -794,28 +794,30 @@
      * @param {Function} addStatus a function that takes a HTML string to report status
      * @returns {string} the text of the page
      */
-    function getPageText(title, addStatus) {
+    async function getPageText(title, addStatus) {
         addStatus = typeof addStatus !== 'undefined' ? addStatus : function () {}; // eslint-disable-line @typescript-eslint/no-empty-function
         addStatus(
             '<li id="afcHelper_get' + jqEscape(title) + '">Getting <a href="' + mw.config.get('wgArticlePath').replace('$1', encodeURI(title)) + '" title="' + title + '">' + title + '</a></li>',
         );
 
-        const request = {
-            action: 'query',
-            prop: 'revisions',
-            rvprop: 'content',
-            format: 'json',
-            indexpageids: true,
-            titles: title,
-        };
+        // const request = {
+        //     action: 'query',
+        //     prop: 'revisions',
+        //     rvprop: 'content',
+        //     format: 'json',
+        //     indexpageids: true,
+        //     titles: title,
+        // };
 
-        const response = JSON.parse(
-            $.ajax({
-                url: mw.util.wikiScript('api'),
-                data: request,
-                async: false,
-            }).responseText,
-        );
+        // const response = JSON.parse(
+        //     $.ajax({
+        //         url: mw.util.wikiScript('api'),
+        //         data: request,
+        //         async: false,
+        //     }).responseText,
+        // );
+
+        const response = await new mw.Api().get({ action: 'query', prop: 'revisions', rvprop: 'content', format: 'json', indexpageids: true, titles: title });
 
         const pageId = response.query.pageids[0];
         if (pageId === '-1') {

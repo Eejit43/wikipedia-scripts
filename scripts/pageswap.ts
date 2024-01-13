@@ -259,7 +259,8 @@ function swapValidate(startTitle, endTitle, pagesData, namespacesData, userPermi
         if (!result.allowMoveSubpages) result.addLineInfo = 'One page is a subpage. Disallowing move-subpages';
     }
 
-    if (result.currentNamespace % 2 === 1) result.checkTalk = false; // No need to check talks, already talk pages
+    if (result.currentNamespace % 2 === 1)
+        result.checkTalk = false; // No need to check talks, already talk pages
     else {
         const currentTalkData = getTalkPageName(namespacesData, result.currentTitle, result.currentNamespace);
         result.currentTitleWithoutPrefix = currentTalkData.titleWithoutPrefix;

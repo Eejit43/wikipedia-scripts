@@ -7,6 +7,7 @@ interface Script {
     'image-caption'?: string;
     'short-description': string;
     description: string;
+    usage?: string;
     'other-authors'?: string[];
     fork?: true;
     personal?: true;
@@ -59,6 +60,7 @@ mw.loader.using(['mediawiki.util'], () => {
                     script['other-authors'] ? `| other-authors     = ${script['other-authors'].map((author) => `[[User:${author}|${author}]]`).join(', ')}` : null,
                     `| description-short = ${script['short-description']}`,
                     `| description       = ${script.description}`,
+                    script.usage ? `| usage             = ${script.usage}` : null,
                     `| skin-support      = {{User:Eejit43/skin-support|${Object.entries(script['skin-support'])
                         .map(([skin, status]) => `${skin}=${status}`)
                         .join('|')}}}`,

@@ -330,7 +330,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.s
                     if (parsedDestination?.toString() === this.pageTitleParsed.toString()) errors.push({ message: 'cannot redirect to itself!' });
 
                     const destinationData = (await new mw.Api().get({ action: 'query', formatversion: 2, prop: 'pageprops', titles: destination }).catch((errorCode: string) => {
-                        /* Non-existent destination */ if (errorCode === 'missingtitle') errors.push({ title: destination, message: 'does not exist!' });
+                        /* Nonexistent destination */ if (errorCode === 'missingtitle') errors.push({ title: destination, message: 'does not exist!' });
                         /* Other API error */ else errors.push({ title: destination, message: `was not able to be fetched from the API (${errorCode})!` });
                         return null;
                     })) as PagepropsResult | null;
@@ -348,7 +348,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.s
                         });
                     }
 
-                    /* Non-existent section */
+                    /* Nonexistent section */
                     if (destination.split('#').length > 1) {
                         const validSection = destinationParseResult.parse.sections.find((section) => section.line === destination.split('#')[1]);
                         if (validSection) {

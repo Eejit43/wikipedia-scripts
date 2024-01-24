@@ -117,11 +117,11 @@ mw.loader.using(['mediawiki.util'], () => {
             [
                 mapScripts(scriptData.filter((script) => !script.personal && !script.fork)), //
                 '',
-                '=== Personal-use scripts ===',
-                mapScripts(scriptData.filter((script) => script.personal)),
-                '',
                 '=== Forks ===',
                 mapScripts(scriptData.filter((script) => script.fork)),
+                '',
+                '=== Personal scripts ===',
+                mapScripts(scriptData.filter((script) => script.personal)),
             ].join('\n'),
             'Syncing script list from GitHub',
         );

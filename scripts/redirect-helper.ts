@@ -1,29 +1,4 @@
-import { MediaWikiDataError, PageRevisionsResult } from '../global-types';
-
-// Define types
-interface PageInfoResult {
-    query: { pages: { missing?: string; redirect?: string }[] };
-}
-
-interface AllPagesGeneratorResult {
-    query: { pages: { title: string; pageprops: { disambiguation?: string }; redirect?: string }[] };
-}
-
-interface PageParseResult {
-    parse: { title: string; redirects: { to: string; tofragment: string }[]; sections: { line: string }[] };
-}
-
-interface PagepropsResult {
-    query: { pages: { pageprops?: { disambiguation?: string } }[] };
-}
-
-interface UserPermissionsResponse {
-    query: { userinfo: { rights: string[] } };
-}
-
-interface PageTriageListResponse {
-    pagetriagelist: { pages: { user_name: string; patrol_status: string }[]; result: string }; // eslint-disable-line @typescript-eslint/naming-convention
-}
+import { AllPagesGeneratorResult, MediaWikiDataError, PageInfoResult, PageParseResult, PageRevisionsResult, PageTriageListResponse, PagepropsResult, UserPermissionsResponse } from '../global-types';
 
 mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.styles.icons-content', 'oojs-ui.styles.icons-editing-core'], () => {
     // Setup RedirectInputWidget

@@ -1,20 +1,10 @@
-import { MediaWikiDataError, PageRevisionsResult } from '../global-types';
+import { BacklinksResult, EmbeddedinResult, MediaWikiDataError, PageRevisionsResult, SearchResult } from '../global-types';
 
 interface SearchData {
     categories: { id: string; category: string; namespace?: string; notNamespace?: string }[];
     searches: { id: string; search: string; namespace?: string; notNamespace?: string }[];
     whatLinksHere: { id: string; title: string; namespace?: string; notNamespace?: string }[];
     transclusions: { id: string; title: string; namespace?: string; notNamespace?: string }[];
-}
-
-interface SearchResult {
-    query: { searchinfo: { totalhits: number } };
-}
-interface BacklinksResult {
-    query: { backlinks: object[] };
-}
-interface EmbeddedinResult {
-    query: { embeddedin: object[] };
 }
 
 mw.loader.using(['mediawiki.util'], () => {

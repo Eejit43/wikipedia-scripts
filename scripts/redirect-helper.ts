@@ -159,7 +159,12 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.s
                 const portletLink = mw.util.addPortletLink(mw.config.get('skin') === 'minerva' ? 'p-tb' : 'p-cactions', '#', 'Redirect page', 'redirect-helper')!;
                 portletLink.addEventListener('click', (event) => {
                     event.preventDefault();
+
                     new RedirectHelperDialog(dialogInfo, false).load();
+
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+                    portletLink.remove();
                 });
             }
         }
@@ -217,7 +222,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.s
         }
 
         /**
-         * Loads the redirect-helper dialog into the Document.
+         * Loads the redirect-helper dialog into the page.
          */
         async load() {
             /* Load elements */

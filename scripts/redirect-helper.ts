@@ -1,3 +1,4 @@
+import { ApiParseParams } from 'types-mediawiki/api_params';
 import { AllPagesGeneratorResult, MediaWikiDataError, PageInfoResult, PageParseResult, PageRevisionsResult, PageTriageListResponse, PagepropsResult, UserPermissionsResponse } from '../global-types';
 
 mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.styles.icons-content', 'oojs-ui.styles.icons-editing-core'], () => {
@@ -8,7 +9,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.s
      * An instance of this class is a title lookup element.
      */
     class RedirectInputWidget extends OO.ui.TextInputWidget {
-        pageTitleParsed: mw.Title;
+        private pageTitleParsed: mw.Title;
 
         constructor(config: RedirectInputWidgetConfig, pageTitleParsed: mw.Title) {
             super(config);
@@ -17,7 +18,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.s
             this.pageTitleParsed = pageTitleParsed;
         }
 
-        getLookupRequest = () => {
+        getLookupRequest() {
             const value = this.getValue();
             const deferred = $.Deferred();
 
@@ -66,14 +67,75 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.s
             }
 
             return deferred.promise({ abort() {} }); // eslint-disable-line @typescript-eslint/no-empty-function
-        };
+        }
 
-        getLookupCacheDataFromResponse = <T>(response: T[] | null | undefined) => response ?? [];
+        getLookupCacheDataFromResponse<T>(response: T[] | null | undefined) {
+            return response ?? [];
+        }
 
-        getLookupMenuOptionsFromData = (data: { data: string; label: string }[]) => data.map(({ data, label }) => new OO.ui.MenuOptionWidget({ data, label }));
+        getLookupMenuOptionsFromData(data: { data: string; label: string }[]) {
+            data.map(({ data, label }) => new OO.ui.MenuOptionWidget({ data, label }));
+        }
     }
 
     Object.assign(RedirectInputWidget.prototype, OO.ui.mixin.LookupElement.prototype);
+
+    // Setup TemplatePreviewDialog
+
+    /**
+     * An instance of this class is a dialog used for previewing templates.
+     */
+    class TemplatePreviewDialog extends OO.ui.ProcessDialog {
+        private pageTitleParsed: mw.Title;
+
+        constructor(config: OO.ui.ProcessDialog.ConfigOptions, pageTitleParsed: mw.Title) {
+            super(config);
+
+            this.pageTitleParsed = pageTitleParsed;
+
+            TemplatePreviewDialog.static.name = 'TemplatePreviewDialog';
+            TemplatePreviewDialog.static.title = 'Redirect categorization templates preview';
+            TemplatePreviewDialog.static.actions = [{ action: 'cancel', label: 'Close', flags: ['safe', 'close'] }];
+        }
+
+        getSetupProcess() {
+            return TemplatePreviewDialog.super.prototype.getSetupProcess.call(this).next(() => {
+                const postConfig: ApiParseParams & Record<string, string> = {
+                    action: 'parse',
+                    formatversion: '2',
+                    contentmodel: 'wikitext',
+                    title: this.pageTitleParsed.getPrefixedDb(),
+                    text: `{{Redirect category shell|${(this.getData() as string[]).map((tag) => `{{${tag}}}`).join('')}}}`,
+                };
+
+                return new mw.Api().post(postConfig).then((result) => {
+                    const content = (result as { parse: { text: string } }).parse.text;
+
+                    const panelLayout = new OO.ui.PanelLayout({ padded: true, expanded: false });
+                    panelLayout.$element.append(content);
+
+                    (this as unknown as { $body: JQuery }).$body.append(panelLayout.$element);
+                });
+            });
+        }
+
+        getActionProcess(action: string) {
+            return action
+                ? new OO.ui.Process(() => {
+                      this.getManager().closeWindow(this);
+                  })
+                : TemplatePreviewDialog.super.prototype.getActionProcess.call(this, action);
+        }
+    }
+
+    Object.assign(TemplatePreviewDialog.prototype, OO.ui.ProcessDialog.prototype);
+
+    // Overwrite TemplatePreviewDialog.prototype.getTeardownProcess as it always gets overwritten by the above Object.assign call
+    TemplatePreviewDialog.prototype.getTeardownProcess = function () {
+        return TemplatePreviewDialog.super.prototype.getTeardownProcess.call(this).next(() => {
+            (this as unknown as { $body: JQuery }).$body.empty();
+        });
+    };
 
     /**
      * An instance of this class handles the entire functionality of the redirect-helper script.
@@ -194,11 +256,12 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.s
         private summaryInput!: OO.ui.ComboBoxInputWidget;
         private summaryInputLayout!: OO.ui.FieldLayout;
         private submitButton!: OO.ui.ButtonWidget;
-        private submitLayout!: OO.ui.HorizontalLayout;
+        private previewButton!: OO.ui.ButtonWidget;
         private syncTalkCheckbox?: OO.ui.CheckboxInputWidget;
         private syncTalkCheckboxLayout?: OO.ui.Widget;
         private patrolCheckbox?: OO.ui.CheckboxInputWidget;
         private patrolCheckboxLayout?: OO.ui.Widget;
+        private submitLayout!: OO.ui.HorizontalLayout;
 
         private talkData?: PageInfoResult;
 
@@ -321,6 +384,9 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.s
                 this.updateSummary();
                 this.submitButton.setLabel('Submit');
                 this.needsCheck = true;
+
+                if (this.tagSelect.getValue().length > 0) this.previewButton.setDisabled(false);
+                else this.previewButton.setDisabled(true);
             });
 
             this.tagSelectLayout = new OO.ui.FieldLayout(this.tagSelect, { label: new OO.ui.HtmlSnippet('<b>Redirect categorization template(s):</b>'), align: 'top' });
@@ -341,10 +407,26 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.s
          * Loads the elements in the submit button row.
          */
         private async loadSubmitElements() {
+            /* Setup submit button */
             this.submitButton = new OO.ui.ButtonWidget({ label: 'Submit', disabled: true, flags: ['progressive'] });
             this.submitButton.$element[0].style.marginBottom = '0';
             this.submitButton.on('click', () => this.handleSubmitButtonClick());
 
+            /* Setup preview button */
+            const windowManager = new OO.ui.WindowManager();
+            document.body.append(windowManager.$element[0]);
+
+            const templatePreviewDialog = new TemplatePreviewDialog({ size: 'large' }, this.pageTitleParsed);
+            windowManager.addWindows([templatePreviewDialog]);
+
+            this.previewButton = new OO.ui.ButtonWidget({ label: 'Preview templates', disabled: true });
+            this.previewButton.$element[0].style.marginBottom = '0';
+            this.previewButton.on('click', () => {
+                templatePreviewDialog.setData(this.tagSelect.getValue());
+                templatePreviewDialog.open();
+            });
+
+            /* Setup sync talk checkbox */
             if (!this.pageTitleParsed.isTalkPage()) {
                 this.talkData = (await new mw.Api().get({ action: 'query', formatversion: 2, prop: 'info', titles: this.pageTitleParsed.getTalkPage()!.getPrefixedText() })) as PageInfoResult;
                 this.syncTalkCheckbox = new OO.ui.CheckboxInputWidget({ selected: !!this.talkData.query.pages[0].redirect });
@@ -353,6 +435,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.s
                 this.syncTalkCheckboxLayout.$element[0].style.marginBottom = '0';
             }
 
+            /* Setup patrol checkbox */
             if (await this.checkShouldPromptPatrol()) {
                 this.patrolCheckbox = new OO.ui.CheckboxInputWidget({ selected: true });
 
@@ -360,7 +443,10 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.s
                 this.patrolCheckboxLayout.$element[0].style.marginBottom = '0';
             }
 
-            this.submitLayout = new OO.ui.HorizontalLayout({ items: [this.submitButton, this.syncTalkCheckboxLayout, this.patrolCheckboxLayout].filter(Boolean) as OO.ui.Widget[] });
+            /* Setup layout */
+            this.submitLayout = new OO.ui.HorizontalLayout({
+                items: [this.submitButton, this.previewButton, this.syncTalkCheckboxLayout, this.patrolCheckboxLayout].filter(Boolean) as OO.ui.Widget[],
+            });
             this.submitLayout.$element[0].style.marginTop = '10px';
         }
 
@@ -587,7 +673,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.s
         }
 
         private async handleSubmitButtonClick() {
-            for (const element of [this.redirectInput, this.tagSelect, this.summaryInput, this.submitButton, this.syncTalkCheckbox, this.patrolCheckbox].filter(Boolean))
+            for (const element of [this.redirectInput, this.tagSelect, this.summaryInput, this.submitButton, this.previewButton, this.syncTalkCheckbox, this.patrolCheckbox].filter(Boolean))
                 (element as OO.ui.Widget).setDisabled(true);
             this.submitButton.setLabel('Checking target validity...');
 
@@ -609,6 +695,8 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.s
 
                 for (const element of [this.redirectInput, this.tagSelect, this.summaryInput, this.submitButton, this.syncTalkCheckbox, this.patrolCheckbox].filter(Boolean))
                     (element as OO.ui.Widget).setDisabled(false);
+
+                if (this.tagSelect.getValue().length > 0) this.previewButton.setDisabled(false);
 
                 this.submitButton.setLabel('Submit anyway');
                 this.needsCheck = false;

@@ -113,7 +113,7 @@ mw.loader.using(['mediawiki.util'], () => {
                                     ? mw.util.isIPAddress(request.requester)
                                         ? `[[Special:Contributions/${request.requester}|${request.requester}]]`
                                         : `[[User:${request.requester}|${request.requester}]]`
-                                    : request.sig.match(/(\[{2}Special:Contributions\/(.*?)\|\2]{2})/)![1]
+                                    : request.sig?.match(/(\[{2}Special:Contributions\/(.*?)\|\2]{2})/)?.[1] ?? '(unknown)'
                             } with reasoning "${request.reason}"`,
                         );
                         const parsedHtml = new DOMParser().parseFromString(parsedWikitext, 'text/html');

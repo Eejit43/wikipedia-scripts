@@ -290,7 +290,6 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
         async load() {
             /* Load elements */
             this.editorBox = new OO.ui.PanelLayout({ padded: true, expanded: false, framed: true });
-            this.editorBox.$element[0].style.backgroundColor = '#95d4bc';
             this.editorBox.$element[0].style.width = '700px';
             this.editorBox.$element[0].style.maxWidth = 'calc(100% - 50px)';
             this.editorBox.$element[0].style.marginLeft = 'auto';

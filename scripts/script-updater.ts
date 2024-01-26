@@ -8,6 +8,7 @@ interface Script {
     'short-description': string;
     description: string;
     usage?: string;
+    changelog?: Record<string, string>;
     'other-authors'?: string[];
     fork?: true;
     personal?: true;
@@ -61,6 +62,11 @@ mw.loader.using(['mediawiki.util'], () => {
                     `| description-short = ${script['short-description']}`,
                     `| description       = ${script.description}`,
                     script.usage ? `| usage             = ${script.usage}` : null,
+                    script.changelog
+                        ? `| changelog         = ${Object.entries(script.changelog)
+                              .map(([date, description]) => `{{start date and age|${date}}}: ${description}`)
+                              .join('\n')}`
+                        : null,
                     `| skin-support      = {{User:Eejit43/skin-support|${Object.entries(script['skin-support'])
                         .map(([skin, status]) => `${skin}=${status}`)
                         .join('|')}}}`,

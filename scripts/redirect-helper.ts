@@ -208,8 +208,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
             const dialogInfo = { redirectTemplates: this.redirectTemplates, contentText: this.contentText, pageTitle: this.pageTitle, pageTitleParsed: this.pageTitleParsed };
 
             if (pageInfo.query.pages[0].missing) {
-                const button = new OO.ui.ButtonWidget({ label: 'Create redirect', icon: 'articleRedirect', flags: ['progressive'] });
-                button.$element[0].style.marginBottom = '20px';
+                const button = new OO.ui.ButtonWidget({ id: 'create-redirect-button', label: 'Create redirect', icon: 'articleRedirect', flags: ['progressive'] });
                 button.on('click', () => {
                     button.$element[0].remove();
                     new RedirectHelperDialog(dialogInfo, false).load();
@@ -288,13 +287,34 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
          * Loads the redirect-helper dialog into the page.
          */
         async load() {
+            mw.util.addCSS(`
+#create-redirect-button {
+    margin-bottom: 20px;
+}
+
+#redirect-helper-box {
+    background-color: whitesmoke;
+    width: 700px;
+    max-width: calc(100% - 50px);
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 20px;
+}
+
+#submit-layout {
+    margin-top: 10px;
+}
+
+#submit-layout > * {
+    margin-bottom: 0;
+}
+
+.redirect-helper-warning {
+    margin-top: 8px;
+}`);
+
             /* Load elements */
-            this.editorBox = new OO.ui.PanelLayout({ padded: true, expanded: false, framed: true });
-            this.editorBox.$element[0].style.width = '700px';
-            this.editorBox.$element[0].style.maxWidth = 'calc(100% - 50px)';
-            this.editorBox.$element[0].style.marginLeft = 'auto';
-            this.editorBox.$element[0].style.marginRight = 'auto';
-            this.editorBox.$element[0].style.marginBottom = '20px';
+            this.editorBox = new OO.ui.PanelLayout({ id: 'redirect-helper-box', padded: true, expanded: false, framed: true });
 
             if (this.pageTitleParsed.isTalkPage()) {
                 const mainPageData = (await new mw.Api().get({ action: 'query', formatversion: 2, prop: 'info', titles: this.pageTitleParsed.getSubjectPage()!.getPrefixedText() })) as PageInfoResult;
@@ -407,8 +427,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
          */
         private async loadSubmitElements() {
             /* Setup submit button */
-            this.submitButton = new OO.ui.ButtonWidget({ label: 'Submit', disabled: true, flags: ['progressive'] });
-            this.submitButton.$element[0].style.marginBottom = '0';
+            this.submitButton = new OO.ui.ButtonWidget({ classes: ['redirect-helper-bottom-element'], label: 'Submit', disabled: true, flags: ['progressive'] });
             this.submitButton.on('click', () => this.handleSubmitButtonClick());
 
             /* Setup preview button */
@@ -418,8 +437,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
             const templatePreviewDialog = new TemplatePreviewDialog({ size: 'large' }, this.pageTitleParsed);
             windowManager.addWindows([templatePreviewDialog]);
 
-            this.previewButton = new OO.ui.ButtonWidget({ label: 'Preview templates', disabled: true });
-            this.previewButton.$element[0].style.marginBottom = '0';
+            this.previewButton = new OO.ui.ButtonWidget({ classes: ['redirect-helper-bottom-element'], label: 'Preview templates', disabled: true });
             this.previewButton.on('click', () => {
                 templatePreviewDialog.setData(this.tagSelect.getValue());
                 templatePreviewDialog.open();
@@ -430,23 +448,27 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                 this.talkData = (await new mw.Api().get({ action: 'query', formatversion: 2, prop: 'info', titles: this.pageTitleParsed.getTalkPage()!.getPrefixedText() })) as PageInfoResult;
                 this.syncTalkCheckbox = new OO.ui.CheckboxInputWidget({ selected: !!this.talkData.query.pages[0].redirect });
 
-                this.syncTalkCheckboxLayout = new OO.ui.Widget({ content: [new OO.ui.FieldLayout(this.syncTalkCheckbox, { label: 'Sync talk page', align: 'inline' })] });
-                this.syncTalkCheckboxLayout.$element[0].style.marginBottom = '0';
+                this.syncTalkCheckboxLayout = new OO.ui.Widget({
+                    classes: ['redirect-helper-bottom-element'],
+                    content: [new OO.ui.FieldLayout(this.syncTalkCheckbox, { label: 'Sync talk page', align: 'inline' })],
+                });
             }
 
             /* Setup patrol checkbox */
             if (await this.checkShouldPromptPatrol()) {
                 this.patrolCheckbox = new OO.ui.CheckboxInputWidget({ selected: true });
 
-                this.patrolCheckboxLayout = new OO.ui.Widget({ content: [new OO.ui.FieldLayout(this.patrolCheckbox, { label: 'Mark as patrolled', align: 'inline' })] });
-                this.patrolCheckboxLayout.$element[0].style.marginBottom = '0';
+                this.patrolCheckboxLayout = new OO.ui.Widget({
+                    classes: ['redirect-helper-bottom-element'],
+                    content: [new OO.ui.FieldLayout(this.patrolCheckbox, { label: 'Mark as patrolled', align: 'inline' })],
+                });
             }
 
             /* Setup layout */
             this.submitLayout = new OO.ui.HorizontalLayout({
+                id: 'submit-layout',
                 items: [this.submitButton, this.previewButton, this.syncTalkCheckboxLayout, this.patrolCheckboxLayout].filter(Boolean) as OO.ui.Widget[],
             });
-            this.submitLayout.$element[0].style.marginTop = '10px';
         }
 
         /**
@@ -687,7 +709,6 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                         `${title ? `<a href="${mw.util.getUrl(title)}" target="_blank">${title}</a>` : 'This page'} ${message} Click again without making changes to submit anyway.`,
                     );
                     const warningMessage = new OO.ui.MessageWidget({ type: 'error', classes: ['redirect-helper-warning'], inline: true, label });
-                    warningMessage.$element[0].style.marginTop = '8px';
 
                     this.editorBox.$element[0].append(warningMessage.$element[0]);
                 }

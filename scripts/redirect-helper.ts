@@ -1,7 +1,7 @@
 import { ApiParseParams } from 'types-mediawiki/api_params';
 import { AllPagesGeneratorResult, MediaWikiDataError, PageInfoResult, PageParseResult, PageRevisionsResult, PageTriageListResponse, PagepropsResult, UserPermissionsResponse } from '../global-types';
 
-mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui.styles.icons-content', 'oojs-ui.styles.icons-editing-core'], () => {
+mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-windows', 'oojs-ui.styles.icons-content', 'oojs-ui.styles.icons-editing-core'], () => {
     // Setup RedirectInputWidget
     interface RedirectInputWidgetConfig extends OO.ui.TextInputWidget.ConfigOptions, OO.ui.mixin.LookupElement.ConfigOptions {}
 

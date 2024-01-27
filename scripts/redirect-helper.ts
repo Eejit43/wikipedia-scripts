@@ -18,7 +18,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
             this.pageTitleParsed = pageTitleParsed;
         }
 
-        getLookupRequest() {
+        getLookupRequest = () => {
             const value = this.getValue();
             const deferred = $.Deferred();
 
@@ -67,15 +67,11 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
             }
 
             return deferred.promise({ abort() {} }); // eslint-disable-line @typescript-eslint/no-empty-function
-        }
+        };
 
-        getLookupCacheDataFromResponse<T>(response: T[] | null | undefined) {
-            return response ?? [];
-        }
+        getLookupCacheDataFromResponse = <T>(response: T[] | null | undefined) => response ?? [];
 
-        getLookupMenuOptionsFromData(data: { data: string; label: string }[]) {
-            data.map(({ data, label }) => new OO.ui.MenuOptionWidget({ data, label }));
-        }
+        getLookupMenuOptionsFromData = (data: { data: string; label: string }[]) => data.map(({ data, label }) => new OO.ui.MenuOptionWidget({ data, label }));
     }
 
     Object.assign(RedirectInputWidget.prototype, OO.ui.mixin.LookupElement.prototype);

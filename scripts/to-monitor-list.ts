@@ -1,3 +1,4 @@
+import { ApiQueryBacklinksParams, ApiQueryRevisionsParams, ApiQuerySearchParams } from 'types-mediawiki/api_params';
 import { BacklinksResult, EmbeddedinResult, MediaWikiDataError, PageRevisionsResult, SearchResult } from '../global-types';
 
 interface SearchData {
@@ -19,12 +20,12 @@ mw.loader.using(['mediawiki.util'], () => {
             (
                 (await new mw.Api().get({
                     action: 'query',
-                    formatversion: 2,
+                    formatversion: '2',
                     prop: 'revisions',
                     rvprop: 'content',
-                    rvslots: '*',
+                    rvslots: 'main',
                     titles: 'User:Eejit43/scripts/to-monitor-list.json',
-                })) as PageRevisionsResult
+                } satisfies ApiQueryRevisionsParams)) as PageRevisionsResult
             ).query.pages[0].revisions[0].slots.main.content,
         ) as SearchData;
 
@@ -37,7 +38,7 @@ mw.loader.using(['mediawiki.util'], () => {
                     srinfo: 'totalhits',
                     srnamespace: getCategory(check),
                     srsearch: `incategory:"${check.category}"`,
-                })
+                } satisfies ApiQuerySearchParams)
                 .catch((errorCode: string, errorInfo: MediaWikiDataError) => {
                     mw.notify(`An error occurred while trying to get category members: ${errorInfo?.error.info ?? 'Unknown error'} (${errorCode})`, { type: 'error' });
                     return null;
@@ -61,7 +62,7 @@ mw.loader.using(['mediawiki.util'], () => {
                     srinfo: 'totalhits',
                     srnamespace: getCategory(check),
                     srsearch: check.search,
-                })
+                } satisfies ApiQuerySearchParams)
                 .catch((errorCode: string, errorInfo: MediaWikiDataError) => {
                     mw.notify(`An error occurred while trying to get search results: ${errorInfo?.error.info ?? 'Unknown error'} (${errorCode})`, { type: 'error' });
                     return null;
@@ -81,11 +82,11 @@ mw.loader.using(['mediawiki.util'], () => {
             const data: BacklinksResult | null = await new mw.Api()
                 .get({
                     action: 'query',
+                    list: 'backlinks',
                     bllimit: 500,
                     blnamespace: getCategory(check),
                     bltitle: check.title,
-                    list: 'backlinks',
-                })
+                } satisfies ApiQueryBacklinksParams)
                 .catch((errorCode: string, errorInfo: MediaWikiDataError) => {
                     mw.notify(`An error occurred while trying to get backlinks: ${errorInfo?.error.info ?? 'Unknown error'} (${errorCode})`, { type: 'error' });
                     return null;
@@ -105,11 +106,11 @@ mw.loader.using(['mediawiki.util'], () => {
             const data: EmbeddedinResult | null = await new mw.Api()
                 .get({
                     action: 'query',
+                    list: 'embeddedin',
                     eilimit: 500,
                     einamespace: getCategory(check),
                     eititle: check.title,
-                    list: 'embeddedin',
-                })
+                } satisfies ApiQueryBacklinksParams)
                 .catch((errorCode: string, errorInfo: MediaWikiDataError) => {
                     mw.notify(`An error occurred while trying to get transclusions: ${errorInfo?.error.info ?? 'Unknown error'} (${errorCode})`, { type: 'error' });
                     return null;
@@ -135,12 +136,14 @@ mw.loader.using(['mediawiki.util'], () => {
  * @param check.notNamespace The namespace to exclude from the search.
  * @returns The category ID or list of category IDs (separated by '|').
  */
-function getCategory({ namespace, notNamespace }: { namespace?: string; notNamespace?: string }): number | string {
+function getCategory({ namespace, notNamespace }: { namespace?: string; notNamespace?: string }) {
     if (!namespace && !notNamespace) return 0;
-    else if (namespace) return Object.entries(mw.config.get('wgFormattedNamespaces')).find(([, value]) => value === namespace)?.[0] ?? 0;
-    else
+    else if (namespace) {
+        const foundNamespace = Object.entries(mw.config.get('wgFormattedNamespaces')).find(([, namespaceName]) => namespaceName === namespace);
+
+        return foundNamespace ? Number.parseInt(foundNamespace[0]) : 0;
+    } else
         return Object.entries(mw.config.get('wgFormattedNamespaces'))
-            .filter(([, value]) => notNamespace !== (value || 'Article'))
-            .map(([key]) => key)
-            .join('|');
+            .filter(([, namespaceName]) => notNamespace !== (namespaceName || 'Article'))
+            .map(([namespaceId]) => Number.parseInt(namespaceId));
 }

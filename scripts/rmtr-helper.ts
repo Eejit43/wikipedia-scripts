@@ -1,3 +1,4 @@
+import { ApiQueryRevisionsParams } from 'types-mediawiki/api_params';
 import { PageRevisionsResult } from '../global-types';
 
 mw.loader.using(['mediawiki.util'], () => {
@@ -378,8 +379,16 @@ mw.loader.using(['mediawiki.util'], () => {
  * Gets information about a wiki page's latest revision.
  */
 async function getPageRevision() {
-    return ((await new mw.Api().get({ action: 'query', formatversion: 2, prop: 'revisions', rvprop: 'content|ids', rvslots: '*', titles: mw.config.get('wgPageName') })) as PageRevisionsResult).query
-        .pages[0].revisions[0];
+    return (
+        (await new mw.Api().get({
+            action: 'query',
+            formatversion: '2',
+            prop: 'revisions',
+            rvprop: ['content', 'ids'],
+            rvslots: 'main',
+            titles: mw.config.get('wgPageName'),
+        } satisfies ApiQueryRevisionsParams)) as PageRevisionsResult
+    ).query.pages[0].revisions[0];
 }
 
 /**

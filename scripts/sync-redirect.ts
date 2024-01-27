@@ -1,15 +1,16 @@
+import { ApiQueryInfoParams, ApiQueryRevisionsParams } from 'types-mediawiki/api_params';
 import { MediaWikiDataError, PageRevisionsResult } from '../global-types';
 
 mw.loader.using(['mediawiki.util'], async () => {
     if (!mw.Title.isTalkNamespace(mw.config.get('wgNamespaceNumber'))) return;
     const mainPageInfoRevisions = (await new mw.Api().get({
         action: 'query',
-        formatversion: 2,
-        prop: 'info|revisions',
+        formatversion: '2',
+        prop: ['info', 'revisions'],
         rvprop: 'content',
-        rvslots: '*',
+        rvslots: 'main',
         titles: `${mw.config.get('wgFormattedNamespaces')[mw.config.get('wgNamespaceNumber') - 1]}:${mw.config.get('wgTitle')}`,
-    })) as PageRevisionsResult & { query: { pages: { redirect?: boolean }[] } };
+    } satisfies ApiQueryInfoParams & ApiQueryRevisionsParams)) as PageRevisionsResult & { query: { pages: { redirect?: boolean }[] } };
     if (!mainPageInfoRevisions.query.pages[0].redirect) return;
 
     const link = mw.util.addPortletLink(mw.config.get('skin') === 'minerva' ? 'p-tb' : 'p-cactions', '#', 'Sync with main page redirect', 'sync-redirect')!;

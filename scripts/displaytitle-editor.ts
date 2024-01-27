@@ -1,3 +1,4 @@
+import { ApiQueryRevisionsParams } from 'types-mediawiki/api_params';
 import { PageRevisionsResult } from '../global-types';
 
 mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui.styles.icons-editing-core'], () => {
@@ -87,7 +88,14 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui.styles.icons-editing
         editButton.$element[0].after(editBox.$element[0]);
 
         const pageContent = (
-            (await new mw.Api().get({ action: 'query', formatversion: 2, prop: 'revisions', rvprop: 'content', rvslots: '*', titles: mw.config.get('wgPageName') })) as PageRevisionsResult
+            (await new mw.Api().get({
+                action: 'query',
+                formatversion: '2',
+                prop: 'revisions',
+                rvprop: 'content',
+                rvslots: 'main',
+                titles: mw.config.get('wgPageName'),
+            } satisfies ApiQueryRevisionsParams)) as PageRevisionsResult
         ).query.pages[0].revisions[0].slots.main.content;
 
         const foundMagicWords = pageContent.match(/{{\s*displaytitle\s*:\s*(.*?)\s*}}/gi);

@@ -82,7 +82,7 @@
             "cologne-blue": "yes"
         },
         "released": "2023|05|10",
-        "updated": "2023|08|08"
+        "updated": "2024|01|26"
     },
     {
         "name": "displaytitle-editor",
@@ -99,7 +99,7 @@
             "cologne-blue": "yes"
         },
         "released": "2023|04|28",
-        "updated": "2023|08|08"
+        "updated": "2024|01|26"
     },
     {
         "name": "highlight-homographs",
@@ -244,7 +244,7 @@
             "cologne-blue": "yes"
         },
         "released": "2023|02|09",
-        "updated": "2024|01|08"
+        "updated": "2024|01|26"
     },
     {
         "name": "to-monitor-list",
@@ -261,6 +261,6 @@
             "cologne-blue": "yes"
         },
         "released": "2023|03|05",
-        "updated": "2024|01|08"
+        "updated": "2024|01|26"
     }
 ]

@@ -1,3 +1,5 @@
+import { ApiQueryLogEventsParams, ApiQueryParams } from 'types-mediawiki/api_params';
+
 mw.loader.using(['mediawiki.util'], async () => {
     if (mw.config.get('wgNamespaceNumber') !== 0) return;
     if (mw.config.get('wgAction') !== 'view') return;
@@ -39,10 +41,10 @@ mw.loader.using(['mediawiki.util'], async () => {
     const deletionResult = (await new mw.Api().get({
         action: 'query',
         leaction: 'delete/delete',
-        lelimit: '1',
+        lelimit: 1,
         letitle: mw.config.get('wgPageName'),
         list: 'logevents',
-    })) as { query: { logevents: [] } };
+    } satisfies ApiQueryLogEventsParams)) as { query: { logevents: [] } };
 
     if (deletionResult.query.logevents.length > 0) {
         const link = document.createElement('a');
@@ -55,7 +57,7 @@ mw.loader.using(['mediawiki.util'], async () => {
         titleElement.append(link);
     }
 
-    const afdExists = (await new mw.Api().get({ action: 'query', formatversion: 2, titles: `Wikipedia:Articles_for_deletion/${mw.config.get('wgPageName')}` })) as {
+    const afdExists = (await new mw.Api().get({ action: 'query', formatversion: '2', titles: `Wikipedia:Articles_for_deletion/${mw.config.get('wgPageName')}` } satisfies ApiQueryParams)) as {
         query: { pages: { missing?: true }[] };
     };
 

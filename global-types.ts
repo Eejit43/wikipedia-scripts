@@ -1,3 +1,5 @@
+import { ApiQueryParams, OneOrMore, limit, namespace } from 'types-mediawiki/api_params';
+
 // Page searches
 export interface AllPagesGeneratorResult {
     query: { pages: { title: string; pageprops: { disambiguation?: string }; redirect?: string }[] };
@@ -13,6 +15,27 @@ export interface EmbeddedinResult {
 
 export interface SearchResult {
     query: { searchinfo: { totalhits: number } };
+}
+
+// Generators (modified from their ApiQueryParams counterparts)
+
+// eslint-disable-next-line unicorn/prevent-abbreviations
+export interface ApiQueryAllPagesGeneratorParams extends ApiQueryParams {
+    gapfrom?: string;
+    gapcontinue?: string;
+    gapto?: string;
+    gapprefix?: string;
+    gapnamespace?: namespace;
+    gapfilterredir?: 'all' | 'nonredirects' | 'redirects';
+    gapminsize?: number;
+    gapmaxsize?: number;
+    gapprtype?: OneOrMore<'edit' | 'move' | 'upload'>;
+    gapprlevel?: OneOrMore<'' | 'autoconfirmed' | 'extendedconfirmed' | 'sysop' | 'templateeditor'>;
+    gapprfiltercascade?: 'all' | 'cascading' | 'noncascading';
+    gaplimit?: limit;
+    gapdir?: 'ascending' | 'descending';
+    gapfilterlanglinks?: 'all' | 'withlanglinks' | 'withoutlanglinks';
+    gapprexpiry?: 'all' | 'definite' | 'indefinite';
 }
 
 // Page information

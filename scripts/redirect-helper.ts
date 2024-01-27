@@ -1,5 +1,15 @@
-import { ApiParseParams } from 'types-mediawiki/api_params';
-import { AllPagesGeneratorResult, MediaWikiDataError, PageInfoResult, PageParseResult, PageRevisionsResult, PageTriageListResponse, PagepropsResult, UserPermissionsResponse } from '../global-types';
+import { ApiParseParams, ApiQueryInfoParams, ApiQueryPagePropsParams, ApiQueryRevisionsParams, ApiQueryUserInfoParams, PageTriageApiPageTriageListParams } from 'types-mediawiki/api_params';
+import {
+    AllPagesGeneratorResult,
+    ApiQueryAllPagesGeneratorParams, // eslint-disable-line unicorn/prevent-abbreviations
+    MediaWikiDataError,
+    PageInfoResult,
+    PageParseResult,
+    PageRevisionsResult,
+    PageTriageListResponse,
+    PagepropsResult,
+    UserPermissionsResponse,
+} from '../global-types';
 
 mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-windows', 'oojs-ui.styles.icons-content', 'oojs-ui.styles.icons-editing-core'], () => {
     // Setup RedirectInputWidget
@@ -27,7 +37,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                 const title = value.split('#')[0];
 
                 new mw.Api()
-                    .get({ action: 'parse', page: title, prop: 'sections', redirects: '1' })
+                    .get({ action: 'parse', page: title, prop: 'sections', redirects: true } satisfies ApiParseParams)
                     .catch(() => null)
                     .then((result: PageParseResult | null) => {
                         if (result) {
@@ -40,13 +50,13 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                 new mw.Api()
                     .get({
                         action: 'query',
-                        formatversion: 2,
+                        formatversion: '2',
                         gaplimit: 20,
                         gapnamespace: parsedTitle?.getNamespaceId() ?? 0,
                         gapprefix: parsedTitle?.getMainText() ?? value,
                         generator: 'allpages',
-                        prop: 'info|pageprops',
-                    })
+                        prop: ['info', 'pageprops'],
+                    } satisfies ApiQueryAllPagesGeneratorParams)
                     .catch(() => null)
                     .then((result: AllPagesGeneratorResult | null) => {
                         if (result)
@@ -186,12 +196,12 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                 (
                     (await new mw.Api().get({
                         action: 'query',
-                        formatversion: 2,
+                        formatversion: '2',
                         prop: 'revisions',
                         rvprop: 'content',
-                        rvslots: '*',
+                        rvslots: 'main',
                         titles: 'User:Eejit43/scripts/redirect-helper.json',
-                    })) as PageRevisionsResult
+                    } satisfies ApiQueryRevisionsParams)) as PageRevisionsResult
                 ).query.pages?.[0]?.revisions?.[0]?.slots?.main?.content || '{}',
             ) as Record<string, string[]>;
         }
@@ -200,7 +210,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
          * Checks a page's status and loads the helper appropriately.
          */
         private async checkPageAndLoad() {
-            const pageInfo = (await new mw.Api().get({ action: 'query', formatversion: 2, prop: 'info', titles: this.pageTitle })) as PageInfoResult;
+            const pageInfo = (await new mw.Api().get({ action: 'query', formatversion: '2', prop: 'info', titles: this.pageTitle } satisfies ApiQueryInfoParams)) as PageInfoResult;
 
             const dialogInfo = { redirectTemplates: this.redirectTemplates, contentText: this.contentText, pageTitle: this.pageTitle, pageTitleParsed: this.pageTitleParsed };
 
@@ -314,7 +324,12 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
             this.editorBox = new OO.ui.PanelLayout({ id: 'redirect-helper-box', padded: true, expanded: false, framed: true });
 
             if (this.pageTitleParsed.isTalkPage()) {
-                const mainPageData = (await new mw.Api().get({ action: 'query', formatversion: 2, prop: 'info', titles: this.pageTitleParsed.getSubjectPage()!.getPrefixedText() })) as PageInfoResult;
+                const mainPageData = (await new mw.Api().get({
+                    action: 'query',
+                    formatversion: '2',
+                    prop: 'info',
+                    titles: this.pageTitleParsed.getSubjectPage()!.getPrefixedText(),
+                } satisfies ApiQueryInfoParams)) as PageInfoResult;
 
                 if (mainPageData.query.pages[0].redirect) this.loadSyncWithMainButton();
             }
@@ -342,12 +357,12 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
             const mainPageContent = (
                 (await new mw.Api().get({
                     action: 'query',
-                    formatversion: 2,
+                    formatversion: '2',
                     prop: 'revisions',
                     rvprop: 'content',
-                    rvslots: '*',
+                    rvslots: 'main',
                     titles: this.pageTitleParsed.getSubjectPage()!.getPrefixedText(),
-                })) as PageRevisionsResult
+                } satisfies ApiQueryRevisionsParams)) as PageRevisionsResult
             ).query.pages[0].revisions[0].slots.main.content.trim();
             this.syncWithMainButton = new OO.ui.ButtonWidget({ label: 'Sync with main page', icon: 'link', flags: ['progressive'] });
             this.syncWithMainButton.on('click', () => {
@@ -442,7 +457,12 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
 
             /* Setup sync talk checkbox */
             if (!this.pageTitleParsed.isTalkPage()) {
-                this.talkData = (await new mw.Api().get({ action: 'query', formatversion: 2, prop: 'info', titles: this.pageTitleParsed.getTalkPage()!.getPrefixedText() })) as PageInfoResult;
+                this.talkData = (await new mw.Api().get({
+                    action: 'query',
+                    formatversion: '2',
+                    prop: 'info',
+                    titles: this.pageTitleParsed.getTalkPage()!.getPrefixedText(),
+                } satisfies ApiQueryInfoParams)) as PageInfoResult;
                 this.syncTalkCheckbox = new OO.ui.CheckboxInputWidget({ selected: !!this.talkData.query.pages[0].redirect });
 
                 this.syncTalkCheckboxLayout = new OO.ui.Widget({
@@ -482,10 +502,13 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
             else if (document.querySelector('#mwe-pt-mark-as-unreviewed-button')) return false;
             else {
                 if (!mw.config.get('wgArticleId')) return false;
-                const userPermissions = (await new mw.Api().get({ action: 'query', meta: 'userinfo', uiprop: 'rights' })) as UserPermissionsResponse;
+                const userPermissions = (await new mw.Api().get({ action: 'query', meta: 'userinfo', uiprop: 'rights' } satisfies ApiQueryUserInfoParams)) as UserPermissionsResponse;
                 if (!userPermissions.query.userinfo.rights.includes('patrol')) return false;
 
-                const patrolResponse = (await new mw.Api().get({ action: 'pagetriagelist', page_id: mw.config.get('wgArticleId') })) as PageTriageListResponse; // eslint-disable-line @typescript-eslint/naming-convention
+                const patrolResponse = (await new mw.Api().get({
+                    action: 'pagetriagelist',
+                    page_id: mw.config.get('wgArticleId'), // eslint-disable-line @typescript-eslint/naming-convention
+                } satisfies PageTriageApiPageTriageListParams)) as PageTriageListResponse;
 
                 if (patrolResponse.pagetriagelist.pages[0]?.user_name === mw.config.get('wgUserName')) return false;
                 else if (patrolResponse.pagetriagelist.result !== 'success' || patrolResponse.pagetriagelist.pages.length === 0) return false;
@@ -516,7 +539,14 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
          */
         private async loadExistingData() {
             const pageContent = (
-                (await new mw.Api().get({ action: 'query', formatversion: 2, prop: 'revisions', rvprop: 'content', rvslots: '*', titles: this.pageTitle })) as PageRevisionsResult
+                (await new mw.Api().get({
+                    action: 'query',
+                    formatversion: '2',
+                    prop: 'revisions',
+                    rvprop: 'content',
+                    rvslots: 'main',
+                    titles: this.pageTitle,
+                } satisfies ApiQueryRevisionsParams)) as PageRevisionsResult
             ).query.pages[0].revisions[0].slots.main.content.trim();
 
             this.oldRedirectTarget = /^#redirect:?\s*\[\[\s*([^[\]{|}]+?)\s*(?:\|[^[\]{|}]+?)?]]\s*/i.exec(pageContent)?.[1];
@@ -584,12 +614,14 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
             /* Self redirects */
             if (this.parsedDestination?.toString() === this.pageTitleParsed.toString()) errors.push({ message: 'cannot redirect to itself!' });
 
-            const destinationData = (await new mw.Api().get({ action: 'query', formatversion: 2, prop: 'pageprops', titles: destination }).catch((errorCode: string) => {
-                /* Nonexistent destination */ if (errorCode === 'missingtitle') errors.push({ title: destination, message: 'does not exist!' });
-                /* Other API error */ else errors.push({ title: destination, message: `was not able to be fetched from the API (${errorCode})!` });
-                return null;
-            })) as PagepropsResult | null;
-            const destinationParseResult = (await new mw.Api().get({ action: 'parse', page: destination, prop: 'sections', redirects: '1' })) as PageParseResult;
+            const destinationData = (await new mw.Api()
+                .get({ action: 'query', formatversion: '2', prop: 'pageprops', titles: destination } satisfies ApiQueryPagePropsParams)
+                .catch((errorCode: string) => {
+                    /* Nonexistent destination */ if (errorCode === 'missingtitle') errors.push({ title: destination, message: 'does not exist!' });
+                    /* Other API error */ else errors.push({ title: destination, message: `was not able to be fetched from the API (${errorCode})!` });
+                    return null;
+                })) as PagepropsResult | null;
+            const destinationParseResult = (await new mw.Api().get({ action: 'parse', page: destination, prop: 'sections', redirects: true } satisfies ApiParseParams)) as PageParseResult;
 
             /* Double redirects */
             if (destinationParseResult.parse.redirects?.[0]) {
@@ -613,12 +645,12 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                     const destinationContent = (
                         (await new mw.Api().get({
                             action: 'query',
-                            formatversion: 2,
+                            formatversion: '2',
                             prop: 'revisions',
                             rvprop: 'content',
-                            rvslots: '*',
+                            rvslots: 'main',
                             titles: this.parsedDestination!.toString(),
-                        })) as PageRevisionsResult
+                        } satisfies ApiQueryRevisionsParams)) as PageRevisionsResult
                     ).query.pages[0].revisions[0].slots.main.content;
 
                     const anchors = [

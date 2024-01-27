@@ -104,13 +104,18 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                     text: `{{Redirect category shell|${(this.getData() as string[]).map((tag) => `{{${tag}}}`).join('')}}}`,
                 };
 
-                return new mw.Api().post(postConfig).then((result) => {
-                    const content = (result as { parse: { text: string } }).parse.text;
+                return new mw.Api().post(postConfig).then((tagsResult) => {
+                    postConfig.prop = 'categorieshtml';
 
-                    const panelLayout = new OO.ui.PanelLayout({ padded: true, expanded: false });
-                    panelLayout.$element.append(content);
+                    return new mw.Api().post(postConfig).then((categoriesResult) => {
+                        const tagsContent = (tagsResult as { parse: { text: string } }).parse.text;
+                        const categoriesContent = (categoriesResult as { parse: { categorieshtml: string } }).parse.categorieshtml;
 
-                    (this as unknown as { $body: JQuery }).$body.append(panelLayout.$element);
+                        const panelLayout = new OO.ui.PanelLayout({ padded: true, expanded: false });
+                        panelLayout.$element.append(tagsContent, categoriesContent);
+
+                        (this as unknown as { $body: JQuery }).$body.append(panelLayout.$element);
+                    });
                 });
             });
         };

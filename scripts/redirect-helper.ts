@@ -94,7 +94,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
             TemplatePreviewDialog.static.actions = [{ action: 'cancel', label: 'Close', flags: ['safe', 'close'] }];
         }
 
-        getSetupProcess() {
+        getSetupProcess = () => {
             return TemplatePreviewDialog.super.prototype.getSetupProcess.call(this).next(() => {
                 const postConfig: ApiParseParams & Record<string, string> = {
                     action: 'parse',
@@ -113,25 +113,24 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                     (this as unknown as { $body: JQuery }).$body.append(panelLayout.$element);
                 });
             });
-        }
+        };
 
-        getActionProcess(action: string) {
+        getActionProcess = (action: string) => {
             return action
                 ? new OO.ui.Process(() => {
                       this.getManager().closeWindow(this);
                   })
                 : TemplatePreviewDialog.super.prototype.getActionProcess.call(this, action);
-        }
+        };
+
+        getTeardownProcess = () => {
+            return TemplatePreviewDialog.super.prototype.getTeardownProcess.call(this).next(() => {
+                (this as unknown as { $body: JQuery }).$body.empty();
+            });
+        };
     }
 
     Object.assign(TemplatePreviewDialog.prototype, OO.ui.ProcessDialog.prototype);
-
-    // Overwrite TemplatePreviewDialog.prototype.getTeardownProcess as it always gets overwritten by the above Object.assign call
-    TemplatePreviewDialog.prototype.getTeardownProcess = function () {
-        return TemplatePreviewDialog.super.prototype.getTeardownProcess.call(this).next(() => {
-            (this as unknown as { $body: JQuery }).$body.empty();
-        });
-    };
 
     /**
      * An instance of this class handles the entire functionality of the redirect-helper script.

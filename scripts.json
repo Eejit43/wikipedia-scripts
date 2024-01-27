@@ -158,8 +158,8 @@
         "usage": "This script's editor can be accessed in the following ways:\n\n* Using the automatically set up dialog on redirect pages\n* Can be started when clicking \"Create redirect\" on a nonexistent page\n* Can be started by clicking \"Redirect page\" in the \"More\"/\"Tools\" menu on an existing article",
         "changelog": {
             "2024|01|26": [
-                "Added support for viewing categories in \"Preview templates\" menu.",
-                "Changed background color to gray and switched styles to be applied through classes/ids so they can be customizable."
+                "Changed background color to gray and switched styles to be applied through classes/ids so they can be customizable.",
+                "Added support for viewing categories in \"Preview templates\" menu."
             ],
             "2024|01|25": "Added \"Preview templates\" button to show how the selected redirect categorization templates would appear on the current page.",
             "2024|01|24": "Added checks for using protection redirect categorization templates unnecessarily."

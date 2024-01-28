@@ -1,6 +1,5 @@
 import { ApiParseParams, ApiQueryInfoParams, ApiQueryPagePropsParams, ApiQueryRevisionsParams, ApiQueryUserInfoParams, PageTriageApiPageTriageListParams } from 'types-mediawiki/api_params';
 import {
-    AllPagesGeneratorResult,
     ApiQueryAllPagesGeneratorParams, // eslint-disable-line unicorn/prevent-abbreviations
     MediaWikiDataError,
     PageInfoResult,
@@ -11,9 +10,10 @@ import {
     UserPermissionsResponse,
 } from '../global-types';
 
+interface LookupElementConfig extends OO.ui.TextInputWidget.ConfigOptions, OO.ui.mixin.LookupElement.ConfigOptions {}
+
 mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-windows', 'oojs-ui.styles.icons-content', 'oojs-ui.styles.icons-editing-core'], () => {
     // Setup RedirectInputWidget
-    interface RedirectInputWidgetConfig extends OO.ui.TextInputWidget.ConfigOptions, OO.ui.mixin.LookupElement.ConfigOptions {}
 
     /**
      * An instance of this class is a title lookup element.
@@ -21,7 +21,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
     class RedirectInputWidget extends OO.ui.TextInputWidget {
         private pageTitleParsed: mw.Title;
 
-        constructor(config: RedirectInputWidgetConfig, pageTitleParsed: mw.Title) {
+        constructor(config: LookupElementConfig, pageTitleParsed: mw.Title) {
             super(config);
             OO.ui.mixin.LookupElement.call(this as unknown as OO.ui.mixin.LookupElement, config);
 
@@ -58,7 +58,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                         prop: ['info', 'pageprops'],
                     } satisfies ApiQueryAllPagesGeneratorParams)
                     .catch(() => null)
-                    .then((result: AllPagesGeneratorResult | null) => {
+                    .then((result: { query: { pages: { title: string; pageprops: { disambiguation?: string }; redirect?: string }[] } } | null) => {
                         if (result)
                             deferred.resolve(
                                 result.query?.pages //
@@ -85,6 +85,61 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
     }
 
     Object.assign(RedirectInputWidget.prototype, OO.ui.mixin.LookupElement.prototype);
+
+    // Setup CategoryInputWidget
+
+    /**
+     * An instance of this class is a category lookup element.
+     */
+    class CategoryInputWidget extends OO.ui.TextInputWidget {
+        constructor(config: LookupElementConfig) {
+            super(config);
+            OO.ui.mixin.LookupElement.call(this as unknown as OO.ui.mixin.LookupElement, config);
+        }
+
+        getLookupRequest = () => {
+            const value = this.getValue();
+            const deferred = $.Deferred();
+
+            if (!value) deferred.resolve([]);
+
+            const parsedTitle = mw.Title.newFromText(value);
+            new mw.Api()
+                .get({
+                    action: 'query',
+                    formatversion: '2',
+                    gaplimit: 20,
+                    gapnamespace: 14,
+                    gapprefix: parsedTitle?.getMainText() ?? value,
+                    generator: 'allpages',
+                    prop: 'categories',
+                } satisfies ApiQueryAllPagesGeneratorParams)
+                .catch(() => null)
+                .then((result: { query: { pages: { title: string; categories?: { title: string }[] }[] } } | null) => {
+                    if (result?.query?.pages) {
+                        const pages = result.query.pages //
+                            .filter((page) => !(page.categories && page.categories.some((category) => category.title === 'Category:Wikipedia soft redirected categories')))
+                            .map((page) => {
+                                const titleWithoutNamespace = page.title.split(':')[1];
+
+                                return { data: titleWithoutNamespace, label: titleWithoutNamespace };
+                            });
+
+                        this.emit('showing-values', pages);
+
+                        deferred.resolve(pages);
+                    } else deferred.resolve([]);
+                });
+
+            return deferred.promise({ abort() {} }); // eslint-disable-line @typescript-eslint/no-empty-function
+        };
+
+        getLookupCacheDataFromResponse = <T>(response: T[] | null | undefined) => response ?? [];
+
+        getLookupMenuOptionsFromData = (data: { data: string; label: string }[]) => data.map(({ data, label }) => new OO.ui.MenuOptionWidget({ data, label }));
+    }
+
+    Object.assign(CategoryInputWidget.prototype, OO.ui.mixin.LookupElement.prototype);
 
     // Setup TemplatePreviewDialog
 
@@ -259,6 +314,9 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
         private redirectInputLayout!: OO.ui.FieldLayout;
         private tagSelect!: OO.ui.MenuTagMultiselectWidget;
         private tagSelectLayout!: OO.ui.FieldLayout;
+        private categorySelect!: OO.ui.TagMultiselectWidget;
+        private categorySelectInput!: CategoryInputWidget;
+        private categorySelectLayout!: OO.ui.FieldLayout;
         private summaryInput!: OO.ui.ComboBoxInputWidget;
         private summaryInputLayout!: OO.ui.FieldLayout;
         private submitButton!: OO.ui.ButtonWidget;
@@ -274,6 +332,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
         private oldRedirectTarget?: string;
         private oldRedirectTags?: string[];
         private oldRedirectTagData?: Record<string, string>;
+        private oldCategories?: string[];
         private oldStrayText?: string;
 
         private parsedDestination!: mw.Title | null;
@@ -308,11 +367,17 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
     margin-bottom: 20px;
 }
 
-#submit-layout {
+#redirect-helper-summary-layout {
+    padding-top: 10px;
+    margin-top: 15px;
+    border-top: 1px solid gray;
+}
+
+#redirect-helper-submit-layout {
     margin-top: 10px;
 }
 
-#submit-layout > * {
+#redirect-helper-submit-layout > * {
     margin-bottom: 0;
 }
 
@@ -343,6 +408,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                     this.syncWithMainButton?.$element?.[0],
                     this.redirectInputLayout.$element[0],
                     this.tagSelectLayout.$element[0],
+                    this.categorySelectLayout.$element[0],
                     this.summaryInputLayout.$element[0],
                     this.submitLayout.$element[0],
                 ].filter(Boolean) as HTMLElement[]),
@@ -420,7 +486,32 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                 else this.previewButton.setDisabled(true);
             });
 
-            this.tagSelectLayout = new OO.ui.FieldLayout(this.tagSelect, { label: new OO.ui.HtmlSnippet('<b>Redirect categorization template(s):</b>'), align: 'top' });
+            this.tagSelectLayout = new OO.ui.FieldLayout(this.tagSelect, { label: new OO.ui.HtmlSnippet('<b>Redirect categorization templates:</b>'), align: 'top' });
+
+            /* Categories selection */
+            this.categorySelectInput = new CategoryInputWidget({ placeholder: 'Add categories here' });
+            this.categorySelectInput.on('change', () => {
+                let value = this.categorySelectInput.getValue();
+                value = value.replace(new RegExp(`^(https?:)?/{2}?${mw.config.get('wgServer').replace(/^\/{2}/, '')}/wiki/`), '');
+                value = value.replace(/^Category:/, '');
+
+                if (value.length > 0) this.categorySelectInput.setValue(value[0].toUpperCase() + value.slice(1).replaceAll('_', ' '));
+            });
+            this.categorySelectInput.on('showing-values', (pages: { data: string; label: string }[]) => {
+                for (const page of pages) this.categorySelect.addAllowedValue(page.data);
+            });
+            this.categorySelect = new OO.ui.TagMultiselectWidget({ allowReordering: false, inputPosition: 'outline', inputWidget: this.categorySelectInput });
+            this.categorySelect.on('change', () => {
+                const sortedTags = (this.categorySelect.getValue() as string[]).sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
+
+                if ((this.categorySelect.getValue() as string[]).join(';') !== sortedTags.join(';')) this.categorySelect.setValue(sortedTags);
+
+                this.updateSummary();
+                this.submitButton.setLabel('Submit');
+                this.needsCheck = true;
+            });
+
+            this.categorySelectLayout = new OO.ui.FieldLayout(this.categorySelect, { label: new OO.ui.HtmlSnippet('<b>Categories:</b>'), align: 'top' });
 
             /* Summary input */
             this.summaryInput = new OO.ui.ComboBoxInputWidget({
@@ -431,7 +522,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                 ],
             });
 
-            this.summaryInputLayout = new OO.ui.FieldLayout(this.summaryInput, { label: new OO.ui.HtmlSnippet('<b>Summary:</b>'), align: 'top' });
+            this.summaryInputLayout = new OO.ui.FieldLayout(this.summaryInput, { id: 'redirect-helper-summary-layout', label: new OO.ui.HtmlSnippet('<b>Summary:</b>'), align: 'top' });
         }
 
         /**
@@ -483,7 +574,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
 
             /* Setup layout */
             this.submitLayout = new OO.ui.HorizontalLayout({
-                id: 'submit-layout',
+                id: 'redirect-helper-submit-layout',
                 items: [this.submitButton, this.previewButton, this.syncTalkCheckboxLayout, this.patrolCheckboxLayout].filter(Boolean) as OO.ui.Widget[],
             });
         }
@@ -524,13 +615,28 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
 
             if (!redirectValue) (this.summaryInput.$tabIndexed[0] as HTMLInputElement).placeholder = '';
             else if (this.exists) {
-                const targetChanged = redirectValue !== this.oldRedirectTarget?.replaceAll('_', ' ');
-                const tagsChanged = this.tagSelect.getValue().join(';') !== this.oldRedirectTags?.join(';');
+                const targetChanged = this.oldRedirectTarget && redirectValue !== this.oldRedirectTarget?.replaceAll('_', ' ');
+                const tagsChanged =
+                    this.oldRedirectTags &&
+                    !this.tagSelect.getValue().every((tag) => this.oldRedirectTags!.includes(tag as string)) &&
+                    !this.oldRedirectTags.every((tag) => this.tagSelect.getValue().includes(tag));
+                const categoriesChanged =
+                    this.oldCategories &&
+                    !this.categorySelect.getValue().every((category) => this.oldCategories!.includes(category as string)) &&
+                    !this.oldCategories.every((category) => this.categorySelect.getValue().includes(category));
 
-                if (targetChanged && tagsChanged) (this.summaryInput.$tabIndexed[0] as HTMLInputElement).placeholder = `Retarget redirect to [[${redirectValue}]] and change categorization templates`;
-                else if (targetChanged) (this.summaryInput.$tabIndexed[0] as HTMLInputElement).placeholder = `Retarget redirect to [[${redirectValue}]]`;
-                else if (tagsChanged) (this.summaryInput.$tabIndexed[0] as HTMLInputElement).placeholder = 'Change categorization templates';
-                else (this.summaryInput.$tabIndexed[0] as HTMLInputElement).placeholder = 'Perform redirect cleanup';
+                const changes = [];
+
+                if (targetChanged) changes.push(`retarget to [[${redirectValue}]]`);
+                if (tagsChanged) changes.push('change categorization templates');
+                if (categoriesChanged) changes.push('change categories');
+
+                if (changes.length === 0) changes.push('perform redirect cleanup');
+
+                changes[0] = changes[0][0].toUpperCase() + changes[0].slice(1);
+                if (changes.length > 1) changes[changes.length - 1] = `and ${changes.at(-1)}`;
+
+                (this.summaryInput.$tabIndexed[0] as HTMLInputElement).placeholder = changes.join(changes.length > 2 ? ', ' : ' ');
             } else (this.summaryInput.$tabIndexed[0] as HTMLInputElement).placeholder = `Create redirect to [[${redirectValue}]]`;
         }
 
@@ -577,20 +683,25 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                     .filter(Boolean) as [string, string][],
             );
 
+            this.oldCategories = pageContent.match(/\[\[[Cc]ategory:.+?]]/g)?.map((category) => category.slice(11, -2)) ?? [];
+
             this.oldStrayText = [
                 pageContent.match(/{{short description\|.*?}}/i)?.[0],
                 pageContent.match(/{{DISPLAYTITLE:.*?}}/)?.[0],
                 pageContent.match(/{{italic title\|?.*?}}/i)?.[0],
                 pageContent.match(/{{DEFAULTSORT:.*?}}/)?.[0],
                 pageContent.match(/{{title language\|.*?}}/)?.[0],
-                ...(pageContent.match(/\[\[[Cc]ategory:.+?]]/g) ?? []),
             ]
                 .filter(Boolean)
                 .join('\n');
 
             if (this.oldRedirectTarget) this.redirectInput.setValue(this.oldRedirectTarget.replaceAll('_', ' '));
             else mw.notify('Could not find redirect target!', { type: 'error' });
+
             this.tagSelect.setValue(this.oldRedirectTags);
+
+            for (const category of this.oldCategories) this.categorySelect.addAllowedValue(category);
+            this.categorySelect.setValue(this.oldCategories.map((category) => ({ data: category, label: category })));
 
             this.updateSummary();
         }
@@ -723,7 +834,16 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
         }
 
         private async handleSubmitButtonClick() {
-            for (const element of [this.redirectInput, this.tagSelect, this.summaryInput, this.submitButton, this.previewButton, this.syncTalkCheckbox, this.patrolCheckbox].filter(Boolean))
+            for (const element of [
+                this.redirectInput,
+                this.tagSelect,
+                this.categorySelect,
+                this.summaryInput,
+                this.submitButton,
+                this.previewButton,
+                this.syncTalkCheckbox,
+                this.patrolCheckbox,
+            ].filter(Boolean))
                 (element as OO.ui.Widget).setDisabled(true);
             this.submitButton.setLabel('Checking target validity...');
 
@@ -742,7 +862,16 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                     this.editorBox.$element[0].append(warningMessage.$element[0]);
                 }
 
-                for (const element of [this.redirectInput, this.tagSelect, this.summaryInput, this.submitButton, this.syncTalkCheckbox, this.patrolCheckbox].filter(Boolean))
+                for (const element of [
+                    this.redirectInput,
+                    this.tagSelect,
+                    this.categorySelect,
+                    this.summaryInput,
+                    this.submitButton,
+                    this.previewButton,
+                    this.syncTalkCheckbox,
+                    this.patrolCheckbox,
+                ].filter(Boolean))
                     (element as OO.ui.Widget).setDisabled(false);
 
                 if (this.tagSelect.getValue().length > 0) this.previewButton.setDisabled(false);
@@ -762,6 +891,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                     ? `{{Redirect category shell|\n${(this.tagSelect.getValue() as string[]).map((tag) => `{{${tag}${this.oldRedirectTagData?.[tag] ? `|${this.oldRedirectTagData[tag]}` : ''}}}`).join('\n')}\n}}`
                     : null,
                 this.oldStrayText,
+                this.categorySelect.getValue().length > 0 ? (this.categorySelect.getValue() as string[]).map((category) => `[[Category:${category}]]`).join('\n') : null,
             ]
                 .filter(Boolean)
                 .join('\n\n');

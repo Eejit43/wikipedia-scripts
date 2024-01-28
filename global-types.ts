@@ -1,10 +1,6 @@
 import { ApiQueryParams, OneOrMore, limit, namespace } from 'types-mediawiki/api_params';
 
 // Page searches
-export interface AllPagesGeneratorResult {
-    query: { pages: { title: string; pageprops: { disambiguation?: string }; redirect?: string }[] };
-}
-
 export interface BacklinksResult {
     query: { backlinks: object[] };
 }

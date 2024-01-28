@@ -615,15 +615,12 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
 
             if (!redirectValue) (this.summaryInput.$tabIndexed[0] as HTMLInputElement).placeholder = '';
             else if (this.exists) {
-                const targetChanged = this.oldRedirectTarget && redirectValue !== this.oldRedirectTarget?.replaceAll('_', ' ');
+                const targetChanged = redirectValue !== this.oldRedirectTarget?.replaceAll('_', ' ');
                 const tagsChanged =
-                    this.oldRedirectTags &&
-                    !this.tagSelect.getValue().every((tag) => this.oldRedirectTags!.includes(tag as string)) &&
-                    !this.oldRedirectTags.every((tag) => this.tagSelect.getValue().includes(tag));
+                    this.tagSelect.getValue().some((tag) => !this.oldRedirectTags!.includes(tag as string)) || this.oldRedirectTags!.some((tag) => !this.tagSelect.getValue().includes(tag));
                 const categoriesChanged =
-                    this.oldCategories &&
-                    !this.categorySelect.getValue().every((category) => this.oldCategories!.includes(category as string)) &&
-                    !this.oldCategories.every((category) => this.categorySelect.getValue().includes(category));
+                    this.categorySelect.getValue().some((category) => !this.oldCategories!.includes(category as string)) ||
+                    this.oldCategories!.some((category) => !this.categorySelect.getValue().includes(category));
 
                 const changes = [];
 

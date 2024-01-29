@@ -12,7 +12,17 @@ import {
 
 interface LookupElementConfig extends OO.ui.TextInputWidget.ConfigOptions, OO.ui.mixin.LookupElement.ConfigOptions {}
 
-mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-windows', 'oojs-ui.styles.icons-content', 'oojs-ui.styles.icons-editing-core'], () => {
+const dependencies = [
+    'mediawiki.util',
+    'oojs-ui-core',
+    'oojs-ui-widgets',
+    'oojs-ui-windows',
+    'oojs-ui.styles.icons-content',
+    'oojs-ui.styles.icons-editing-core',
+    'oojs-ui.styles.icons-accessibility',
+];
+
+mw.loader.using(dependencies, () => {
     // Setup RedirectInputWidget
 
     /**
@@ -335,7 +345,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
         private redirectInput!: RedirectInputWidget;
         private redirectInputLayout!: OO.ui.FieldLayout;
         private tagSelect!: OO.ui.MenuTagMultiselectWidget;
-        private tagSelectLayout!: OO.ui.FieldLayout;
+        private tagSelectLayout!: OO.ui.ActionFieldLayout;
         private categorySelect!: OO.ui.TagMultiselectWidget;
         private categorySelectInput!: CategoryInputWidget;
         private categorySelectLayout!: OO.ui.FieldLayout;
@@ -392,6 +402,10 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
     margin-bottom: 20px;
 }
 
+.redirect-input-layout label {
+    font-weight: bold;
+}
+
 #redirect-helper-summary-layout {
     padding-top: 10px;
     margin-top: 15px;
@@ -445,6 +459,9 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
             if (this.exists) this.loadExistingData();
         }
 
+        /**
+         * Loads the "Sync with main page" button" on talk pages.
+         */
         private async loadSyncWithMainButton() {
             const mainPageContent = await this.getPageContent(this.pageTitleParsed.getSubjectPage()!.getPrefixedText());
 
@@ -482,7 +499,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                 this.needsCheck = true;
             });
 
-            this.redirectInputLayout = new OO.ui.FieldLayout(this.redirectInput, { label: new OO.ui.HtmlSnippet('<b>Redirect target:</b>'), align: 'top' });
+            this.redirectInputLayout = new OO.ui.FieldLayout(this.redirectInput, { label: 'Redirect target:', classes: ['redirect-input-layout'], align: 'top' });
 
             /* Redirect categorization template selection */
             this.tagSelect = new OO.ui.MenuTagMultiselectWidget({
@@ -504,7 +521,20 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                 else this.previewButton.setDisabled(true);
             });
 
-            this.tagSelectLayout = new OO.ui.FieldLayout(this.tagSelect, { label: new OO.ui.HtmlSnippet('<b>Redirect categorization templates:</b>'), align: 'top' });
+            /* Redirect categorization template preview button */
+            const windowManager = new OO.ui.WindowManager();
+            document.body.append(windowManager.$element[0]);
+
+            const templatePreviewDialog = new TemplatePreviewDialog({ size: 'large' }, this.pageTitleParsed);
+            windowManager.addWindows([templatePreviewDialog]);
+
+            this.previewButton = new OO.ui.ButtonWidget({ icon: 'eye', label: 'Preview', disabled: true });
+            this.previewButton.on('click', () => {
+                templatePreviewDialog.setData(this.tagSelect.getValue());
+                templatePreviewDialog.open();
+            });
+
+            this.tagSelectLayout = new OO.ui.ActionFieldLayout(this.tagSelect, this.previewButton, { label: 'Redirect categorization templates:', classes: ['redirect-input-layout'], align: 'top' });
 
             /* DEFAULTSORT input */
             this.defaultSortInput = new OO.ui.TextInputWidget();
@@ -517,8 +547,10 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                 this.submitButton.setLabel('Submit');
                 this.needsCheck = true;
             });
+
             this.defaultSortInputLayout = new OO.ui.FieldLayout(this.defaultSortInput, {
-                label: new OO.ui.HtmlSnippet(`<b>Default sort key (DEFAULTSORT) (see <a href="${mw.util.getUrl('Wikipedia:Categorization#Sort keys')}" target="_blank">guideline</a>):</b>`),
+                label: new OO.ui.HtmlSnippet(`Default sort key (DEFAULTSORT) (see <a href="${mw.util.getUrl('Wikipedia:Categorization#Sort keys')}" target="_blank">guideline</a>):`),
+                classes: ['redirect-input-layout'],
                 align: 'top',
             });
 
@@ -545,7 +577,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                 this.needsCheck = true;
             });
 
-            this.categorySelectLayout = new OO.ui.FieldLayout(this.categorySelect, { label: new OO.ui.HtmlSnippet('<b>Categories:</b>'), align: 'top' });
+            this.categorySelectLayout = new OO.ui.FieldLayout(this.categorySelect, { label: 'Categories:', classes: ['redirect-input-layout'], align: 'top' });
 
             /* Summary input */
             this.summaryInput = new OO.ui.ComboBoxInputWidget({
@@ -556,7 +588,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                 ],
             });
 
-            this.summaryInputLayout = new OO.ui.FieldLayout(this.summaryInput, { id: 'redirect-helper-summary-layout', label: new OO.ui.HtmlSnippet('<b>Summary:</b>'), align: 'top' });
+            this.summaryInputLayout = new OO.ui.FieldLayout(this.summaryInput, { id: 'redirect-helper-summary-layout', label: 'Summary:', classes: ['redirect-input-layout'], align: 'top' });
         }
 
         /**
@@ -564,21 +596,8 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
          */
         private async loadSubmitElements() {
             /* Setup submit button */
-            this.submitButton = new OO.ui.ButtonWidget({ classes: ['redirect-helper-bottom-element'], label: 'Submit', disabled: true, flags: ['progressive'] });
+            this.submitButton = new OO.ui.ButtonWidget({ label: 'Submit', disabled: true, flags: ['progressive'] });
             this.submitButton.on('click', () => this.handleSubmitButtonClick());
-
-            /* Setup preview button */
-            const windowManager = new OO.ui.WindowManager();
-            document.body.append(windowManager.$element[0]);
-
-            const templatePreviewDialog = new TemplatePreviewDialog({ size: 'large' }, this.pageTitleParsed);
-            windowManager.addWindows([templatePreviewDialog]);
-
-            this.previewButton = new OO.ui.ButtonWidget({ classes: ['redirect-helper-bottom-element'], label: 'Preview templates', disabled: true });
-            this.previewButton.on('click', () => {
-                templatePreviewDialog.setData(this.tagSelect.getValue());
-                templatePreviewDialog.open();
-            });
 
             /* Setup sync talk checkbox */
             if (!this.pageTitleParsed.isTalkPage()) {
@@ -590,26 +609,20 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                 } satisfies ApiQueryInfoParams)) as PageInfoResult;
                 this.syncTalkCheckbox = new OO.ui.CheckboxInputWidget({ selected: !!this.talkData.query.pages[0].redirect });
 
-                this.syncTalkCheckboxLayout = new OO.ui.Widget({
-                    classes: ['redirect-helper-bottom-element'],
-                    content: [new OO.ui.FieldLayout(this.syncTalkCheckbox, { label: 'Sync talk page', align: 'inline' })],
-                });
+                this.syncTalkCheckboxLayout = new OO.ui.Widget({ content: [new OO.ui.FieldLayout(this.syncTalkCheckbox, { label: 'Sync talk page', align: 'inline' })] });
             }
 
             /* Setup patrol checkbox */
             if (await this.checkShouldPromptPatrol()) {
                 this.patrolCheckbox = new OO.ui.CheckboxInputWidget({ selected: true });
 
-                this.patrolCheckboxLayout = new OO.ui.Widget({
-                    classes: ['redirect-helper-bottom-element'],
-                    content: [new OO.ui.FieldLayout(this.patrolCheckbox, { label: 'Mark as patrolled', align: 'inline' })],
-                });
+                this.patrolCheckboxLayout = new OO.ui.Widget({ content: [new OO.ui.FieldLayout(this.patrolCheckbox, { label: 'Mark as patrolled', align: 'inline' })] });
             }
 
             /* Setup layout */
             this.submitLayout = new OO.ui.HorizontalLayout({
                 id: 'redirect-helper-submit-layout',
-                items: [this.submitButton, this.previewButton, this.syncTalkCheckboxLayout, this.patrolCheckboxLayout].filter(Boolean) as OO.ui.Widget[],
+                items: [this.submitButton, this.syncTalkCheckboxLayout, this.patrolCheckboxLayout].filter(Boolean) as OO.ui.Widget[],
             });
         }
 
@@ -737,6 +750,9 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
             this.updateSummary();
         }
 
+        /**
+         * Runs checks on the provided data and returns the errors (if any).
+         */
         private async validateSubmission() {
             const errors = [];
 
@@ -864,6 +880,9 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
             return errors;
         }
 
+        /**
+         * Handles the event when the user clicks the "Submit" button.
+         */
         private async handleSubmitButtonClick() {
             const elementsToDisable = [
                 this.redirectInput,

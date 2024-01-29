@@ -317,6 +317,8 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
         private categorySelect!: OO.ui.TagMultiselectWidget;
         private categorySelectInput!: CategoryInputWidget;
         private categorySelectLayout!: OO.ui.FieldLayout;
+        private defaultSortInput!: OO.ui.TextInputWidget;
+        private defaultSortInputLayout!: OO.ui.FieldLayout;
         private summaryInput!: OO.ui.ComboBoxInputWidget;
         private summaryInputLayout!: OO.ui.FieldLayout;
         private submitButton!: OO.ui.ButtonWidget;
@@ -332,6 +334,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
         private oldRedirectTarget?: string;
         private oldRedirectTags?: string[];
         private oldRedirectTagData?: Record<string, string>;
+        private oldDefaultSort?: string;
         private oldCategories?: string[];
         private oldStrayText?: string;
 
@@ -408,6 +411,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                     this.syncWithMainButton?.$element?.[0],
                     this.redirectInputLayout.$element[0],
                     this.tagSelectLayout.$element[0],
+                    this.defaultSortInputLayout.$element[0],
                     this.categorySelectLayout.$element[0],
                     this.summaryInputLayout.$element[0],
                     this.submitLayout.$element[0],
@@ -487,6 +491,22 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
             });
 
             this.tagSelectLayout = new OO.ui.FieldLayout(this.tagSelect, { label: new OO.ui.HtmlSnippet('<b>Redirect categorization templates:</b>'), align: 'top' });
+
+            /* DEFAULTSORT input */
+            this.defaultSortInput = new OO.ui.TextInputWidget();
+            this.defaultSortInput.on('change', () => {
+                const value = this.defaultSortInput.getValue();
+
+                if (value.length > 0) this.defaultSortInput.setValue(value.replaceAll('_', ' '));
+
+                this.updateSummary();
+                this.submitButton.setLabel('Submit');
+                this.needsCheck = true;
+            });
+            this.defaultSortInputLayout = new OO.ui.FieldLayout(this.defaultSortInput, {
+                label: new OO.ui.HtmlSnippet('<b>Default sort key (DEFAULTSORT) (see <a href="https://en.wikipedia.org/wiki/Wikipedia:Categorization#Sort_keys" target="_blank">guideline</a>):</b>'),
+                align: 'top',
+            });
 
             /* Categories selection */
             this.categorySelectInput = new CategoryInputWidget({ placeholder: 'Add categories here' });
@@ -618,6 +638,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                 const targetChanged = redirectValue !== this.oldRedirectTarget?.replaceAll('_', ' ');
                 const tagsChanged =
                     this.tagSelect.getValue().some((tag) => !this.oldRedirectTags!.includes(tag as string)) || this.oldRedirectTags!.some((tag) => !this.tagSelect.getValue().includes(tag));
+                const defaultSortChanged = this.defaultSortInput.getValue().trim() !== this.oldDefaultSort?.replaceAll('_', ' ');
                 const categoriesChanged =
                     this.categorySelect.getValue().some((category) => !this.oldCategories!.includes(category as string)) ||
                     this.oldCategories!.some((category) => !this.categorySelect.getValue().includes(category));
@@ -626,6 +647,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
 
                 if (targetChanged) changes.push(`retarget to [[${redirectValue}]]`);
                 if (tagsChanged) changes.push('change categorization templates');
+                if (defaultSortChanged) changes.push('change default sort key');
                 if (categoriesChanged) changes.push('change categories');
 
                 if (changes.length === 0) changes.push('perform redirect cleanup');
@@ -638,7 +660,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
         }
 
         /**
-         * Loads existing page target, tags, and stray text.
+         * Loads existing page data.
          */
         private async loadExistingData() {
             const pageContent = (
@@ -680,13 +702,18 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                     .filter(Boolean) as [string, string][],
             );
 
+            this.oldDefaultSort = pageContent
+                .match(/{{DEFAULTSORT:.*?}}/g)
+                ?.at(-1)
+                ?.slice(14, -2)
+                ?.trim();
+
             this.oldCategories = pageContent.match(/\[\[[Cc]ategory:.+?]]/g)?.map((category) => category.slice(11, -2)) ?? [];
 
             this.oldStrayText = [
                 pageContent.match(/{{short description\|.*?}}/i)?.[0],
                 pageContent.match(/{{DISPLAYTITLE:.*?}}/)?.[0],
                 pageContent.match(/{{italic title\|?.*?}}/i)?.[0],
-                pageContent.match(/{{DEFAULTSORT:.*?}}/)?.[0],
                 pageContent.match(/{{title language\|.*?}}/)?.[0],
             ]
                 .filter(Boolean)
@@ -696,6 +723,8 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
             else mw.notify('Could not find redirect target!', { type: 'error' });
 
             this.tagSelect.setValue(this.oldRedirectTags);
+
+            if (this.oldDefaultSort) this.defaultSortInput.setValue(this.oldDefaultSort);
 
             for (const category of this.oldCategories) this.categorySelect.addAllowedValue(category);
             this.categorySelect.setValue(this.oldCategories.map((category) => ({ data: category, label: category })));
@@ -834,6 +863,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
             for (const element of [
                 this.redirectInput,
                 this.tagSelect,
+                this.defaultSortInput,
                 this.categorySelect,
                 this.summaryInput,
                 this.submitButton,
@@ -862,6 +892,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                 for (const element of [
                     this.redirectInput,
                     this.tagSelect,
+                    this.defaultSortInput,
                     this.categorySelect,
                     this.summaryInput,
                     this.submitButton,
@@ -883,15 +914,16 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
             this.submitButton.setLabel(`${this.exists ? 'Editing' : 'Creating'} redirect...`);
 
             const output = [
-                `#REDIRECT [[${this.redirectInput.getValue().trim()}]]`, //
+                `#REDIRECT [[${this.redirectInput.getValue().trim()}]]\n`, //
                 this.tagSelect.getValue().length > 0
-                    ? `{{Redirect category shell|\n${(this.tagSelect.getValue() as string[]).map((tag) => `{{${tag}${this.oldRedirectTagData?.[tag] ? `|${this.oldRedirectTagData[tag]}` : ''}}}`).join('\n')}\n}}`
+                    ? `{{Redirect category shell|\n${(this.tagSelect.getValue() as string[]).map((tag) => `{{${tag}${this.oldRedirectTagData?.[tag] ? `|${this.oldRedirectTagData[tag]}` : ''}}}`).join('\n')}\n}}\n`
                     : null,
-                this.oldStrayText,
+                this.oldStrayText ? this.oldStrayText + '\n' : null,
+                this.defaultSortInput.getValue() ? `{{DEFAULTSORT:${this.defaultSortInput.getValue().trim()}}}` : null,
                 this.categorySelect.getValue().length > 0 ? (this.categorySelect.getValue() as string[]).map((category) => `[[Category:${category}]]`).join('\n') : null,
             ]
                 .filter(Boolean)
-                .join('\n\n');
+                .join('\n');
 
             const summary = (this.summaryInput.getValue() || (this.summaryInput.$tabIndexed[0] as HTMLInputElement).placeholder) + ' (via [[User:Eejit43/scripts/redirect-helper|redirect-helper]])';
 

@@ -297,6 +297,10 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
      * An instance of this class handles the dialog portion of redirect-helper script.
      */
     class RedirectHelperDialog {
+        // Utility variables
+        private redirectRegex = /^#redirect:?\s*\[\[\s*([^[\]{|}]+?)\s*(?:\|[^[\]{|}]+?)?]]\s*/i;
+        private scriptAdvert = ' (via [[User:Eejit43/scripts/redirect-helper|redirect-helper]])';
+
         // Created in constructor
         private redirectTemplates: Record<string, string[]>;
         private contentText: HTMLDivElement;
@@ -424,19 +428,11 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
         }
 
         private async loadSyncWithMainButton() {
-            const mainPageContent = (
-                (await new mw.Api().get({
-                    action: 'query',
-                    formatversion: '2',
-                    prop: 'revisions',
-                    rvprop: 'content',
-                    rvslots: 'main',
-                    titles: this.pageTitleParsed.getSubjectPage()!.getPrefixedText(),
-                } satisfies ApiQueryRevisionsParams)) as PageRevisionsResult
-            ).query.pages[0].revisions[0].slots.main.content.trim();
+            const mainPageContent = await this.getPageContent(this.pageTitleParsed.getSubjectPage()!.getPrefixedText());
+
             this.syncWithMainButton = new OO.ui.ButtonWidget({ label: 'Sync with main page', icon: 'link', flags: ['progressive'] });
             this.syncWithMainButton.on('click', () => {
-                const target = /^#redirect:?\s*\[\[\s*([^[\]{|}]+?)\s*(?:\|[^[\]{|}]+?)?]]\s*/i.exec(mainPageContent)?.[1];
+                const target = this.redirectRegex.exec(mainPageContent)?.[1];
                 if (!target) return mw.notify('Failed to parse main page content!', { type: 'error' });
 
                 this.redirectInput.setValue(mw.Title.newFromText(target)?.getTalkPage()?.toString() ?? '');
@@ -638,7 +634,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                 const targetChanged = redirectValue !== this.oldRedirectTarget?.replaceAll('_', ' ');
                 const tagsChanged =
                     this.tagSelect.getValue().some((tag) => !this.oldRedirectTags!.includes(tag as string)) || this.oldRedirectTags!.some((tag) => !this.tagSelect.getValue().includes(tag));
-                const defaultSortChanged = this.defaultSortInput.getValue().trim() !== this.oldDefaultSort?.replaceAll('_', ' ');
+                const defaultSortChanged = this.oldDefaultSort && this.defaultSortInput.getValue().trim() !== this.oldDefaultSort?.replaceAll('_', ' ');
                 const categoriesChanged =
                     this.categorySelect.getValue().some((category) => !this.oldCategories!.includes(category as string)) ||
                     this.oldCategories!.some((category) => !this.categorySelect.getValue().includes(category));
@@ -663,18 +659,9 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
          * Loads existing page data.
          */
         private async loadExistingData() {
-            const pageContent = (
-                (await new mw.Api().get({
-                    action: 'query',
-                    formatversion: '2',
-                    prop: 'revisions',
-                    rvprop: 'content',
-                    rvslots: 'main',
-                    titles: this.pageTitle,
-                } satisfies ApiQueryRevisionsParams)) as PageRevisionsResult
-            ).query.pages[0].revisions[0].slots.main.content.trim();
+            const pageContent = await this.getPageContent(this.pageTitle);
 
-            this.oldRedirectTarget = /^#redirect:?\s*\[\[\s*([^[\]{|}]+?)\s*(?:\|[^[\]{|}]+?)?]]\s*/i.exec(pageContent)?.[1];
+            this.oldRedirectTarget = this.redirectRegex.exec(pageContent)?.[1];
             this.oldRedirectTags = (
                 Object.entries(this.redirectTemplates)
                     .map(([tag, redirects]) =>
@@ -860,7 +847,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
         }
 
         private async handleSubmitButtonClick() {
-            for (const element of [
+            const elementsToDisable = [
                 this.redirectInput,
                 this.tagSelect,
                 this.defaultSortInput,
@@ -870,8 +857,10 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                 this.previewButton,
                 this.syncTalkCheckbox,
                 this.patrolCheckbox,
-            ].filter(Boolean))
-                (element as OO.ui.Widget).setDisabled(true);
+            ].filter(Boolean);
+
+            for (const element of elementsToDisable) (element as OO.ui.Widget).setDisabled(true);
+
             this.submitButton.setLabel('Checking target validity...');
 
             let errors: Awaited<ReturnType<typeof this.validateSubmission>> = [];
@@ -889,18 +878,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                     this.editorBox.$element[0].append(warningMessage.$element[0]);
                 }
 
-                for (const element of [
-                    this.redirectInput,
-                    this.tagSelect,
-                    this.defaultSortInput,
-                    this.categorySelect,
-                    this.summaryInput,
-                    this.submitButton,
-                    this.previewButton,
-                    this.syncTalkCheckbox,
-                    this.patrolCheckbox,
-                ].filter(Boolean))
-                    (element as OO.ui.Widget).setDisabled(false);
+                for (const element of elementsToDisable) (element as OO.ui.Widget).setDisabled(false);
 
                 if (this.tagSelect.getValue().length > 0) this.previewButton.setDisabled(false);
 
@@ -913,33 +891,17 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
             /* Edit/create redirect */
             this.submitButton.setLabel(`${this.exists ? 'Editing' : 'Creating'} redirect...`);
 
-            const output = [
-                `#REDIRECT [[${this.redirectInput.getValue().trim()}]]\n`, //
-                this.tagSelect.getValue().length > 0
-                    ? `{{Redirect category shell|\n${(this.tagSelect.getValue() as string[]).map((tag) => `{{${tag}${this.oldRedirectTagData?.[tag] ? `|${this.oldRedirectTagData[tag]}` : ''}}}`).join('\n')}\n}}\n`
-                    : null,
-                this.oldStrayText ? this.oldStrayText + '\n' : null,
-                this.defaultSortInput.getValue() ? `{{DEFAULTSORT:${this.defaultSortInput.getValue().trim()}}}` : null,
-                this.categorySelect.getValue().length > 0 ? (this.categorySelect.getValue() as string[]).map((category) => `[[Category:${category}]]`).join('\n') : null,
-            ]
-                .filter(Boolean)
-                .join('\n');
+            const output = this.createOutput(
+                this.redirectInput.getValue(),
+                this.tagSelect.getValue() as string[],
+                this.oldStrayText,
+                this.defaultSortInput.getValue(),
+                this.categorySelect.getValue() as string[],
+            );
 
-            const summary = (this.summaryInput.getValue() || (this.summaryInput.$tabIndexed[0] as HTMLInputElement).placeholder) + ' (via [[User:Eejit43/scripts/redirect-helper|redirect-helper]])';
+            const summary = (this.summaryInput.getValue() || (this.summaryInput.$tabIndexed[0] as HTMLInputElement).placeholder) + this.scriptAdvert;
 
-            const result = await new mw.Api()
-                .edit(this.pageTitle, () => ({ text: output, summary }))
-                .catch((errorCode: string, errorInfo: MediaWikiDataError) => {
-                    if (errorCode === 'nocreate-missing')
-                        return new mw.Api().create(this.pageTitle, { summary }, output).catch((errorCode: string, errorInfo: MediaWikiDataError) => {
-                            mw.notify(`Error creating ${this.pageTitle}: ${errorInfo?.error.info ?? 'Unknown error'} (${errorCode})`, { type: 'error' });
-                        });
-                    else {
-                        mw.notify(`Error editing or creating ${this.pageTitle}: ${errorInfo?.error.info ?? 'Unknown error'} (${errorCode})`, { type: 'error' });
-                        return null;
-                    }
-                });
-
+            const result = await this.editOrCreate(this.pageTitle, output, summary);
             if (!result) return;
 
             mw.notify(`Redirect ${this.exists ? 'edited' : 'created'} successfully!`, { type: 'success' });
@@ -950,30 +912,9 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
 
                 const fromMove = this.tagSelect.getValue().includes('R from move');
 
-                const output = [
-                    `#REDIRECT [[${this.parsedDestination!.getTalkPage()!.getPrefixedText()}]]`, //
-                    fromMove ? '{{Redirect category shell|\n{{R from move}}\n}}' : null,
-                ]
-                    .filter(Boolean)
-                    .join('\n\n');
+                const output = this.createOutput(this.parsedDestination!.getTalkPage()!.getPrefixedText(), fromMove ? ['R from move'] : [], undefined, undefined, []);
 
-                const talkPage = this.pageTitleParsed.getTalkPage()!.getPrefixedText();
-
-                const talkResult = await new mw.Api()
-                    .edit(talkPage, () => ({ text: output, summary: 'Syncing redirect from main page (via [[User:Eejit43/scripts/redirect-helper|redirect-helper]])' }))
-                    .catch((errorCode: string, errorInfo: MediaWikiDataError) => {
-                        if (errorCode === 'nocreate-missing')
-                            return new mw.Api()
-                                .create(talkPage, { summary: 'Syncing redirect from main page (via [[User:Eejit43/scripts/redirect-helper|redirect-helper]])' }, output)
-                                .catch((errorCode: string, errorInfo: MediaWikiDataError) => {
-                                    mw.notify(`Error creating ${talkPage}: ${errorInfo?.error.info ?? 'Unknown error'} (${errorCode})`, { type: 'error' });
-                                });
-                        else {
-                            mw.notify(`Error editing or creating ${talkPage}: ${errorInfo?.error.info ?? 'Unknown error'} (${errorCode})`, { type: 'error' });
-                            return null;
-                        }
-                    });
-
+                const talkResult = await this.editOrCreate(this.pageTitleParsed.getTalkPage()!.getPrefixedText(), output, 'Syncing redirect from main page' + this.scriptAdvert);
                 if (!talkResult) return;
 
                 mw.notify('Talk page synced successfully!', { type: 'success' });
@@ -1003,6 +944,59 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
             this.submitButton.setLabel('Complete, reloading...');
 
             window.location.href = mw.util.getUrl(this.pageTitle, { redirect: 'no' });
+        }
+
+        /*
+         * Takes provided values to create the page output.
+         */
+        private createOutput(target: string, tags: string[], strayText: string | undefined, defaultSort: string | undefined, categories: string[]) {
+            return [
+                `#REDIRECT [[${target.trim()}]]\n`, //
+                tags.length > 0 ? `{{Redirect category shell|\n${tags.map((tag) => `{{${tag}${this.oldRedirectTagData?.[tag] ? `|${this.oldRedirectTagData[tag]}` : ''}}}`).join('\n')}\n}}\n` : null,
+                strayText ? strayText + '\n' : null,
+                defaultSort ? `{{DEFAULTSORT:${defaultSort.trim()}}}` : null,
+                categories.length > 0 ? categories.map((category) => `[[Category:${category}]]`).join('\n') : null,
+            ]
+                .filter(Boolean)
+                .join('\n');
+        }
+
+        /**
+         * Fetches the content of a given page.
+         * @param title The title to fetch.
+         */
+        private async getPageContent(title: string) {
+            return (
+                (await new mw.Api().get({
+                    action: 'query',
+                    formatversion: '2',
+                    prop: 'revisions',
+                    rvprop: 'content',
+                    rvslots: 'main',
+                    titles: title,
+                } satisfies ApiQueryRevisionsParams)) as PageRevisionsResult
+            ).query.pages[0].revisions[0].slots.main.content.trim();
+        }
+
+        /**
+         * Edits or creates a page with given text.
+         * @param title The page title.
+         * @param text The page text.
+         * @param summary The edit summary.
+         */
+        private async editOrCreate(title: string, text: string, summary: string) {
+            return await new mw.Api()
+                .edit(title, () => ({ text, summary }))
+                .catch((errorCode: string, errorInfo: MediaWikiDataError) => {
+                    if (errorCode === 'nocreate-missing')
+                        return new mw.Api().create(title, { summary }, text).catch((errorCode: string, errorInfo: MediaWikiDataError) => {
+                            mw.notify(`Error creating ${title}: ${errorInfo?.error.info ?? 'Unknown error'} (${errorCode})`, { type: 'error' });
+                        });
+                    else {
+                        mw.notify(`Error editing or creating ${title}: ${errorInfo?.error.info ?? 'Unknown error'} (${errorCode})`, { type: 'error' });
+                        return null;
+                    }
+                });
         }
     }
 

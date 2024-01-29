@@ -19,6 +19,10 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
      * An instance of this class is a title lookup element.
      */
     class RedirectInputWidget extends OO.ui.TextInputWidget {
+        // Utility variables
+        private api = new mw.Api();
+
+        // Assigned in constructor
         private pageTitleParsed: mw.Title;
 
         constructor(config: LookupElementConfig, pageTitleParsed: mw.Title) {
@@ -36,7 +40,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
             else if (value.includes('#')) {
                 const title = value.split('#')[0];
 
-                new mw.Api()
+                this.api
                     .get({ action: 'parse', page: title, prop: 'sections', redirects: true } satisfies ApiParseParams)
                     .catch(() => null)
                     .then((result: PageParseResult | null) => {
@@ -47,7 +51,8 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                     });
             } else {
                 const parsedTitle = mw.Title.newFromText(value);
-                new mw.Api()
+
+                this.api
                     .get({
                         action: 'query',
                         formatversion: '2',
@@ -92,6 +97,9 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
      * An instance of this class is a category lookup element.
      */
     class CategoryInputWidget extends OO.ui.TextInputWidget {
+        // Utility variables
+        private api = new mw.Api();
+
         constructor(config: LookupElementConfig) {
             super(config);
             OO.ui.mixin.LookupElement.call(this as unknown as OO.ui.mixin.LookupElement, config);
@@ -104,7 +112,8 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
             if (!value) deferred.resolve([]);
 
             const parsedTitle = mw.Title.newFromText(value);
-            new mw.Api()
+
+            this.api
                 .get({
                     action: 'query',
                     formatversion: '2',
@@ -147,6 +156,10 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
      * An instance of this class is a dialog used for previewing templates.
      */
     class TemplatePreviewDialog extends OO.ui.ProcessDialog {
+        // Utility variables
+        private api = new mw.Api();
+
+        // Assigned in constructor
         private pageTitleParsed: mw.Title;
 
         constructor(config: OO.ui.ProcessDialog.ConfigOptions, pageTitleParsed: mw.Title) {
@@ -170,7 +183,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                     text: `{{Redirect category shell|${(this.getData() as string[]).map((tag) => `{{${tag}}}`).join('')}}}`,
                 };
 
-                return new mw.Api().post(postConfig).then((result) => {
+                return this.api.post(postConfig).then((result) => {
                     const tagsContent = (result as { parse: { text: string } }).parse.text;
                     const categoriesContent = (result as { parse: { categorieshtml: string } }).parse.categorieshtml;
 
@@ -203,6 +216,10 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
      * An instance of this class handles the entire functionality of the redirect-helper script.
      */
     class RedirectHelper {
+        // Utility variables
+        private api = new mw.Api();
+
+        // Assigned in constructor
         private redirectTemplates!: Record<string, string[]>;
         private contentText!: HTMLDivElement;
         private pageTitle!: string;
@@ -249,7 +266,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
         private async fetchRedirectTemplates() {
             return JSON.parse(
                 (
-                    (await new mw.Api().get({
+                    (await this.api.get({
                         action: 'query',
                         formatversion: '2',
                         prop: 'revisions',
@@ -265,7 +282,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
          * Checks a page's status and loads the helper appropriately.
          */
         private async checkPageAndLoad() {
-            const pageInfo = (await new mw.Api().get({ action: 'query', formatversion: '2', prop: 'info', titles: this.pageTitle } satisfies ApiQueryInfoParams)) as PageInfoResult;
+            const pageInfo = (await this.api.get({ action: 'query', formatversion: '2', prop: 'info', titles: this.pageTitle } satisfies ApiQueryInfoParams)) as PageInfoResult;
 
             const dialogInfo = { redirectTemplates: this.redirectTemplates, contentText: this.contentText, pageTitle: this.pageTitle, pageTitleParsed: this.pageTitleParsed };
 
@@ -298,10 +315,11 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
      */
     class RedirectHelperDialog {
         // Utility variables
+        private api = new mw.Api();
         private redirectRegex = /^#redirect:?\s*\[\[\s*([^[\]{|}]+?)\s*(?:\|[^[\]{|}]+?)?]]\s*/i;
         private scriptAdvert = ' (via [[User:Eejit43/scripts/redirect-helper|redirect-helper]])';
 
-        // Created in constructor
+        // Assigned in constructor
         private redirectTemplates: Record<string, string[]>;
         private contentText: HTMLDivElement;
         private pageTitle: string;
@@ -396,7 +414,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
             this.editorBox = new OO.ui.PanelLayout({ id: 'redirect-helper-box', padded: true, expanded: false, framed: true });
 
             if (this.pageTitleParsed.isTalkPage()) {
-                const mainPageData = (await new mw.Api().get({
+                const mainPageData = (await this.api.get({
                     action: 'query',
                     formatversion: '2',
                     prop: 'info',
@@ -564,7 +582,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
 
             /* Setup sync talk checkbox */
             if (!this.pageTitleParsed.isTalkPage()) {
-                this.talkData = (await new mw.Api().get({
+                this.talkData = (await this.api.get({
                     action: 'query',
                     formatversion: '2',
                     prop: 'info',
@@ -609,10 +627,10 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
             else if (document.querySelector('#mwe-pt-mark-as-unreviewed-button')) return false;
             else {
                 if (!mw.config.get('wgArticleId')) return false;
-                const userPermissions = (await new mw.Api().get({ action: 'query', meta: 'userinfo', uiprop: 'rights' } satisfies ApiQueryUserInfoParams)) as UserPermissionsResponse;
+                const userPermissions = (await this.api.get({ action: 'query', meta: 'userinfo', uiprop: 'rights' } satisfies ApiQueryUserInfoParams)) as UserPermissionsResponse;
                 if (!userPermissions.query.userinfo.rights.includes('patrol')) return false;
 
-                const patrolResponse = (await new mw.Api().get({
+                const patrolResponse = (await this.api.get({
                     action: 'pagetriagelist',
                     page_id: mw.config.get('wgArticleId'), // eslint-disable-line @typescript-eslint/naming-convention
                 } satisfies PageTriageApiPageTriageListParams)) as PageTriageListResponse;
@@ -738,14 +756,14 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
             /* Self redirects */
             if (this.parsedDestination?.toString() === this.pageTitleParsed.toString()) errors.push({ message: 'cannot redirect to itself!' });
 
-            const destinationData = (await new mw.Api()
+            const destinationData = (await this.api
                 .get({ action: 'query', formatversion: '2', prop: 'pageprops', titles: destination } satisfies ApiQueryPagePropsParams)
                 .catch((errorCode: string) => {
                     /* Nonexistent destination */ if (errorCode === 'missingtitle') errors.push({ title: destination, message: 'does not exist!' });
                     /* Other API error */ else errors.push({ title: destination, message: `was not able to be fetched from the API (${errorCode})!` });
                     return null;
                 })) as PagepropsResult | null;
-            const destinationParseResult = (await new mw.Api().get({ action: 'parse', page: destination, prop: 'sections', redirects: true } satisfies ApiParseParams)) as PageParseResult;
+            const destinationParseResult = (await this.api.get({ action: 'parse', page: destination, prop: 'sections', redirects: true } satisfies ApiParseParams)) as PageParseResult;
 
             /* Double redirects */
             if (destinationParseResult.parse.redirects?.[0]) {
@@ -767,7 +785,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                     if (!this.tagSelect.getValue().includes('R to section')) errors.push({ message: 'is a redirect to a section, but it is not tagged with <code>{{R to section}}</code>!' });
                 } else {
                     const destinationContent = (
-                        (await new mw.Api().get({
+                        (await this.api.get({
                             action: 'query',
                             formatversion: '2',
                             prop: 'revisions',
@@ -928,7 +946,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                 const markReviewedButton = document.querySelector('#mwe-pt-mark-as-reviewed-button') as HTMLButtonElement | null;
 
                 if (patrolLink) {
-                    const patrolResult = await new mw.Api()
+                    const patrolResult = await this.api
                         .postWithToken('patrol', { action: 'patrol', rcid: new URL(patrolLink.href).searchParams.get('rcid')! })
                         .catch((errorCode: string, errorInfo: MediaWikiDataError) => {
                             mw.notify(`Error patrolling ${this.pageTitle} via API: ${errorInfo?.error.info ?? 'Unknown error'} (${errorCode})`, { type: 'error' });
@@ -967,7 +985,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
          */
         private async getPageContent(title: string) {
             return (
-                (await new mw.Api().get({
+                (await this.api.get({
                     action: 'query',
                     formatversion: '2',
                     prop: 'revisions',
@@ -985,11 +1003,11 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
          * @param summary The edit summary.
          */
         private async editOrCreate(title: string, text: string, summary: string) {
-            return await new mw.Api()
+            return await this.api
                 .edit(title, () => ({ text, summary }))
                 .catch((errorCode: string, errorInfo: MediaWikiDataError) => {
                     if (errorCode === 'nocreate-missing')
-                        return new mw.Api().create(title, { summary }, text).catch((errorCode: string, errorInfo: MediaWikiDataError) => {
+                        return this.api.create(title, { summary }, text).catch((errorCode: string, errorInfo: MediaWikiDataError) => {
                             mw.notify(`Error creating ${title}: ${errorInfo?.error.info ?? 'Unknown error'} (${errorCode})`, { type: 'error' });
                         });
                     else {

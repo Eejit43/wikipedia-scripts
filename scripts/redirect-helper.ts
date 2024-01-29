@@ -504,7 +504,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                 this.needsCheck = true;
             });
             this.defaultSortInputLayout = new OO.ui.FieldLayout(this.defaultSortInput, {
-                label: new OO.ui.HtmlSnippet('<b>Default sort key (DEFAULTSORT) (see <a href="https://en.wikipedia.org/wiki/Wikipedia:Categorization#Sort_keys" target="_blank">guideline</a>):</b>'),
+                label: new OO.ui.HtmlSnippet(`<b>Default sort key (DEFAULTSORT) (see <a href="${mw.util.getUrl('Wikipedia:Categorization#Sort keys')}" target="_blank">guideline</a>):</b>`),
                 align: 'top',
             });
 

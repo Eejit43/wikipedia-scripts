@@ -158,7 +158,7 @@
         "usage": "This script's editor can be accessed in the following ways:\n\n* Using the automatically set up dialog on redirect pages\n* Can be started when clicking \"Create redirect\" on a nonexistent page\n* Can be started by clicking \"Redirect page\" in the \"More\"/\"Tools\" menu on an existing article",
         "changelog": {
             "2024|01|29": [
-                "Added a check for {{R from Wikidata item}} without being linked to a Wikidata item and vice versa.",
+                "Added a check for {{tl|R with Wikidata item}} without being linked to a Wikidata item and vice versa.",
                 "Added \"Show changes\" button to show the diff of the current changes to the redirect.",
                 "Moved the preview templates button to a layout with the tag input element."
             ],

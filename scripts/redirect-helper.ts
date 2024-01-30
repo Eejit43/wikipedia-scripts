@@ -869,6 +869,7 @@ mw.loader.using(
                 const errors = [];
 
                 const destination = this.redirectInput.getValue().trim();
+                const tags = this.tagSelect.getValue();
 
                 /* Invalid characters */
                 if (!/^\s*[^[\]{|}]+\s*$/.test(destination)) errors.push({ title: destination, message: 'is not a valid page title!' });
@@ -909,8 +910,8 @@ mw.loader.using(
                 if (destination.split('#').length > 1) {
                     const validSection = destinationParseResult.parse.sections.find((section) => section.line === destination.split('#')[1]);
                     if (validSection) {
-                        if (this.tagSelect.getValue().includes('R to anchor')) errors.push({ message: 'is tagged as a redirect to an anchor, but it is actually a redirect to a section!' });
-                        if (!this.tagSelect.getValue().includes('R to section')) errors.push({ message: 'is a redirect to a section, but it is not tagged with <code>{{R to section}}</code>!' });
+                        if (tags.includes('R to anchor')) errors.push({ message: 'is tagged as a redirect to an anchor, but it is actually a redirect to a section!' });
+                        if (!tags.includes('R to section')) errors.push({ message: 'is a redirect to a section, but it is not tagged with <code>{{R to section}}</code>!' });
                     } else {
                         const destinationContent = (
                             (await this.api.get({
@@ -940,14 +941,14 @@ mw.loader.using(
                             ...(destinationContent.match(/(?<=id=)"?.+?(?="|>|\|)/g)?.map((anchor: string) => anchor.trim()) ?? []),
                         ];
                         if (anchors.includes(destination.split('#')[1])) {
-                            if (this.tagSelect.getValue().includes('R to section')) errors.push({ message: 'is tagged as a redirect to a section, but it is actually a redirect to an anchor!' });
-                            if (!this.tagSelect.getValue().includes('R to anchor')) errors.push({ message: 'is a redirect to an anchor, but it is not tagged with <code>{{R from anchor}}</code>!' });
+                            if (tags.includes('R to section')) errors.push({ message: 'is tagged as a redirect to a section, but it is actually a redirect to an anchor!' });
+                            if (!tags.includes('R to anchor')) errors.push({ message: 'is a redirect to an anchor, but it is not tagged with <code>{{R from anchor}}</code>!' });
                         } else errors.push({ message: `is a redirect to <a href="${mw.util.getUrl(destination)}" target="_blank">${destination}</a>, but that section or anchor does not exist!` });
                     }
                 }
 
                 /* Improperly tagged as redirect to section/anchor */
-                if (destination.split('#').length === 1 && (this.tagSelect.getValue().includes('R to section') || this.tagSelect.getValue().includes('R to anchor')))
+                if (destination.split('#').length === 1 && (tags.includes('R to section') || tags.includes('R to anchor')))
                     errors.push({ message: 'is not a redirect to a section/anchor, but it is tagged with <code>{{R from section}}</code> or <code>{{R from anchor}}</code>!' });
 
                 /* Redirect to disambiguation page without template */
@@ -961,7 +962,7 @@ mw.loader.using(
                         'R from incomplete disambiguation',
                         'R from incorrect disambiguation',
                         'R from other disambiguation',
-                    ].some((template) => this.tagSelect.getValue().includes(template))
+                    ].some((template) => tags.includes(template))
                 )
                     errors.push({ message: 'is a redirect to a disambiguation page, but it is not tagged with a disambiguation categorization template!' });
 
@@ -969,14 +970,12 @@ mw.loader.using(
                 if (
                     destinationData!.query.pages[0].pageprops &&
                     !('disambiguation' in destinationData!.query.pages[0].pageprops) &&
-                    ['R from ambiguous sort name', 'R from ambiguous term', 'R to disambiguation page', 'R from incomplete disambiguation'].some((template) =>
-                        this.tagSelect.getValue().includes(template),
-                    )
+                    ['R from ambiguous sort name', 'R from ambiguous term', 'R to disambiguation page', 'R from incomplete disambiguation'].some((template) => tags.includes(template))
                 )
                     errors.push({ message: 'is not a redirect to a disambiguation page, but it is tagged with a disambiguation categorization template!' });
 
                 /* {{R to disambiguation page}} without " (disambiguation)" at end of title */
-                if (this.tagSelect.getValue().includes('R to disambiguation page') && !this.pageTitleParsed.getMainText().endsWith(' (disambiguation)'))
+                if (tags.includes('R to disambiguation page') && !this.pageTitleParsed.getMainText().endsWith(' (disambiguation)'))
                     errors.push({
                         message:
                             'is tagged with <code>{{R to disambiguation page}}</code>, but this title does not end with " (disambiguation)". Use <code>{{R from ambiguous term}}</code> or a similar categorization template instead!',
@@ -984,8 +983,16 @@ mw.loader.using(
 
                 /* Tagged with a protection template */
                 for (const template of ['R semi-protected', 'R extended-protected', 'R template-protected', 'R fully protected'])
-                    if (this.tagSelect.getValue().includes(template))
+                    if (tags.includes(template))
                         errors.push({ message: `is tagged with unnecessarily tagged with <code>{{${template}}}</code> which will be duplicated by the redirect category shell!` });
+
+                /* Linked to a Wikidata item without being tagged with {{R with Wikidata item}} */
+                if (mw.config.get('wgWikibaseItemId') && !tags.includes('R with Wikidata item'))
+                    errors.push({ message: "is linked to a Wikidata item but it isn't tagged with <code>{{R with Wikidata item}}</code>!" });
+
+                /* Tagged with {{R with Wikidata item}} without being linked to an item */
+                if (tags.includes('R with Wikidata item') && !mw.config.get('wgWikibaseItemId'))
+                    errors.push({ message: 'is tagged with <code>{{R with Wikidata item}}</code> but it is not actually linked to a Wikidata item!' });
 
                 /* Syncing talk page but talk page exists and isn't a redirect */
                 if (this.syncTalkCheckbox?.isSelected() && !this.talkData!.query.pages[0].missing && !this.talkData!.query.pages[0].redirect)

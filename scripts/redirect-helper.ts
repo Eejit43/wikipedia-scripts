@@ -264,7 +264,7 @@ mw.loader.using(
                             panelLayout.$element.append(
                                 comparison
                                     ? `
-<table class="diff">
+<table class="diff diff-editfont-monospace">
     <colgroup>
         <col class="diff-marker">
         <col class="diff-content">

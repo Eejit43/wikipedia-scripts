@@ -2,7 +2,7 @@ import { ApiQueryRevisionsParams } from 'types-mediawiki/api_params';
 import { PageRevisionsResult } from '../global-types';
 
 mw.loader.using(['mediawiki.util'], () => {
-    const developmentMode = true;
+    const developmentMode = false;
 
     if (mw.config.get('wgPageName') !== (developmentMode ? 'User:Eejit43/sandbox' : 'Wikipedia:Requested_moves/Technical_requests')) return;
 

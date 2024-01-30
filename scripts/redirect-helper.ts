@@ -1,4 +1,12 @@
-import { ApiParseParams, ApiQueryInfoParams, ApiQueryPagePropsParams, ApiQueryRevisionsParams, ApiQueryUserInfoParams, PageTriageApiPageTriageListParams } from 'types-mediawiki/api_params';
+import {
+    ApiComparePagesParams,
+    ApiParseParams,
+    ApiQueryInfoParams,
+    ApiQueryPagePropsParams,
+    ApiQueryRevisionsParams,
+    ApiQueryUserInfoParams,
+    PageTriageApiPageTriageListParams,
+} from 'types-mediawiki/api_params';
 import {
     ApiQueryAllPagesGeneratorParams, // eslint-disable-line unicorn/prevent-abbreviations
     MediaWikiDataError,
@@ -12,17 +20,7 @@ import {
 
 interface LookupElementConfig extends OO.ui.TextInputWidget.ConfigOptions, OO.ui.mixin.LookupElement.ConfigOptions {}
 
-const dependencies = [
-    'mediawiki.util',
-    'oojs-ui-core',
-    'oojs-ui-widgets',
-    'oojs-ui-windows',
-    'oojs-ui.styles.icons-content',
-    'oojs-ui.styles.icons-editing-core',
-    'oojs-ui.styles.icons-accessibility',
-];
-
-mw.loader.using(dependencies, () => {
+mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-windows', 'oojs-ui.styles.icons-content', 'oojs-ui.styles.icons-editing-core', 'oojs-ui.styles.icons-accessibility',], () => {
     // Setup RedirectInputWidget
 
     /**
@@ -184,24 +182,24 @@ mw.loader.using(dependencies, () => {
 
         getSetupProcess = () => {
             return TemplatePreviewDialog.super.prototype.getSetupProcess.call(this).next(() => {
-                const postConfig: ApiParseParams & Record<string, string | number | boolean | string[] | number[]> = {
-                    action: 'parse',
-                    formatversion: '2',
-                    contentmodel: 'wikitext',
-                    prop: ['text', 'categorieshtml'],
-                    title: this.pageTitleParsed.getPrefixedDb(),
-                    text: `{{Redirect category shell|${(this.getData() as string[]).map((tag) => `{{${tag}}}`).join('')}}}`,
-                };
+                return this.api
+                    .post({
+                        action: 'parse',
+                        formatversion: '2',
+                        contentmodel: 'wikitext',
+                        prop: ['text', 'categorieshtml'],
+                        title: this.pageTitleParsed.getPrefixedDb(),
+                        text: `{{Redirect category shell|${(this.getData() as string[]).map((tag) => `{{${tag}}}`).join('')}}}`,
+                    } satisfies ApiParseParams)
+                    .then((result) => {
+                        const tagsContent = (result as { parse: { text: string } }).parse.text;
+                        const categoriesContent = (result as { parse: { categorieshtml: string } }).parse.categorieshtml;
 
-                return this.api.post(postConfig).then((result) => {
-                    const tagsContent = (result as { parse: { text: string } }).parse.text;
-                    const categoriesContent = (result as { parse: { categorieshtml: string } }).parse.categorieshtml;
+                        const panelLayout = new OO.ui.PanelLayout({ padded: true, expanded: false });
+                        panelLayout.$element.append(tagsContent, categoriesContent);
 
-                    const panelLayout = new OO.ui.PanelLayout({ padded: true, expanded: false });
-                    panelLayout.$element.append(tagsContent, categoriesContent);
-
-                    (this as unknown as { $body: JQuery }).$body.append(panelLayout.$element);
-                });
+                        (this as unknown as { $body: JQuery }).$body.append(panelLayout.$element);
+                    });
             });
         };
 
@@ -221,6 +219,78 @@ mw.loader.using(dependencies, () => {
     }
 
     Object.assign(TemplatePreviewDialog.prototype, OO.ui.ProcessDialog.prototype);
+
+    // Setup TemplatePreviewDialog
+
+    /**
+     * An instance of this class is a dialog used for showing changes to be made.
+     */
+    class ShowChangesDialog extends OO.ui.ProcessDialog {
+        // Utility variables
+        private api = new mw.Api();
+
+        constructor(config: OO.ui.ProcessDialog.ConfigOptions) {
+            super(config);
+
+            ShowChangesDialog.static.name = 'ShowChangesDialog';
+            ShowChangesDialog.static.title = 'Changes to be made';
+            ShowChangesDialog.static.actions = [{ action: 'cancel', label: 'Close', flags: ['safe', 'close'] }];
+        }
+
+        getSetupProcess = () => {
+            return ShowChangesDialog.super.prototype.getSetupProcess.call(this).next(() => {
+                const [oldText, newText] = this.getData() as string[];
+
+                return this.api
+                    .post({
+                        action: 'compare',
+                        formatversion: '2',
+                        prop: ['diff'],
+                        fromslots: 'main',
+                        'fromtext-main': oldText,
+                        'fromcontentmodel-main': 'wikitext',
+                        toslots: 'main',
+                        'totext-main': newText,
+                        'tocontentmodel-main': 'wikitext'
+                    } satisfies ApiComparePagesParams & {'fromtext-main': string; 'fromcontentmodel-main': string, 'totext-main': string, 'tocontentmodel-main': string})
+                    .then((result) => {
+                        const content = (result as { compare: { body: string } }).compare.body;
+
+                        const panelLayout = new OO.ui.PanelLayout({ padded: true, expanded: false });
+                        panelLayout.$element.append(`
+<table class="diff">
+    <colgroup>
+        <col class="diff-marker">
+        <col class="diff-content">
+        <col class="diff-marker">
+        <col class="diff-content">
+    </colgroup>
+    <tbody>
+        ${content}
+    </tbody>
+</table>`);
+
+                        (this as unknown as { $body: JQuery }).$body.append(panelLayout.$element);
+                    });
+            });
+        };
+
+        getActionProcess = (action: string) => {
+            return action
+                ? new OO.ui.Process(() => {
+                      this.getManager().closeWindow(this);
+                  })
+                : ShowChangesDialog.super.prototype.getActionProcess.call(this, action);
+        };
+
+        getTeardownProcess = () => {
+            return ShowChangesDialog.super.prototype.getTeardownProcess.call(this).next(() => {
+                (this as unknown as { $body: JQuery }).$body.empty();
+            });
+        };
+    }
+
+    Object.assign(ShowChangesDialog.prototype, OO.ui.ProcessDialog.prototype);
 
     /**
      * An instance of this class handles the entire functionality of the redirect-helper script.
@@ -354,6 +424,7 @@ mw.loader.using(dependencies, () => {
         private summaryInput!: OO.ui.ComboBoxInputWidget;
         private summaryInputLayout!: OO.ui.FieldLayout;
         private submitButton!: OO.ui.ButtonWidget;
+        private showChangesButton!: OO.ui.ButtonWidget;
         private previewButton!: OO.ui.ButtonWidget;
         private syncTalkCheckbox?: OO.ui.CheckboxInputWidget;
         private syncTalkCheckboxLayout?: OO.ui.Widget;
@@ -362,6 +433,8 @@ mw.loader.using(dependencies, () => {
         private submitLayout!: OO.ui.HorizontalLayout;
 
         private talkData?: PageInfoResult;
+
+        private pageContent!: string;
 
         private oldRedirectTarget?: string;
         private oldRedirectTags?: string[];
@@ -423,6 +496,8 @@ mw.loader.using(dependencies, () => {
 .redirect-helper-warning {
     margin-top: 8px;
 }`);
+
+            mw.loader.addLinkTag('https://www.mediawiki.org/w/load.php?modules=mediawiki.diff.styles&only=styles');
 
             /* Load elements */
             this.editorBox = new OO.ui.PanelLayout({ id: 'redirect-helper-box', padded: true, expanded: false, framed: true });
@@ -599,6 +674,30 @@ mw.loader.using(dependencies, () => {
             this.submitButton = new OO.ui.ButtonWidget({ label: 'Submit', disabled: true, flags: ['progressive'] });
             this.submitButton.on('click', () => this.handleSubmitButtonClick());
 
+            /* Setup show changes button */
+            this.pageContent = await this.getPageContent(this.pageTitle);
+
+            const windowManager = new OO.ui.WindowManager();
+            document.body.append(windowManager.$element[0]);
+
+            const showChangesDialog = new ShowChangesDialog({ size: 'large' });
+            windowManager.addWindows([showChangesDialog]);
+
+            this.showChangesButton = new OO.ui.ButtonWidget({ label: 'Show changes' });
+            this.showChangesButton.on('click', () => {
+                showChangesDialog.setData([
+                    this.pageContent,
+                    this.createOutput(
+                        this.redirectInput.getValue(),
+                        this.tagSelect.getValue() as string[],
+                        this.oldStrayText,
+                        this.defaultSortInput.getValue(),
+                        this.categorySelect.getValue() as string[],
+                    ),
+                ]);
+                showChangesDialog.open();
+            });
+
             /* Setup sync talk checkbox */
             if (!this.pageTitleParsed.isTalkPage()) {
                 this.talkData = (await this.api.get({
@@ -622,7 +721,7 @@ mw.loader.using(dependencies, () => {
             /* Setup layout */
             this.submitLayout = new OO.ui.HorizontalLayout({
                 id: 'redirect-helper-submit-layout',
-                items: [this.submitButton, this.syncTalkCheckboxLayout, this.patrolCheckboxLayout].filter(Boolean) as OO.ui.Widget[],
+                items: [this.submitButton, this.showChangesButton, this.syncTalkCheckboxLayout, this.patrolCheckboxLayout].filter(Boolean) as OO.ui.Widget[],
             });
         }
 
@@ -689,14 +788,14 @@ mw.loader.using(dependencies, () => {
         /**
          * Loads existing page data.
          */
-        private async loadExistingData() {
-            const pageContent = await this.getPageContent(this.pageTitle);
-
-            this.oldRedirectTarget = this.redirectRegex.exec(pageContent)?.[1];
+        private loadExistingData() {
+            this.oldRedirectTarget = this.redirectRegex.exec(this.pageContent)?.[1];
             this.oldRedirectTags = (
                 Object.entries(this.redirectTemplates)
                     .map(([tag, redirects]) =>
-                        [tag, ...redirects].some((tagOrRedirect) => new RegExp(`{{\\s*[${tagOrRedirect[0].toLowerCase()}${tagOrRedirect[0]}]${tagOrRedirect.slice(1)}\\s*(\\||}})`).test(pageContent))
+                        [tag, ...redirects].some((tagOrRedirect) =>
+                            new RegExp(`{{\\s*[${tagOrRedirect[0].toLowerCase()}${tagOrRedirect[0]}]${tagOrRedirect.slice(1)}\\s*(\\||}})`).test(this.pageContent),
+                        )
                             ? tag
                             : null,
                     )
@@ -705,13 +804,13 @@ mw.loader.using(dependencies, () => {
 
             const originalRedirectTags = Object.entries(this.redirectTemplates)
                 .flatMap(([tag, redirects]) => [tag, ...redirects])
-                .map((tagOrRedirect) => (new RegExp(`{{\\s*[${tagOrRedirect[0].toLowerCase()}${tagOrRedirect[0]}]${tagOrRedirect.slice(1)}\\s*(\\||}})`).test(pageContent) ? tagOrRedirect : null))
+                .map((tagOrRedirect) => (new RegExp(`{{\\s*[${tagOrRedirect[0].toLowerCase()}${tagOrRedirect[0]}]${tagOrRedirect.slice(1)}\\s*(\\||}})`).test(this.pageContent) ? tagOrRedirect : null))
                 .filter(Boolean) as string[];
 
             this.oldRedirectTagData = Object.fromEntries(
                 originalRedirectTags
                     .map((tag) => {
-                        const match = new RegExp(`{{\\s*[${tag[0].toLowerCase()}${tag[0]}]${tag.slice(1)}\\|?(.*?)\\s*}}`).exec(pageContent);
+                        const match = new RegExp(`{{\\s*[${tag[0].toLowerCase()}${tag[0]}]${tag.slice(1)}\\|?(.*?)\\s*}}`).exec(this.pageContent);
 
                         const newTag = Object.entries(this.redirectTemplates).find(([template, redirects]) => [template, ...redirects].includes(tag))?.[0];
 
@@ -720,19 +819,19 @@ mw.loader.using(dependencies, () => {
                     .filter(Boolean) as [string, string][],
             );
 
-            this.oldDefaultSort = pageContent
+            this.oldDefaultSort = this.pageContent
                 .match(/{{DEFAULTSORT:.*?}}/g)
                 ?.at(-1)
                 ?.slice(14, -2)
                 ?.trim();
 
-            this.oldCategories = pageContent.match(/\[\[[Cc]ategory:.+?]]/g)?.map((category) => category.slice(11, -2)) ?? [];
+            this.oldCategories = this.pageContent.match(/\[\[[Cc]ategory:.+?]]/g)?.map((category) => category.slice(11, -2)) ?? [];
 
             this.oldStrayText = [
-                pageContent.match(/{{short description\|.*?}}/i)?.[0],
-                pageContent.match(/{{DISPLAYTITLE:.*?}}/)?.[0],
-                pageContent.match(/{{italic title\|?.*?}}/i)?.[0],
-                pageContent.match(/{{title language\|.*?}}/)?.[0],
+                this.pageContent.match(/{{short description\|.*?}}/i)?.[0],
+                this.pageContent.match(/{{DISPLAYTITLE:.*?}}/)?.[0],
+                this.pageContent.match(/{{italic title\|?.*?}}/i)?.[0],
+                this.pageContent.match(/{{title language\|.*?}}/)?.[0],
             ]
                 .filter(Boolean)
                 .join('\n');

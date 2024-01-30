@@ -256,10 +256,14 @@ mw.loader.using(
                             'tocontentmodel-main': 'wikitext',
                         } satisfies ApiComparePagesParams & { 'fromtext-main': string; 'fromcontentmodel-main': string; 'totext-main': string; 'tocontentmodel-main': string })
                         .then((result) => {
-                            const content = (result as { compare: { body: string } }).compare.body;
+                            const comparison = (result as { compare: { body: string } }).compare.body;
+
+                            const noChangesElement = new OO.ui.MessageWidget({ type: 'warning', label: 'No changes to make!' });
 
                             const panelLayout = new OO.ui.PanelLayout({ padded: true, expanded: false });
-                            panelLayout.$element.append(`
+                            panelLayout.$element.append(
+                                comparison
+                                    ? `
 <table class="diff">
     <colgroup>
         <col class="diff-marker">
@@ -268,9 +272,11 @@ mw.loader.using(
         <col class="diff-content">
     </colgroup>
     <tbody>
-        ${content}
+        ${comparison}
     </tbody>
-</table>`);
+</table>`
+                                    : noChangesElement.$element[0],
+                            );
 
                             (this as unknown as { $body: JQuery }).$body.append(panelLayout.$element);
                         });

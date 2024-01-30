@@ -375,6 +375,11 @@ mw.loader.using(
                 const dialogInfo = { redirectTemplates: this.redirectTemplates, contentText: this.contentText, pageTitle: this.pageTitle, pageTitleParsed: this.pageTitleParsed };
 
                 if (pageInfo.query.pages[0].missing) {
+                    mw.util.addCSS(`
+#create-redirect-button {
+    margin-bottom: 20px;
+}`);
+
                     const button = new OO.ui.ButtonWidget({ id: 'create-redirect-button', label: 'Create redirect', icon: 'articleRedirect', flags: ['progressive'] });
                     button.on('click', () => {
                         button.$element[0].remove();

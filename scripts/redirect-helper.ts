@@ -447,7 +447,7 @@ mw.loader.using(
 
             private talkData?: PageInfoResult;
 
-            private pageContent!: string;
+            private pageContent = '';
 
             private oldRedirectTarget?: string;
             private oldRedirectTags?: string[];
@@ -490,7 +490,7 @@ mw.loader.using(
     max-width: calc(100% - 50px);
     margin-left: auto;
     margin-right: auto;
-    margin-bottom: 20px;
+    margin-bottom: 25px !important;
 }
 
 .redirect-input-layout label {
@@ -585,7 +585,11 @@ mw.loader.using(
                     if (value.length > 0) {
                         this.redirectInput.setValue(value[0].toUpperCase() + value.slice(1).replaceAll('_', ' '));
                         this.submitButton.setDisabled(false);
-                    } else this.submitButton.setDisabled(true);
+                        this.showChangesButton.setDisabled(false);
+                    } else {
+                        this.submitButton.setDisabled(true);
+                        this.showChangesButton.setDisabled(true);
+                    }
 
                     this.updateSummary();
                     this.submitButton.setLabel('Submit');
@@ -697,7 +701,7 @@ mw.loader.using(
                 this.submitButton.on('click', () => this.handleSubmitButtonClick());
 
                 /* Setup show changes button */
-                this.pageContent = await this.getPageContent(this.pageTitle);
+                if (this.exists) this.pageContent = await this.getPageContent(this.pageTitle);
 
                 const windowManager = new OO.ui.WindowManager();
                 document.body.append(windowManager.$element[0]);
@@ -705,7 +709,7 @@ mw.loader.using(
                 const showChangesDialog = new ShowChangesDialog({ size: 'large' });
                 windowManager.addWindows([showChangesDialog]);
 
-                this.showChangesButton = new OO.ui.ButtonWidget({ label: 'Show changes' });
+                this.showChangesButton = new OO.ui.ButtonWidget({ label: 'Show changes', disabled: true });
                 this.showChangesButton.on('click', () => {
                     showChangesDialog.setData([
                         this.pageContent,

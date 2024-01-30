@@ -2,7 +2,7 @@ import { ApiQueryRevisionsParams } from 'types-mediawiki/api_params';
 import { PageRevisionsResult } from '../global-types';
 
 mw.loader.using(['mediawiki.util'], () => {
-    const developmentMode = false;
+    const developmentMode = true;
 
     if (mw.config.get('wgPageName') !== (developmentMode ? 'User:Eejit43/sandbox' : 'Wikipedia:Requested_moves/Technical_requests')) return;
 
@@ -57,14 +57,14 @@ mw.loader.using(['mediawiki.util'], () => {
                 .split(/={3,}/m)[0]
                 .trim();
 
-            const matchedRequests = sectionContent.match(/(?:\* ?\n)?\* {{rmassist\/core.+?(?=\* {{rmassist\/core|$)/gis);
+            const matchedRequests = sectionContent.match(/(?:\* ?\n)?[ *:]*{{rmassist\/core.+?(?=[ *:]*{{rmassist\/core|$)/gis);
 
             if (matchedRequests)
                 allRequests[section] = matchedRequests.map((request) => {
                     request = request.trim();
                     const full = request;
                     const parameters = request
-                        .replaceAll(/(?:\* ?\n)?\* {{rmassist\/core \||}}.*/gis, '')
+                        .replaceAll(/(?:\* ?\n)?[ *:]*{{rmassist\/core \||}}.*/gis, '')
                         .split(' | ')
                         .map((parameter) => parameter.trim());
 

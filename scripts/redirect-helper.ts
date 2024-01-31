@@ -55,8 +55,18 @@ mw.loader.using(
                         .catch(() => null)
                         .then((result: PageParseResult | null) => {
                             if (result) {
-                                const matchedSections = result.parse.sections.filter((section) => section.line.toLowerCase().startsWith(value.split('#')[1].toLowerCase()));
-                                deferred.resolve(matchedSections.map((section) => ({ data: `${result.parse.title}#${section.line}`, label: `${result.parse.title}#${section.line}` })));
+                                const matchedSections = result.parse.sections.filter((section) =>
+                                    section.line
+                                        .toLowerCase()
+                                        .replaceAll(/<\/?i>/, '')
+                                        .startsWith(value.split('#')[1].toLowerCase()),
+                                );
+                                deferred.resolve(
+                                    matchedSections.map((section) => ({
+                                        data: `${result.parse.title}#${section.line.replaceAll(/<\/?i>/, '')}`,
+                                        label: `${result.parse.title}#${section.line.replaceAll(/<\/?i>/, '')}`,
+                                    })),
+                                );
                             } else deferred.resolve([]);
                         });
                 } else {
@@ -923,7 +933,7 @@ mw.loader.using(
 
                 /* Nonexistent section */
                 if (destination.split('#').length > 1) {
-                    const validSection = destinationParseResult.parse.sections.find((section) => section.line === destination.split('#')[1]);
+                    const validSection = destinationParseResult.parse.sections.find((section) => section.line.replaceAll(/<\/?i>/, '') === destination.split('#')[1]);
                     if (validSection) {
                         if (tags.includes('R to anchor')) errors.push({ message: 'is tagged as a redirect to an anchor, but it is actually a redirect to a section!' });
                         if (!tags.includes('R to section')) errors.push({ message: 'is a redirect to a section, but it is not tagged with <code>{{R to section}}</code>!' });

@@ -58,13 +58,13 @@ mw.loader.using(
                                 const matchedSections = result.parse.sections.filter((section) =>
                                     section.line
                                         .toLowerCase()
-                                        .replaceAll(/<\/?i>/, '')
+                                        .replaceAll(/<\/?i>/g, '')
                                         .startsWith(value.split('#')[1].toLowerCase()),
                                 );
                                 deferred.resolve(
                                     matchedSections.map((section) => ({
-                                        data: `${result.parse.title}#${section.line.replaceAll(/<\/?i>/, '')}`,
-                                        label: `${result.parse.title}#${section.line.replaceAll(/<\/?i>/, '')}`,
+                                        data: `${result.parse.title}#${section.line.replaceAll(/<\/?i>/g, '')}`,
+                                        label: `${result.parse.title}#${section.line.replaceAll(/<\/?i>/g, '')}`,
                                     })),
                                 );
                             } else deferred.resolve([]);
@@ -933,7 +933,7 @@ mw.loader.using(
 
                 /* Nonexistent section */
                 if (destination.split('#').length > 1) {
-                    const validSection = destinationParseResult.parse.sections.find((section) => section.line.replaceAll(/<\/?i>/, '') === destination.split('#')[1]);
+                    const validSection = destinationParseResult.parse.sections.find((section) => section.line.replaceAll(/<\/?i>/g, '') === destination.split('#')[1]);
                     if (validSection) {
                         if (tags.includes('R to anchor')) errors.push({ message: 'is tagged as a redirect to an anchor, but it is actually a redirect to a section!' });
                         if (!tags.includes('R to section')) errors.push({ message: 'is a redirect to a section, but it is not tagged with <code>{{R to section}}</code>!' });

@@ -538,7 +538,7 @@ mw.loader.using(
                         titles: this.pageTitleParsed.getSubjectPage()!.getPrefixedText(),
                     } satisfies ApiQueryInfoParams)) as PageInfoResult;
 
-                    if (mainPageData.query.pages[0].redirect) this.loadSyncWithMainButton();
+                    if (mainPageData.query.pages[0].redirect) await this.loadSyncWithMainButton();
                 }
 
                 this.loadInputElements();

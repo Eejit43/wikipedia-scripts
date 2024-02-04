@@ -105,7 +105,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                     this.getManager().closeWindow(this);
 
                     (async () => {
-                        mw.notify('Syncing scripts...', { autoHide: false, tag: 'sync-scripts-notification' });
+                        mw.notify('Syncing scripts...', { tag: 'sync-scripts-notification' });
 
                         await Promise.all(selectedScripts.map((script) => this.handleScript(script)));
 

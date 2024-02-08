@@ -1136,8 +1136,9 @@ mw.loader.using(
             private createOutput(target: string, tags: string[], strayText: string | undefined, defaultSort: string | undefined, categories: string[]) {
                 const parsedTarget = mw.Title.newFromText(target);
 
-                // add semicolon to start of category links
-                const formattedTitle = parsedTarget ? `${parsedTarget.getNamespaceId() === 14 ? ':' : ''}${parsedTarget.getPrefixedText()}` : target.trim();
+                const formattedTitle = parsedTarget
+                    ? `${parsedTarget.getNamespaceId() === 14 ? ':' : ''}${parsedTarget.getPrefixedText()}${parsedTarget.getFragment() ? `#${parsedTarget.getFragment()}` : ''}`
+                    : target.trim();
 
                 return [
                     `#REDIRECT [[${formattedTitle}]]\n`, //

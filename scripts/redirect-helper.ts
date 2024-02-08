@@ -9,6 +9,7 @@ import {
 } from 'types-mediawiki/api_params';
 import {
     ApiQueryAllPagesGeneratorParams, // eslint-disable-line unicorn/prevent-abbreviations
+    CategoriesResult,
     MediaWikiDataError,
     PageInfoResult,
     PageParseResult,
@@ -912,12 +913,12 @@ mw.loader.using(
                 if (this.parsedDestination?.toString() === this.pageTitleParsed.toString()) errors.push({ message: 'cannot redirect to itself!' });
 
                 const destinationData = (await this.api
-                    .get({ action: 'query', formatversion: '2', prop: 'pageprops', titles: destination } satisfies ApiQueryPagePropsParams)
+                    .get({ action: 'query', formatversion: '2', prop: ['pageprops', 'categories'], titles: destination } satisfies ApiQueryPagePropsParams)
                     .catch((errorCode: string) => {
                         /* Nonexistent destination */ if (errorCode === 'missingtitle') errors.push({ title: destination, message: 'does not exist!' });
                         /* Other API error */ else errors.push({ title: destination, message: `was not able to be fetched from the API (${errorCode})!` });
                         return null;
-                    })) as PagepropsResult | null;
+                    })) as (PagepropsResult & CategoriesResult) | null;
                 const destinationParseResult = (await this.api.get({ action: 'parse', page: destination, prop: 'sections', redirects: true } satisfies ApiParseParams)) as PageParseResult;
 
                 /* Double redirects */
@@ -977,31 +978,30 @@ mw.loader.using(
                 if (destination.split('#').length === 1 && (tags.includes('R to section') || tags.includes('R to anchor')))
                     errors.push({ message: 'is not a redirect to a section/anchor, but it is tagged with <code>{{R from section}}</code> or <code>{{R from anchor}}</code>!' });
 
+                const targetIsDisambiguationPage = !!(destinationData!.query.pages[0].pageprops && 'disambiguation' in destinationData!.query.pages[0].pageprops);
+                const targetIsSurnameList = !!(destinationData!.query.pages[0].categories && destinationData!.query.pages[0].categories.some((category) => category.title === 'Category:Surnames'));
+
+                const toDisambiguationPageTags = ['R to disambiguation page', 'R from incomplete disambiguation'];
+                const toSurnameListTags = ['R from ambiguous sort name', 'R from ambiguous term'];
+
+                const taggedAsRedirectToDisambiguationPage = toDisambiguationPageTags.some((template) => tags.includes(template));
+                const taggedAsRedirectToSurnameList = toSurnameListTags.some((template) => tags.includes(template));
+
                 /* Redirect to disambiguation page without template */
-                if (
-                    destinationData!.query.pages[0].pageprops &&
-                    'disambiguation' in destinationData!.query.pages[0].pageprops &&
-                    ![
-                        'R from ambiguous sort name',
-                        'R from ambiguous term',
-                        'R to disambiguation page',
-                        'R from incomplete disambiguation',
-                        'R from incorrect disambiguation',
-                        'R from other disambiguation',
-                    ].some((template) => tags.includes(template))
-                )
+                if (targetIsDisambiguationPage && !taggedAsRedirectToDisambiguationPage && !taggedAsRedirectToSurnameList)
                     errors.push({ message: 'is a redirect to a disambiguation page, but it is not tagged with a disambiguation categorization template!' });
 
-                /* Improperly tagged as redirect to disambiguation page */
-                if (
-                    destinationData!.query.pages[0].pageprops &&
-                    !('disambiguation' in destinationData!.query.pages[0].pageprops) &&
-                    ['R from ambiguous sort name', 'R from ambiguous term', 'R to disambiguation page', 'R from incomplete disambiguation'].some((template) => tags.includes(template))
-                )
-                    errors.push({ message: 'is not a redirect to a disambiguation page, but it is tagged with a disambiguation categorization template!' });
+                if (destinationData!.query.pages[0].pageprops && !targetIsDisambiguationPage) {
+                    /* Improperly tagged as redirect to disambiguation page */
+                    if (taggedAsRedirectToDisambiguationPage) errors.push({ message: 'is not a redirect to a disambiguation page, but it is tagged with a disambiguation categorization template!' });
+
+                    /* Redirect to surname list without template */
+                    if (targetIsSurnameList && !taggedAsRedirectToSurnameList)
+                        errors.push({ message: 'is a redirect to a surname list, but it is not tagged with a correct disambiguation categorization template!' });
+                }
 
                 /* {{R to disambiguation page}} without " (disambiguation)" at end of title */
-                if (tags.includes('R to disambiguation page') && !this.pageTitleParsed.getMainText().endsWith(' (disambiguation)'))
+                if (targetIsDisambiguationPage && tags.includes('R to disambiguation page') && !this.pageTitleParsed.getMainText().endsWith(' (disambiguation)'))
                     errors.push({
                         message:
                             'is tagged with <code>{{R to disambiguation page}}</code>, but this title does not end with " (disambiguation)". Use <code>{{R from ambiguous term}}</code> or a similar categorization template instead!',

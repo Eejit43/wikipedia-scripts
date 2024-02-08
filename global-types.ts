@@ -47,6 +47,10 @@ export interface PagepropsResult {
     query: { pages: { pageprops?: { disambiguation?: string } }[] };
 }
 
+export interface CategoriesResult {
+    query: { pages: { categories?: { title: string }[] }[] };
+}
+
 export interface PageRevisionsResult {
     query: { pages: { revisions: { revid: number; slots: { main: { content: string } } }[] }[] };
 }

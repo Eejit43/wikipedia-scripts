@@ -800,7 +800,7 @@ mw.loader.using(
                     const targetChanged = redirectValue !== this.oldRedirectTarget?.replaceAll('_', ' ');
                     const tagsChanged =
                         this.tagSelect.getValue().some((tag) => !this.oldRedirectTags!.includes(tag as string)) || this.oldRedirectTags!.some((tag) => !this.tagSelect.getValue().includes(tag));
-                    const defaultSortChanged = this.oldDefaultSort && this.defaultSortInput.getValue().trim() !== this.oldDefaultSort?.replaceAll('_', ' ');
+                    const defaultSortChanged = this.defaultSortInput.getValue().trim() !== this.oldDefaultSort!.replaceAll('_', ' ');
                     const categoriesChanged =
                         this.categorySelect.getValue().some((category) => !this.oldCategories!.includes(category as string)) ||
                         this.oldCategories!.some((category) => !this.categorySelect.getValue().includes(category));
@@ -857,11 +857,12 @@ mw.loader.using(
                         .filter(Boolean) as [string, string][],
                 );
 
-                this.oldDefaultSort = this.pageContent
-                    .match(/{{DEFAULTSORT:.*?}}/g)
-                    ?.at(-1)
-                    ?.slice(14, -2)
-                    ?.trim();
+                this.oldDefaultSort =
+                    this.pageContent
+                        .match(/{{DEFAULTSORT:.*?}}/g)
+                        ?.at(-1)
+                        ?.slice(14, -2)
+                        ?.trim() ?? '';
 
                 this.oldCategories = this.pageContent.match(/\[\[[Cc]ategory:.+?]]/g)?.map((category) => category.slice(11, -2)) ?? [];
 

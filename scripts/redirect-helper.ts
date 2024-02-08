@@ -419,7 +419,7 @@ mw.loader.using(
         class RedirectHelperDialog {
             // Utility variables
             private api = new mw.Api();
-            private redirectRegex = /^#redirect:?\s*\[\[\s*([^[\]{|}]+?)\s*(?:\|[^[\]{|}]+?)?]]\s*/i;
+            private redirectRegex = /^#redirect:?\s*\[\[\s*:?([^[\]{|}]+?)\s*(?:\|[^[\]{|}]+?)?]]\s*/i;
             private scriptAdvert = ' (via [[User:Eejit43/scripts/redirect-helper|redirect-helper]])';
 
             // Assigned in constructor
@@ -1133,8 +1133,13 @@ mw.loader.using(
              * Takes provided values to create the page output.
              */
             private createOutput(target: string, tags: string[], strayText: string | undefined, defaultSort: string | undefined, categories: string[]) {
+                const parsedTarget = mw.Title.newFromText(target);
+
+                // add semicolon to start of category links
+                const formattedTitle = parsedTarget ? `${parsedTarget.getNamespaceId() === 14 ? ':' : ''}${parsedTarget.getPrefixedText()}` : target.trim();
+
                 return [
-                    `#REDIRECT [[${target.trim()}]]\n`, //
+                    `#REDIRECT [[${formattedTitle}]]\n`, //
                     tags.length > 0
                         ? `{{Redirect category shell|\n${tags.map((tag) => `{{${tag}${this.oldRedirectTagData?.[tag] ? `|${this.oldRedirectTagData[tag]}` : ''}}}`).join('\n')}\n}}\n`
                         : null,

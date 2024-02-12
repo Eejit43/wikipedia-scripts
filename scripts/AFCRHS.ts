@@ -1,5 +1,5 @@
 (function () {
-    if (mw.config.get('wgPageName') !== 'Wikipedia:Articles_for_creation/Redirects_and_categories') return;
+    if (mw.config.get('wgPageName') !== 'Wikipedia:Articles_for_creation/Redirects') return;
 
     const redirectPageName = mw.config.get('wgPageName').replace(/_/g, ' ');
     const redirectSubmissions = [];

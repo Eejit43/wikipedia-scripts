@@ -18,7 +18,6 @@
     },
     {
         "name": "AFCRHS",
-        "use-instead": "afcrc-helper",
         "short-description": "User script to help handle requests at [[WP:AFC/R]] and [[WP:AFC/C]]",
         "description": "This user script is a fork of [[User:Enterprisey/AFCRHS|Enterprisey's script]], and helps handle requests at [[WP:AFC/R]] and [[WP:AFC/C]] (redirect and category creation requests).\n\n\nThis fork fixes many bugs, and makes some changes from the original script, such as:\n* Automatically uses {{tl|Redirect category shell}} in created redirects\n* Correctly handles partially accepted requests (instead of just using the accepted or declined headers)",
         "other-authors": ["Enterprisey"],

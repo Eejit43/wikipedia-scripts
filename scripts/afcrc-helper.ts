@@ -529,7 +529,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
          * Performs all actions and logs their results.
          * @param dryRun If true, no pages will be edited or created.
          */
-        private performActions(dryRun: boolean) {
+        private async performActions(dryRun: boolean) {
             const tense = dryRun ? 'will be' : 'has been';
 
             const windowManager = new OO.ui.WindowManager();
@@ -664,7 +664,11 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                         .map(([action, count]) => `${action} ${count}`)
                         .join(', ');
 
-                    this.api.edit(this.pageTitle, () => ({ text: newPageText, summary: `Handling AfC redirect requests (${mappedCounts})${this.scriptMessage}` }));
+                    await this.api.edit(this.pageTitle, () => ({ text: newPageText, summary: `Handling AfC redirect requests (${mappedCounts})${this.scriptMessage}` }));
+
+                    mw.notify(`Handled ${mappedCounts} redirect requests, reloading...`);
+
+                    window.location.reload();
                 } else showActionsDialog.addLogEntry(`No requests ${dryRun ? 'will be' : 'have been'} handled!`);
             }
         }

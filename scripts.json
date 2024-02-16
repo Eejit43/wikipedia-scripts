@@ -1,5 +1,22 @@
 [
     {
+        "name": "afcrc-helper",
+        "in-development": true,
+        "short-description": "User script to help handle requests at [[WP:AFC/R]] and [[WP:AFC/C]]",
+        "description": "This user script was inspired by [[User:Enterprisey/AFCRHS|Enterprisey's \"AFCRHS\" script]], and helps to handle requests at [[WP:AFC/R]] and [[WP:AFC/C]] (redirects and categories creation requests). This script features an easier to use interface with improved functionality and new features. It can be run using the link in the \"More\"/\"Tools\" menu.",
+        "skin-support": {
+            "vector-2022": "yes",
+            "vector": "yes",
+            "timeless": "yes",
+            "monobook": "yes",
+            "modern": "yes",
+            "minerva": "yes",
+            "cologne-blue": "yes"
+        },
+        "released": "2024|02|15",
+        "updated": "2024|02|15"
+    },
+    {
         "name": "AFCRHS",
         "short-description": "User script to help handle requests at [[WP:AFC/R]] and [[WP:AFC/C]]",
         "description": "This user script is a fork of [[User:Enterprisey/AFCRHS|Enterprisey's script]], and helps handle requests at [[WP:AFC/R]] and [[WP:AFC/C]] (redirect and category creation requests).\n\n\nThis fork fixes many bugs, and makes some changes from the original script, such as:\n* Automatically uses {{tl|Redirect category shell}} in created redirects\n* Correctly handles partially accepted requests (instead of just using the accepted or declined headers)",
@@ -222,7 +239,7 @@
             "cologne-blue": "yes"
         },
         "released": "2023|04|05",
-        "updated": "2024|02|03"
+        "updated": "2024|02|15"
     },
     {
         "name": "search-links",

@@ -105,7 +105,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
     class AfcrcHelperDialog extends OO.ui.ProcessDialog {
         private api = new mw.Api();
 
-        private scriptMessage = '[[User:Eejit43/scripts/afcrc-helper|afcrc-helper]]';
+        private scriptMessage = ' ([[User:Eejit43/scripts/afcrc-helper|afcrc-helper]])';
 
         private requestPageType: 'redirect' | 'category';
         private pageTitle!: string;
@@ -579,10 +579,14 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                                     ([page, reason]) => `* {{subst:AfC redirect|${reason.startsWith('autofill:') ? reason.replace('autofill:', '') : `decline|1=${reason}`}}} [${page}] ~~~~`,
                                 );
 
+                                if (!dryRun) for (const page of acceptedPages) this.handleAcceptedRedirect(page, actions[page], target);
+
                                 sectionReplaceText += '\n' + mappedAcceptedPages.join('\n') + '\n' + mappedDeniedPages.join('\n');
                                 newPageText = newPageText.replace(sectionTextBefore, sectionReplaceText);
                             } else if (acceptedPages.length > 0) {
                                 closingId = 'a';
+
+                                if (!dryRun) for (const page of acceptedPages) this.handleAcceptedRedirect(page, actions[page], target);
 
                                 sectionReplaceText += `\n * {{subst:AfC redirect${acceptedPages.length > 1 ? '|all' : ''}}} ~~~~`;
                                 newPageText = newPageText.replace(sectionTextBefore, sectionReplaceText);
@@ -590,7 +594,8 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                                 closingId = 'd';
 
                                 const mappedReasons = deniedPages.map(
-                                    ([page, reason]) => `* {{subst:AfC redirect|${reason.startsWith('autofill:') ? reason.replace('autofill:', '') : `decline|1=${reason}`}}} [${page}] ~~~~`,
+                                    ([page, reason]) =>
+                                        `* {{subst:AfC redirect|${reason.startsWith('autofill:') ? reason.replace('autofill:', '') : `decline|1=${reason}`}}}${deniedPages.length > 1 ? ` [${page}]` : ''} ~~~~`,
                                 );
 
                                 sectionReplaceText += '\n' + mappedReasons.join('\n');
@@ -601,16 +606,28 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                         } else if (allRequestsClosed) newPageText = newPageText.replace(sectionReplaceText, `{{AfC-c|${firstCloseReason}}}\n${sectionReplaceText}\n{{AfC-c|b}}`);
                     }
 
-                    if (this.beforeText + this.pageContent === newPageText) return;
+                    if (dryRun || this.beforeText + this.pageContent === newPageText) return;
 
                     const mappedCounts = Object.entries(counts)
                         .filter(([, count]) => count > 0)
                         .map(([action, count]) => `${action} ${count}`)
                         .join(', ');
 
-                    this.api.edit(this.pageTitle, () => ({ text: newPageText, summary: `Handling AfC redirect requests (${mappedCounts}) ${this.scriptMessage}` }));
+                    this.api.edit(this.pageTitle, () => ({ text: newPageText, summary: `Handling AfC redirect requests (${mappedCounts})${this.scriptMessage}` }));
                 } else showActionsDialog.addLogEntry(`No requests ${dryRun ? 'will be' : 'have been'} handled!`);
             }
+        }
+
+        private handleAcceptedRedirect(page: string, data: RedirectAction, target: string) {
+            this.api.create(page, { summary: `Creating redirect to [[${target}]] as requested at [[WP:AFC/R]]${this.scriptMessage}` }, `#REDIRECT [[${target}]]`);
+
+            const talkName = mw.Title.newFromText(page)!.getTalkPage()!.getPrefixedText();
+
+            this.api.create(
+                talkName,
+                { summary: `Placing banner for [[Wikipedia:WikiProject Articles for creation|WikiProject Articles for creation]] ${this.scriptMessage}` },
+                `{{WikiProject banner shell|class=Redirect|\n{{WikiProject Articles for creation|ts=${Date.now()}|reviewer=${mw.config.get('wgUserName')}}}\n}}`,
+            );
         }
     }
 

@@ -561,6 +561,8 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                         const deniedPages = [];
                         const comments = [];
 
+                        const amountOfPages = Object.keys(actions).length;
+
                         for (const [requestedTitle, action] of Object.entries(actions) as [string, RedirectAction][]) {
                             const messagePrefix = `The request to create "${requestedTitle}" → "${target}" ${tense} `;
                             const commentedMessage = action.comment ? ' and commented on' : '';
@@ -594,7 +596,8 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                                     if (action.comment) {
                                         showActionsDialog.addLogEntry(messagePrefix + 'commented on.');
 
-                                        comments.push(`[${requestedTitle} → ${target}] ${action.comment}`);
+                                        comments.push(`${action.comment}${amountOfPages > 1 ? ` [${requestedTitle}]` : ''}`);
+
                                         counts.commented++;
                                     } else showActionsDialog.addLogEntry(messagePrefix + 'marked to be commented on, but no comment was provided.');
 
@@ -603,6 +606,8 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                                 case 'close': {
                                     if (allRequestsClosed) {
                                         showActionsDialog.addLogEntry(messagePrefix + `closed as ${action.closingReason!.name.toLowerCase()}${commentedMessage}.`);
+
+                                        if (action.comment) comments.push(`${action.comment}${amountOfPages > 1 ? ` [${requestedTitle}]` : ''}`);
 
                                         counts.closed++;
                                     } else showActionsDialog.addLogEntry(`Not all requests to "${target}" were closed with the same reason, the handling of "${requestedTitle}" is being ignored.`);
@@ -668,7 +673,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
 
                     await this.api.edit(this.pageTitle, () => ({ text: newPageText, summary: `Handling AfC redirect requests (${mappedCounts})${this.scriptMessage}` }));
 
-                    mw.notify(`Handled ${mappedCounts} redirect requests, reloading...`);
+                    mw.notify('All redirect requests handled, reloading...');
 
                     window.location.reload();
                 } else showActionsDialog.addLogEntry(`No requests ${dryRun ? 'will be' : 'have been'} handled!`);

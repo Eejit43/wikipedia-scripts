@@ -22,6 +22,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
         windowManager.addWindows([afcrcHelperDialog]);
 
         afcrcHelperDialog.open();
+        afcrcHelperDialog.load();
     });
 
     class ShowActionsDialog extends OO.ui.Dialog {
@@ -125,15 +126,12 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
             AfcrcHelperDialog.static.title = 'afcrc-helper';
             AfcrcHelperDialog.static.actions = [
                 { action: 'cancel', label: 'Close', flags: ['safe', 'close'] },
-                { action: 'show-actions', label: 'Show actions to take' },
                 { action: 'save', label: 'Run', flags: ['primary', 'progressive'] },
             ];
 
             this.pageTitle = pageTitle;
             this.requestPageType = requestPageType;
-        }
 
-        getSetupProcess = () => {
             mw.util.addCSS(`
 .afcrc-helper-request {
     background-color: #eee;
@@ -174,65 +172,18 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
 .afcrc-closing-reason-input, .afcrc-comment-input {
     max-width: 50%;
 }`);
-
-            return AfcrcHelperDialog.super.prototype.getSetupProcess
-                .call(this)
-                .next(() => {
-                    return this.api
-                        .get({
-                            action: 'query',
-                            formatversion: '2',
-                            prop: 'revisions',
-                            rvprop: 'content',
-                            rvslots: 'main',
-                            titles: 'User:Eejit43/scripts/redirect-helper.json',
-                        } satisfies ApiQueryRevisionsParams)
-                        .then((response) => {
-                            this.redirectTemplateItems = Object.keys(
-                                JSON.parse((response as PageRevisionsResult).query.pages?.[0]?.revisions?.[0]?.slots?.main?.content || '{}') as Record<string, string>,
-                            ).map((tag) => ({ data: tag, label: tag }));
-                        });
-                })
-                .next(() => {
-                    return this.api
-                        .get({
-                            action: 'query',
-                            formatversion: '2',
-                            prop: 'revisions',
-                            rvprop: 'content',
-                            rvslots: 'main',
-                            titles: this.pageTitle,
-                        } satisfies ApiQueryRevisionsParams)
-                        .then((response) => {
-                            this.pageContent = (response as PageRevisionsResult).query.pages[0].revisions[0].slots.main.content.trim();
-
-                            this.parseRequests();
-                            this.loadInputElements();
-                        });
-                });
-        };
+        }
 
         getActionProcess = (action: string) => {
-            switch (action) {
-                case 'cancel': {
-                    return new OO.ui.Process(() => {
-                        this.getManager().closeWindow(this);
-                    });
-                }
-                case 'show-actions': {
-                    return new OO.ui.Process(() => {
-                        this.performActions(true);
-                    });
-                }
-                case 'save': {
-                    return new OO.ui.Process(() => {
-                        this.performActions(false);
-                    });
-                }
-                default: {
-                    return AfcrcHelperDialog.super.prototype.getActionProcess.call(this, action);
-                }
-            }
+            if (action === 'cancel')
+                return new OO.ui.Process(() => {
+                    this.getManager().closeWindow(this);
+                });
+            else if (action === 'save')
+                return new OO.ui.Process(() => {
+                    this.performActions();
+                });
+            else return AfcrcHelperDialog.super.prototype.getActionProcess.call(this, action);
         };
 
         getTeardownProcess = () => {
@@ -240,6 +191,39 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                 (this as unknown as { $body: JQuery }).$body.empty();
             });
         };
+
+        /**
+         * Load elements in the window.
+         */
+        public async load() {
+            const redirectTemplateResponse = (await this.api.get({
+                action: 'query',
+                formatversion: '2',
+                prop: 'revisions',
+                rvprop: 'content',
+                rvslots: 'main',
+                titles: 'User:Eejit43/scripts/redirect-helper.json',
+            } satisfies ApiQueryRevisionsParams)) as PageRevisionsResult;
+
+            this.redirectTemplateItems = Object.keys(JSON.parse(redirectTemplateResponse.query.pages?.[0]?.revisions?.[0]?.slots?.main?.content || '{}') as Record<string, string>).map((tag) => ({
+                data: tag,
+                label: tag,
+            }));
+
+            const pageRevision = (await this.api.get({
+                action: 'query',
+                formatversion: '2',
+                prop: 'revisions',
+                rvprop: 'content',
+                rvslots: 'main',
+                titles: this.pageTitle,
+            } satisfies ApiQueryRevisionsParams)) as PageRevisionsResult;
+
+            this.pageContent = pageRevision.query.pages[0].revisions[0].slots.main.content.trim();
+
+            this.parseRequests();
+            this.loadInputElements();
+        }
 
         /**
          * Parses requests from the page content.
@@ -301,219 +285,22 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
          * Loads the input elements in the dialog.
          */
         private loadInputElements() {
-            if (this.requestPageType === 'redirect')
-                for (const request of this.parsedRequests as RedirectRequestData[]) {
-                    const detailsElement = document.createElement('details');
-                    detailsElement.classList.add('afcrc-helper-request');
+            if (this.requestPageType === 'redirect') {
+                let index = 0;
 
-                    const summaryElement = document.createElement('summary');
-                    summaryElement.innerHTML = request.pages.map((page) => `<b>${page}</b>`).join(', ') + ' → ';
+                const handle = () => {
+                    (this as unknown as { title: OO.ui.LabelWidget }).title.setLabel(`afcrc-helper (loaded ${index + 1}/${this.parsedRequests.length})`);
 
-                    const linkElement = document.createElement('a');
-                    linkElement.target = '_blank';
-                    linkElement.href = mw.util.getUrl(request.target);
-                    linkElement.textContent = request.target;
+                    this.loadRedirectRequest(this.parsedRequests[index] as RedirectRequestData);
 
-                    summaryElement.append(linkElement);
+                    if (index < this.parsedRequests.length - 1) {
+                        index++;
+                        setTimeout(handle, 0);
+                    } else (this as unknown as { title: OO.ui.LabelWidget }).title.setLabel('afcrc-helper (all loaded)');
+                };
 
-                    detailsElement.append(summaryElement);
-
-                    const requestInfoElement = document.createElement('div');
-                    requestInfoElement.classList.add('afcrc-helper-request-info');
-
-                    const noneElement = document.createElement('span');
-                    noneElement.style.color = 'dimgray';
-                    noneElement.textContent = 'None';
-
-                    const reasonDiv = document.createElement('div');
-
-                    const reasonLabel = document.createElement('b');
-                    reasonLabel.textContent = 'Reason: ';
-                    reasonDiv.append(reasonLabel);
-
-                    if (request.reason) reasonDiv.append(request.reason);
-                    else reasonDiv.append(noneElement);
-
-                    requestInfoElement.append(reasonDiv);
-
-                    const sourceDiv = document.createElement('div');
-
-                    const sourceLabel = document.createElement('b');
-                    sourceLabel.textContent = 'Source: ';
-                    sourceDiv.append(sourceLabel);
-
-                    if (request.source) sourceDiv.append(request.source);
-                    else sourceDiv.append(noneElement);
-
-                    requestInfoElement.append(sourceDiv);
-
-                    const requesterDiv = document.createElement('div');
-
-                    const requesterLabel = document.createElement('b');
-                    requesterLabel.textContent = 'Requester: ';
-                    requesterDiv.append(requesterLabel);
-
-                    const requesterLink = document.createElement('a');
-                    requesterLink.target = '_blank';
-                    requesterLink.href = request.requester.type === 'user' ? mw.util.getUrl(`User:${request.requester.name}`) : mw.util.getUrl(`Special:Contributions/${request.requester.name}`);
-                    requesterLink.textContent = request.requester.name;
-                    requesterDiv.append(requesterLink);
-
-                    requestInfoElement.append(requesterDiv);
-
-                    detailsElement.append(requestInfoElement);
-
-                    detailsElement.append(document.createElement('hr'));
-
-                    const requestResponderElement = document.createElement('div');
-                    requestResponderElement.classList.add('afcrc-helper-request-responder');
-
-                    for (const requestedTitle of request.pages) {
-                        const requestedTitleDiv = document.createElement('div');
-
-                        const label = document.createElement('b');
-                        label.textContent = requestedTitle + ' → ' + request.target;
-                        requestedTitleDiv.append(label);
-
-                        const actionRadioInput = new OO.ui.RadioSelectWidget({
-                            classes: ['afcrc-helper-action-radio'],
-                            items: ['Accept', 'Deny', 'Comment', 'Close', 'None'].map((label) => new OO.ui.RadioOptionWidget({ data: label, label })),
-                        });
-                        actionRadioInput.selectItemByLabel('None');
-                        actionRadioInput.on('choose', () => {
-                            const option = ((actionRadioInput.findSelectedItem() as OO.ui.RadioOptionWidget).getData() as string).toLowerCase() as ActionType;
-
-                            this.actionsToTake[request.target][requestedTitle].action = option;
-
-                            if (['comment', 'close'].includes(option)) {
-                                commentInputLayout.$element.show();
-
-                                const comment = commentInput.getValue().trim();
-                                if (comment) this.actionsToTake[request.target][requestedTitle].comment = comment;
-                                else delete this.actionsToTake[request.target][requestedTitle].comment;
-                            } else {
-                                commentInputLayout.$element.hide();
-
-                                delete this.actionsToTake[request.target][requestedTitle].comment;
-                            }
-
-                            tagSelectLayout.$element.hide();
-                            denyReasonLayout.$element.hide();
-                            closingReasonLayout.$element.hide();
-
-                            switch (option) {
-                                case 'accept': {
-                                    tagSelectLayout.$element.show();
-
-                                    (this.actionsToTake as RedirectActions)[request.target][requestedTitle].redirectTemplates = tagSelect.getValue() as string[];
-
-                                    break;
-                                }
-                                case 'deny': {
-                                    denyReasonLayout.$element.show();
-
-                                    (this.actionsToTake as RedirectActions)[request.target][requestedTitle].denyReason = denyReason.getValue();
-
-                                    break;
-                                }
-                                case 'close': {
-                                    closingReasonLayout.$element.show();
-
-                                    const selected = closingReason.getMenu().findSelectedItem() as OO.ui.MenuOptionWidget;
-                                    (this.actionsToTake as RedirectActions)[request.target][requestedTitle].closingReason = { name: selected.getLabel() as string, id: selected.getData() as string };
-
-                                    break;
-                                }
-                            }
-                        });
-
-                        const tagSelect = new OO.ui.MenuTagMultiselectWidget({
-                            allowArbitrary: false,
-                            allowReordering: false,
-                            options: this.redirectTemplateItems,
-                        });
-                        (tagSelect.getMenu() as OO.ui.MenuSelectWidget.ConfigOptions).filterMode = 'substring';
-                        tagSelect.on('change', () => {
-                            const sortedTags = (tagSelect.getValue() as string[]).sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
-
-                            if ((tagSelect.getValue() as string[]).join(';') !== sortedTags.join(';')) tagSelect.setValue(sortedTags);
-
-                            (this.actionsToTake as RedirectActions)[request.target][requestedTitle].redirectTemplates = sortedTags;
-                        });
-
-                        const tagSelectLayout = new OO.ui.FieldLayout(tagSelect, { align: 'inline', label: 'Redirect templates' });
-                        tagSelectLayout.$element.hide();
-
-                        const denyReason = new OO.ui.ComboBoxInputWidget({
-                            classes: ['afcrc-closing-reason-input'],
-                            placeholder: 'autofill:unlikely',
-                            options: [
-                                ['exists', 'existing pages'],
-                                ['empty', 'empty submissions'],
-                                ['notarget', 'nonexistent or no provided target'],
-                                ['notitle', 'no title provided'],
-                                ['unlikely', 'unlikely redirects'],
-                                ['externallink', 'external link redirects'],
-                                ['editrequest', 'edit requests'],
-                                ['notenglish', 'requests not in English'],
-                            ].map(([value, label]) => ({ data: `autofill:${value}`, label: `Autofilled text for ${label}` })),
-                        });
-                        denyReason.getMenu().on('choose', () => {
-                            (this.actionsToTake as RedirectActions)[request.target][requestedTitle].denyReason = denyReason.getValue();
-                        });
-                        denyReason.setValue('autofill:unlikely');
-                        denyReason.getMenu().selectItemByData('autofill:unlikely');
-
-                        const denyReasonLayout = new OO.ui.FieldLayout(denyReason, { align: 'inline', label: 'Deny reason' });
-                        denyReasonLayout.$element.hide();
-
-                        const closingReason = new OO.ui.DropdownWidget({
-                            classes: ['afcrc-closing-reason-input'],
-                            menu: {
-                                items: [
-                                    ['No response', 'r'],
-                                    ['Succeeded', 's'],
-                                    ['Withdrawn', 'w'],
-                                ].map(([title, id]) => new OO.ui.MenuOptionWidget({ data: id, label: title })),
-                            },
-                        });
-                        closingReason.getMenu().on('choose', () => {
-                            const selected = closingReason.getMenu().findSelectedItem() as OO.ui.MenuOptionWidget;
-
-                            (this.actionsToTake as RedirectActions)[request.target][requestedTitle].closingReason = { name: selected.getLabel() as string, id: selected.getData() as string };
-                        });
-                        closingReason.getMenu().selectItemByLabel('No response');
-
-                        const closingReasonLayout = new OO.ui.FieldLayout(closingReason, { align: 'inline', label: 'Closing reason' });
-                        closingReasonLayout.$element.hide();
-
-                        const commentInput = new OO.ui.TextInputWidget();
-                        commentInput.on('change', () => {
-                            const comment = commentInput.getValue().trim();
-
-                            if (comment) this.actionsToTake[request.target][requestedTitle].comment = comment;
-                            else delete this.actionsToTake[request.target][requestedTitle].comment;
-                        });
-
-                        const commentInputLayout = new OO.ui.FieldLayout(commentInput, { classes: ['afcrc-comment-input'], align: 'inline', label: 'Comment' });
-                        commentInputLayout.$element.hide();
-
-                        requestedTitleDiv.append(
-                            actionRadioInput.$element[0],
-                            tagSelectLayout.$element[0],
-                            denyReasonLayout.$element[0],
-                            closingReasonLayout.$element[0],
-                            commentInputLayout.$element[0],
-                        );
-
-                        requestResponderElement.append(requestedTitleDiv);
-                    }
-
-                    detailsElement.append(requestResponderElement);
-
-                    (this as unknown as { $body: JQuery }).$body.append(detailsElement);
-                }
-            else
+                handle();
+            } else
                 for (const request of this.parsedRequests as CategoryRequestData[]) {
                     const detailsElement = document.createElement('details');
                     detailsElement.classList.add('afcrc-helper-request');
@@ -527,13 +314,219 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                 }
         }
 
+        private loadRedirectRequest(request: RedirectRequestData) {
+            const detailsElement = document.createElement('details');
+            detailsElement.classList.add('afcrc-helper-request');
+
+            const summaryElement = document.createElement('summary');
+            summaryElement.innerHTML = request.pages.map((page) => `<b>${page}</b>`).join(', ') + ' → ';
+
+            const linkElement = document.createElement('a');
+            linkElement.target = '_blank';
+            linkElement.href = mw.util.getUrl(request.target);
+            linkElement.textContent = request.target;
+
+            summaryElement.append(linkElement);
+
+            detailsElement.append(summaryElement);
+
+            const requestInfoElement = document.createElement('div');
+            requestInfoElement.classList.add('afcrc-helper-request-info');
+
+            const noneElement = document.createElement('span');
+            noneElement.style.color = 'dimgray';
+            noneElement.textContent = 'None';
+
+            const reasonDiv = document.createElement('div');
+
+            const reasonLabel = document.createElement('b');
+            reasonLabel.textContent = 'Reason: ';
+            reasonDiv.append(reasonLabel);
+
+            if (request.reason) reasonDiv.append(request.reason);
+            else reasonDiv.append(noneElement);
+
+            requestInfoElement.append(reasonDiv);
+
+            const sourceDiv = document.createElement('div');
+
+            const sourceLabel = document.createElement('b');
+            sourceLabel.textContent = 'Source: ';
+            sourceDiv.append(sourceLabel);
+
+            if (request.source) sourceDiv.append(request.source);
+            else sourceDiv.append(noneElement);
+
+            requestInfoElement.append(sourceDiv);
+
+            const requesterDiv = document.createElement('div');
+
+            const requesterLabel = document.createElement('b');
+            requesterLabel.textContent = 'Requester: ';
+            requesterDiv.append(requesterLabel);
+
+            const requesterLink = document.createElement('a');
+            requesterLink.target = '_blank';
+            requesterLink.href = request.requester.type === 'user' ? mw.util.getUrl(`User:${request.requester.name}`) : mw.util.getUrl(`Special:Contributions/${request.requester.name}`);
+            requesterLink.textContent = request.requester.name;
+            requesterDiv.append(requesterLink);
+
+            requestInfoElement.append(requesterDiv);
+
+            detailsElement.append(requestInfoElement);
+
+            detailsElement.append(document.createElement('hr'));
+
+            const requestResponderElement = document.createElement('div');
+            requestResponderElement.classList.add('afcrc-helper-request-responder');
+
+            for (const requestedTitle of request.pages) {
+                const requestedTitleDiv = document.createElement('div');
+
+                const label = document.createElement('b');
+                label.textContent = requestedTitle + ' → ' + request.target;
+                requestedTitleDiv.append(label);
+
+                const actionRadioInput = new OO.ui.RadioSelectWidget({
+                    classes: ['afcrc-helper-action-radio'],
+                    items: ['Accept', 'Deny', 'Comment', 'Close', 'None'].map((label) => new OO.ui.RadioOptionWidget({ data: label, label })),
+                });
+                actionRadioInput.selectItemByLabel('None');
+                actionRadioInput.on('choose', () => {
+                    const option = ((actionRadioInput.findSelectedItem() as OO.ui.RadioOptionWidget).getData() as string).toLowerCase() as ActionType;
+
+                    this.actionsToTake[request.target][requestedTitle].action = option;
+
+                    if (['comment', 'close'].includes(option)) {
+                        commentInputLayout.$element.show();
+
+                        const comment = commentInput.getValue().trim();
+                        if (comment) this.actionsToTake[request.target][requestedTitle].comment = comment;
+                        else delete this.actionsToTake[request.target][requestedTitle].comment;
+                    } else {
+                        commentInputLayout.$element.hide();
+
+                        delete this.actionsToTake[request.target][requestedTitle].comment;
+                    }
+
+                    tagSelectLayout.$element.hide();
+                    denyReasonLayout.$element.hide();
+                    closingReasonLayout.$element.hide();
+
+                    switch (option) {
+                        case 'accept': {
+                            tagSelectLayout.$element.show();
+
+                            (this.actionsToTake as RedirectActions)[request.target][requestedTitle].redirectTemplates = tagSelect.getValue() as string[];
+
+                            break;
+                        }
+                        case 'deny': {
+                            denyReasonLayout.$element.show();
+
+                            (this.actionsToTake as RedirectActions)[request.target][requestedTitle].denyReason = denyReason.getValue();
+
+                            break;
+                        }
+                        case 'close': {
+                            closingReasonLayout.$element.show();
+
+                            const selected = closingReason.getMenu().findSelectedItem() as OO.ui.MenuOptionWidget;
+                            (this.actionsToTake as RedirectActions)[request.target][requestedTitle].closingReason = { name: selected.getLabel() as string, id: selected.getData() as string };
+
+                            break;
+                        }
+                    }
+                });
+
+                const tagSelect = new OO.ui.MenuTagMultiselectWidget({
+                    allowArbitrary: false,
+                    allowReordering: false,
+                    options: this.redirectTemplateItems,
+                });
+                (tagSelect.getMenu() as OO.ui.MenuSelectWidget.ConfigOptions).filterMode = 'substring';
+                tagSelect.on('change', () => {
+                    const sortedTags = (tagSelect.getValue() as string[]).sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
+
+                    if ((tagSelect.getValue() as string[]).join(';') !== sortedTags.join(';')) tagSelect.setValue(sortedTags);
+
+                    (this.actionsToTake as RedirectActions)[request.target][requestedTitle].redirectTemplates = sortedTags;
+                });
+
+                const tagSelectLayout = new OO.ui.FieldLayout(tagSelect, { align: 'inline', label: 'Redirect templates' });
+                tagSelectLayout.$element.hide();
+
+                const denyReason = new OO.ui.ComboBoxInputWidget({
+                    classes: ['afcrc-closing-reason-input'],
+                    placeholder: 'autofill:unlikely',
+                    options: [
+                        ['exists', 'existing pages'],
+                        ['empty', 'empty submissions'],
+                        ['notarget', 'nonexistent or no provided target'],
+                        ['notitle', 'no title provided'],
+                        ['unlikely', 'unlikely redirects'],
+                        ['externallink', 'external link redirects'],
+                        ['editrequest', 'edit requests'],
+                        ['notenglish', 'requests not in English'],
+                    ].map(([value, label]) => ({ data: `autofill:${value}`, label: `Autofilled text for ${label}` })),
+                });
+                denyReason.getMenu().on('choose', () => {
+                    (this.actionsToTake as RedirectActions)[request.target][requestedTitle].denyReason = denyReason.getValue();
+                });
+                denyReason.setValue('autofill:unlikely');
+                denyReason.getMenu().selectItemByData('autofill:unlikely');
+
+                const denyReasonLayout = new OO.ui.FieldLayout(denyReason, { align: 'inline', label: 'Deny reason' });
+                denyReasonLayout.$element.hide();
+
+                const closingReason = new OO.ui.DropdownWidget({
+                    classes: ['afcrc-closing-reason-input'],
+                    menu: {
+                        items: [
+                            ['No response', 'r'],
+                            ['Succeeded', 's'],
+                            ['Withdrawn', 'w'],
+                        ].map(([title, id]) => new OO.ui.MenuOptionWidget({ data: id, label: title })),
+                    },
+                });
+                closingReason.getMenu().on('choose', () => {
+                    const selected = closingReason.getMenu().findSelectedItem() as OO.ui.MenuOptionWidget;
+
+                    (this.actionsToTake as RedirectActions)[request.target][requestedTitle].closingReason = { name: selected.getLabel() as string, id: selected.getData() as string };
+                });
+                closingReason.getMenu().selectItemByLabel('No response');
+
+                const closingReasonLayout = new OO.ui.FieldLayout(closingReason, { align: 'inline', label: 'Closing reason' });
+                closingReasonLayout.$element.hide();
+
+                const commentInput = new OO.ui.TextInputWidget();
+                commentInput.on('change', () => {
+                    const comment = commentInput.getValue().trim();
+
+                    if (comment) this.actionsToTake[request.target][requestedTitle].comment = comment;
+                    else delete this.actionsToTake[request.target][requestedTitle].comment;
+                });
+
+                const commentInputLayout = new OO.ui.FieldLayout(commentInput, { classes: ['afcrc-comment-input'], align: 'inline', label: 'Comment' });
+                commentInputLayout.$element.hide();
+
+                requestedTitleDiv.append(actionRadioInput.$element[0], tagSelectLayout.$element[0], denyReasonLayout.$element[0], closingReasonLayout.$element[0], commentInputLayout.$element[0]);
+
+                requestResponderElement.append(requestedTitleDiv);
+            }
+
+            detailsElement.append(requestResponderElement);
+
+            (this as unknown as { $body: JQuery }).$body.append(detailsElement);
+
+            this.updateSize();
+        }
+
         /**
          * Performs all actions and logs their results.
          * @param dryRun If true, no pages will be edited or created.
          */
-        private async performActions(dryRun: boolean) {
-            const tense = dryRun ? 'will be' : 'has been';
-
+        private async performActions() {
             const windowManager = new OO.ui.WindowManager();
             document.body.append(windowManager.$element[0]);
 
@@ -564,7 +557,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                         const amountOfPages = Object.keys(actions).length;
 
                         for (const [requestedTitle, action] of Object.entries(actions) as [string, RedirectAction][]) {
-                            const messagePrefix = `The request to create "${requestedTitle}" → "${target}" ${tense} `;
+                            const messagePrefix = `The request to create "${requestedTitle}" → "${target}" has been `;
                             const commentedMessage = action.comment ? ' and commented on' : '';
 
                             switch (action.action) {
@@ -637,14 +630,14 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                                     ([page, reason]) => `* {{subst:AfC redirect|${reason.startsWith('autofill:') ? reason.replace('autofill:', '') : `decline|1=${reason}`}}} [${page}] ~~~~`,
                                 );
 
-                                if (!dryRun) for (const page of acceptedPages) this.handleAcceptedRedirect(page, actions[page], target);
+                                for (const page of acceptedPages) this.handleAcceptedRedirect(page, actions[page], target);
 
                                 sectionReplaceText += '\n' + mappedAcceptedPages.join('\n') + '\n' + mappedDeniedPages.join('\n');
                                 newPageText = newPageText.replace(sectionTextBefore, sectionReplaceText);
                             } else if (acceptedPages.length > 0) {
                                 closingId = 'a';
 
-                                if (!dryRun) for (const page of acceptedPages) this.handleAcceptedRedirect(page, actions[page], target);
+                                for (const page of acceptedPages) this.handleAcceptedRedirect(page, actions[page], target);
 
                                 sectionReplaceText += `\n* {{subst:AfC redirect${acceptedPages.length > 1 ? '|all' : ''}}} ~~~~`;
                                 newPageText = newPageText.replace(sectionTextBefore, sectionReplaceText);
@@ -664,7 +657,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                         } else if (allRequestsClosed) newPageText = newPageText.replace(sectionReplaceText, `{{AfC-c|${firstCloseReason}}}\n${sectionReplaceText}\n{{AfC-c|b}}`);
                     }
 
-                    if (dryRun || this.beforeText + this.pageContent === newPageText) return;
+                    if (this.beforeText + this.pageContent === newPageText) return;
 
                     const mappedCounts = Object.entries(counts)
                         .filter(([, count]) => count > 0)
@@ -676,7 +669,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                     mw.notify('All redirect requests handled, reloading...');
 
                     window.location.reload();
-                } else showActionsDialog.addLogEntry(`No requests ${dryRun ? 'will be' : 'have been'} handled!`);
+                } else showActionsDialog.addLogEntry('No requests have been handled!');
             }
         }
 

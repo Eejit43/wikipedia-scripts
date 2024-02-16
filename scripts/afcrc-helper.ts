@@ -110,7 +110,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
         private requestPageType: 'redirect' | 'category';
         private pageTitle!: string;
 
-        private redirectTemplates!: Record<string, string[]>;
+        private redirectTemplateItems!: OO.ui.MenuOptionWidget[];
 
         private beforeText!: string;
         private pageContent!: string;
@@ -188,7 +188,9 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                             titles: 'User:Eejit43/scripts/redirect-helper.json',
                         } satisfies ApiQueryRevisionsParams)
                         .then((response) => {
-                            this.redirectTemplates = JSON.parse((response as PageRevisionsResult).query.pages?.[0]?.revisions?.[0]?.slots?.main?.content || '{}') as Record<string, string[]>;
+                            this.redirectTemplateItems = Object.keys(
+                                JSON.parse((response as PageRevisionsResult).query.pages?.[0]?.revisions?.[0]?.slots?.main?.content || '{}') as Record<string, string>,
+                            ).map((tag) => new OO.ui.MenuOptionWidget({ data: tag, label: tag }));
                         });
                 })
                 .next(() => {
@@ -428,8 +430,8 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                         const tagSelect = new OO.ui.MenuTagMultiselectWidget({
                             allowArbitrary: false,
                             allowReordering: false,
-                            options: Object.keys(this.redirectTemplates).map((tag) => ({ data: tag, label: tag })),
                         });
+                        tagSelect.getMenu().addItems(this.redirectTemplateItems);
                         (tagSelect.getMenu() as OO.ui.MenuSelectWidget.ConfigOptions).filterMode = 'substring';
                         tagSelect.on('change', () => {
                             const sortedTags = (tagSelect.getValue() as string[]).sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));

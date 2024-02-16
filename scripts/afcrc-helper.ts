@@ -588,7 +588,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
 
                                 if (!dryRun) for (const page of acceptedPages) this.handleAcceptedRedirect(page, actions[page], target);
 
-                                sectionReplaceText += `\n * {{subst:AfC redirect${acceptedPages.length > 1 ? '|all' : ''}}} ~~~~`;
+                                sectionReplaceText += `\n* {{subst:AfC redirect${acceptedPages.length > 1 ? '|all' : ''}}} ~~~~`;
                                 newPageText = newPageText.replace(sectionTextBefore, sectionReplaceText);
                             } else {
                                 closingId = 'd';
@@ -626,7 +626,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
             this.api.create(
                 talkName,
                 { summary: `Placing banner for [[Wikipedia:WikiProject Articles for creation|WikiProject Articles for creation]] ${this.scriptMessage}` },
-                `{{WikiProject banner shell|class=Redirect|\n{{WikiProject Articles for creation|ts=${Date.now()}|reviewer=${mw.config.get('wgUserName')}}}\n}}`,
+                `{{WikiProject banner shell|class=Redirect|\n{{WikiProject Articles for creation|ts={{subst:LOCALTIMESTAMP}}|reviewer=${mw.config.get('wgUserName')}}}\n}}`,
             );
         }
     }

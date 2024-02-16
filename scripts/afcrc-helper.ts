@@ -93,7 +93,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
         comment?: string;
     }
 
-    type RedirectAction = Action & { denyReason?: string; closingReason?: { name: string; id: string } };
+    type RedirectAction = Action & { redirectTemplates?: string[]; denyReason?: string; closingReason?: { name: string; id: string } };
 
     type RedirectActions = Record<string, Record<string, RedirectAction>>;
 
@@ -109,6 +109,8 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
 
         private requestPageType: 'redirect' | 'category';
         private pageTitle!: string;
+
+        private redirectTemplates!: Record<string, string[]>;
 
         private beforeText!: string;
         private pageContent!: string;
@@ -173,23 +175,39 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
     max-width: 50%;
 }`);
 
-            return AfcrcHelperDialog.super.prototype.getSetupProcess.call(this).next(() => {
-                return this.api
-                    .get({
-                        action: 'query',
-                        formatversion: '2',
-                        prop: 'revisions',
-                        rvprop: 'content',
-                        rvslots: 'main',
-                        titles: this.pageTitle,
-                    } satisfies ApiQueryRevisionsParams)
-                    .then((response) => {
-                        this.pageContent = (response as PageRevisionsResult).query.pages[0].revisions[0].slots.main.content.trim();
+            return AfcrcHelperDialog.super.prototype.getSetupProcess
+                .call(this)
+                .next(() => {
+                    return this.api
+                        .get({
+                            action: 'query',
+                            formatversion: '2',
+                            prop: 'revisions',
+                            rvprop: 'content',
+                            rvslots: 'main',
+                            titles: 'User:Eejit43/scripts/redirect-helper.json',
+                        } satisfies ApiQueryRevisionsParams)
+                        .then((response) => {
+                            this.redirectTemplates = JSON.parse((response as PageRevisionsResult).query.pages?.[0]?.revisions?.[0]?.slots?.main?.content || '{}') as Record<string, string[]>;
+                        });
+                })
+                .next(() => {
+                    return this.api
+                        .get({
+                            action: 'query',
+                            formatversion: '2',
+                            prop: 'revisions',
+                            rvprop: 'content',
+                            rvslots: 'main',
+                            titles: this.pageTitle,
+                        } satisfies ApiQueryRevisionsParams)
+                        .then((response) => {
+                            this.pageContent = (response as PageRevisionsResult).query.pages[0].revisions[0].slots.main.content.trim();
 
-                        this.parseRequests();
-                        this.loadInputElements();
-                    });
-            });
+                            this.parseRequests();
+                            this.loadInputElements();
+                        });
+                });
         };
 
         getActionProcess = (action: string) => {
@@ -377,25 +395,52 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                                 delete this.actionsToTake[request.target][requestedTitle].comment;
                             }
 
-                            if (option === 'deny') {
-                                denyReasonLayout.$element.show();
+                            tagSelectLayout.$element.hide();
+                            denyReasonLayout.$element.hide();
+                            closingReasonLayout.$element.hide();
 
-                                (this.actionsToTake as RedirectActions)[request.target][requestedTitle].denyReason = denyReason.getValue();
-                            } else if (option === 'close') {
-                                closingReasonLayout.$element.show();
+                            switch (option) {
+                                case 'accept': {
+                                    tagSelectLayout.$element.show();
 
-                                const selected = closingReason.getMenu().findSelectedItem() as OO.ui.MenuOptionWidget;
-                                (this.actionsToTake as RedirectActions)[request.target][requestedTitle].closingReason = { name: selected.getLabel() as string, id: selected.getData() as string };
+                                    (this.actionsToTake as RedirectActions)[request.target][requestedTitle].redirectTemplates = tagSelect.getValue() as string[];
 
-                                delete (this.actionsToTake as RedirectActions)[request.target][requestedTitle].denyReason;
-                            } else {
-                                denyReasonLayout.$element.hide();
-                                closingReasonLayout.$element.hide();
+                                    break;
+                                }
+                                case 'deny': {
+                                    denyReasonLayout.$element.show();
 
-                                delete (this.actionsToTake as RedirectActions)[request.target][requestedTitle].denyReason;
-                                delete (this.actionsToTake as RedirectActions)[request.target][requestedTitle].closingReason;
+                                    (this.actionsToTake as RedirectActions)[request.target][requestedTitle].denyReason = denyReason.getValue();
+
+                                    break;
+                                }
+                                case 'close': {
+                                    closingReasonLayout.$element.show();
+
+                                    const selected = closingReason.getMenu().findSelectedItem() as OO.ui.MenuOptionWidget;
+                                    (this.actionsToTake as RedirectActions)[request.target][requestedTitle].closingReason = { name: selected.getLabel() as string, id: selected.getData() as string };
+
+                                    break;
+                                }
                             }
                         });
+
+                        const tagSelect = new OO.ui.MenuTagMultiselectWidget({
+                            allowArbitrary: false,
+                            allowReordering: false,
+                            options: Object.keys(this.redirectTemplates).map((tag) => ({ data: tag, label: tag })),
+                        });
+                        (tagSelect.getMenu() as OO.ui.MenuSelectWidget.ConfigOptions).filterMode = 'substring';
+                        tagSelect.on('change', () => {
+                            const sortedTags = (tagSelect.getValue() as string[]).sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
+
+                            if ((tagSelect.getValue() as string[]).join(';') !== sortedTags.join(';')) tagSelect.setValue(sortedTags);
+
+                            (this.actionsToTake as RedirectActions)[request.target][requestedTitle].redirectTemplates = sortedTags;
+                        });
+
+                        const tagSelectLayout = new OO.ui.FieldLayout(tagSelect, { align: 'inline', label: 'Redirect templates' });
+                        tagSelectLayout.$element.hide();
 
                         const denyReason = new OO.ui.ComboBoxInputWidget({
                             classes: ['afcrc-closing-reason-input'],
@@ -451,7 +496,13 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                         const commentInputLayout = new OO.ui.FieldLayout(commentInput, { classes: ['afcrc-comment-input'], align: 'inline', label: 'Comment' });
                         commentInputLayout.$element.hide();
 
-                        requestedTitleDiv.append(actionRadioInput.$element[0], denyReasonLayout.$element[0], closingReasonLayout.$element[0], commentInputLayout.$element[0]);
+                        requestedTitleDiv.append(
+                            actionRadioInput.$element[0],
+                            tagSelectLayout.$element[0],
+                            denyReasonLayout.$element[0],
+                            closingReasonLayout.$element[0],
+                            commentInputLayout.$element[0],
+                        );
 
                         requestResponderElement.append(requestedTitleDiv);
                     }
@@ -619,7 +670,13 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
         }
 
         private handleAcceptedRedirect(page: string, data: RedirectAction, target: string) {
-            this.api.create(page, { summary: `Creating redirect to [[${target}]] as requested at [[WP:AFC/R]]${this.scriptMessage}` }, `#REDIRECT [[${target}]]`);
+            const mappedTags = data.redirectTemplates && data.redirectTemplates.length > 0 ? data.redirectTemplates?.map((tag) => `{{${tag}}}`).join('\n') : null;
+
+            this.api.create(
+                page,
+                { summary: `Creating redirect to [[${target}]] as requested at [[WP:AFC/R]]${this.scriptMessage}` },
+                `#REDIRECT [[${target}]]${mappedTags ? `\n\n{{Redirect category shell|\n${mappedTags}\n}}` : ''}`,
+            );
 
             const talkName = mw.Title.newFromText(page)!.getTalkPage()!.getPrefixedText();
 

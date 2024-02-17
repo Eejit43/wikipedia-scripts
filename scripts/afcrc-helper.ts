@@ -58,10 +58,6 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
             return this;
         };
 
-        getBodyHeight = () => {
-            return this.contentLayout.$element.outerHeight(true)!;
-        };
-
         /**
          * Adds a log entry to the dialog.
          * @param message The message to add.
@@ -291,12 +287,12 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                 const handle = () => {
                     (this as unknown as { title: OO.ui.LabelWidget }).title.setLabel(`afcrc-helper (loaded ${index + 1}/${this.parsedRequests.length})`);
 
-                    this.loadRedirectRequest(this.parsedRequests[index] as RedirectRequestData);
+                    this.loadRedirectRequestElements(this.parsedRequests[index] as RedirectRequestData);
 
                     if (index < this.parsedRequests.length - 1) {
                         index++;
                         setTimeout(handle, 0);
-                    } else (this as unknown as { title: OO.ui.LabelWidget }).title.setLabel('afcrc-helper (all loaded)');
+                    } else (this as unknown as { title: OO.ui.LabelWidget }).title.setLabel(`afcrc-helper (${this.parsedRequests.length} loaded)`);
                 };
 
                 handle();
@@ -314,9 +310,14 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                 }
         }
 
-        private loadRedirectRequest(request: RedirectRequestData) {
+        /**
+         * Loads a given redirect request into the dialog.
+         * @param request The request to load.
+         */
+        private loadRedirectRequestElements(request: RedirectRequestData) {
             const detailsElement = document.createElement('details');
             detailsElement.classList.add('afcrc-helper-request');
+            detailsElement.addEventListener('click', () => setTimeout(() => this.updateSize(), 0));
 
             const summaryElement = document.createElement('summary');
             summaryElement.innerHTML = request.pages.map((page) => `<b>${page}</b>`).join(', ') + ' → ';
@@ -393,6 +394,8 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                 });
                 actionRadioInput.selectItemByLabel('None');
                 actionRadioInput.on('choose', () => {
+                    setTimeout(() => this.updateSize(), 0);
+
                     const option = ((actionRadioInput.findSelectedItem() as OO.ui.RadioOptionWidget).getData() as string).toLowerCase() as ActionType;
 
                     this.actionsToTake[request.target][requestedTitle].action = option;
@@ -408,6 +411,8 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
 
                         delete this.actionsToTake[request.target][requestedTitle].comment;
                     }
+
+                    this.updateRequestColor(detailsElement, request.target);
 
                     tagSelectLayout.$element.hide();
                     denyReasonLayout.$element.hide();
@@ -493,8 +498,11 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                     const selected = closingReason.getMenu().findSelectedItem() as OO.ui.MenuOptionWidget;
 
                     (this.actionsToTake as RedirectActions)[request.target][requestedTitle].closingReason = { name: selected.getLabel() as string, id: selected.getData() as string };
+
+                    this.updateRequestColor(detailsElement, request.target);
                 });
                 closingReason.getMenu().selectItemByLabel('No response');
+                (this.actionsToTake as RedirectActions)[request.target][requestedTitle].closingReason = { name: 'No response', id: 'r' };
 
                 const closingReasonLayout = new OO.ui.FieldLayout(closingReason, { align: 'inline', label: 'Closing reason' });
                 closingReasonLayout.$element.hide();
@@ -520,6 +528,36 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
             (this as unknown as { $body: JQuery }).$body.append(detailsElement);
 
             this.updateSize();
+        }
+
+        /**
+         * Updates the color of a details element based on the handling of the requests inside.
+         * @param detailsElement The details element to update.
+         * @param target The redirect target.
+         */
+        private updateRequestColor(detailsElement: HTMLDetailsElement, target: string) {
+            const actionsToTake = Object.values(this.actionsToTake[target]) as RedirectAction[];
+
+            const allRequestsAcceptedDenied = actionsToTake.every((action) => action.action === 'accept' || action.action === 'deny');
+
+            const firstCloseReason = actionsToTake.find((action) => action.action === 'close')?.closingReason?.id;
+            const allRequestsClosed = actionsToTake.every((action) => action.action === 'close' && action.closingReason?.id === firstCloseReason);
+
+            let backgroundColor = '';
+
+            if (allRequestsAcceptedDenied) {
+                const acceptedCount = actionsToTake.filter((action) => action.action === 'accept').length;
+                const deniedCount = actionsToTake.filter((action) => action.action === 'deny').length;
+
+                if (acceptedCount > 0 && deniedCount > 0) backgroundColor = '#fff17e';
+                else if (acceptedCount > 0) backgroundColor = '#a0ffa0';
+                else backgroundColor = '#ffcece';
+            } else if (allRequestsClosed)
+                if (firstCloseReason === 'r') backgroundColor = '#ffcece';
+                else if (firstCloseReason === 's') backgroundColor = '#90c090';
+                else backgroundColor = '#b8b8b8';
+
+            detailsElement.style.backgroundColor = backgroundColor;
         }
 
         /**
@@ -673,6 +711,12 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
             }
         }
 
+        /**
+         * Handles the creation of pages related to an accepted redirect request.
+         * @param page The requested page.
+         * @param data The data of the requested page.
+         * @param target The target of the requested page.
+         */
         private handleAcceptedRedirect(page: string, data: RedirectAction, target: string) {
             const mappedTags = data.redirectTemplates && data.redirectTemplates.length > 0 ? data.redirectTemplates?.map((tag) => `{{${tag}}}`).join('\n') : null;
 

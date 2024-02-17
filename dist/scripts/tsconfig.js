@@ -1,0 +1,7 @@
+// <nowiki>
+// Note: This script was compiled and minified from TypeScript. For a more readable version, see https://github.com/Eejit43/wikipedia-scripts/blob/main/scripts/tsconfig.json
+
+module.exports={extends:"@tsconfig/recommended/tsconfig.json",compilerOptions:{lib:["DOM","DOM.Iterable","ESNext"],removeComments:!0},include:["*.ts","../global-types.ts","../node_modules/types-mediawiki"]};
+
+// </nowiki>
+//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsiLi4vLi4vc2NyaXB0cy90c2NvbmZpZy5qc29uIl0sCiAgInNvdXJjZXNDb250ZW50IjogWyJ7XG4gICAgXCJleHRlbmRzXCI6IFwiQHRzY29uZmlnL3JlY29tbWVuZGVkL3RzY29uZmlnLmpzb25cIixcbiAgICBcImNvbXBpbGVyT3B0aW9uc1wiOiB7XG4gICAgICAgIFwibGliXCI6IFtcIkRPTVwiLCBcIkRPTS5JdGVyYWJsZVwiLCBcIkVTTmV4dFwiXSxcbiAgICAgICAgXCJyZW1vdmVDb21tZW50c1wiOiB0cnVlXG4gICAgfSxcbiAgICBcImluY2x1ZGVcIjogW1wiKi50c1wiLCBcIi4uL2dsb2JhbC10eXBlcy50c1wiLCBcIi4uL25vZGVfbW9kdWxlcy90eXBlcy1tZWRpYXdpa2lcIl1cbn1cbiJdLAogICJtYXBwaW5ncyI6ICI7OztBQUFBLGdCQUNJLFFBQVcsc0NBQ1gsZ0JBQW1CLENBQ2YsSUFBTyxDQUFDLE1BQU8sZUFBZ0IsUUFBUSxFQUN2QyxlQUFrQixFQUN0QixFQUNBLFFBQVcsQ0FBQyxPQUFRLHFCQUFzQixpQ0FBaUMsQ0FDL0UiLAogICJuYW1lcyI6IFtdCn0K

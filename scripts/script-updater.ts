@@ -226,19 +226,9 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                 await this.editOrCreate(subpageTalkName, '#REDIRECT [[User talk:Eejit43]]', 'Redirecting script documentation talk page to main user talk page');
             }
 
-            if (scriptContent)
-                await this.editOrCreate(
-                    scriptName,
-                    `// <nowiki>\n// Note: This script was compiled from TypeScript. For a more readable version, see https://github.com/${this.repoOwner}/${this.repoName}/blob/main/scripts/${script.name}.ts\n\n${scriptContent}\n// </nowiki>`,
-                    'Syncing script from GitHub',
-                );
+            if (scriptContent) await this.editOrCreate(scriptName, scriptContent, 'Syncing script from GitHub');
 
-            if (script.css && styleContent)
-                await this.editOrCreate(
-                    styleName,
-                    `/* <nowiki> */\n/* Note: This script was compiled from modern CSS. For a more readable version, see https://github.com/${this.repoOwner}/${this.repoName}/blob/main/styles/${script.name}.css */\n\n${styleContent}\n/* </nowiki> */`,
-                    'Syncing styles from GitHub',
-                );
+            if (script.css && styleContent) await this.editOrCreate(styleName, styleContent, 'Syncing styles from GitHub');
         }
 
         /**

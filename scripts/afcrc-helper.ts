@@ -288,12 +288,14 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                 let index = 0;
 
                 const handle = () => {
-                    (this as unknown as { title: OO.ui.LabelWidget }).title.setLabel(`afcrc-helper (loaded ${index + 1}/${this.parsedRequests.length})`);
+                    const batchSize = 5;
+                    const endIndex = Math.min(index + batchSize, this.parsedRequests.length);
+                    (this as unknown as { title: OO.ui.LabelWidget }).title.setLabel(`afcrc-helper (loaded ${index + 1}-${endIndex}/${this.parsedRequests.length})`);
 
-                    this.loadRedirectRequestElements(index);
+                    for (let subIndex = index; subIndex < endIndex; subIndex++) this.loadRedirectRequestElements(subIndex);
 
-                    if (index < this.parsedRequests.length - 1) {
-                        index++;
+                    if (endIndex < this.parsedRequests.length) {
+                        index = endIndex;
                         setTimeout(handle, 0);
                     } else (this as unknown as { title: OO.ui.LabelWidget }).title.setLabel(`afcrc-helper (${this.parsedRequests.length} loaded)`);
                 };
@@ -419,13 +421,32 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
 
                     this.updateRequestColor(detailsElement, index);
 
-                    tagSelectLayout.$element.hide();
+                    const tagSelectElement = requestedTitleDiv.querySelector('.afcrc-helper-tag-select-layout');
+                    if (tagSelectElement) tagSelectElement.remove();
+
                     denyReasonLayout.$element.hide();
                     closingReasonLayout.$element.hide();
 
                     switch (option) {
                         case 'accept': {
-                            tagSelectLayout.$element.show();
+                            const tagSelect = new OO.ui.MenuTagMultiselectWidget({
+                                allowArbitrary: false,
+                                allowReordering: false,
+                                options: this.redirectTemplateItems,
+                            });
+                            (tagSelect.getMenu() as OO.ui.MenuSelectWidget.ConfigOptions).filterMode = 'substring';
+                            tagSelect.on('change', () => {
+                                const sortedTags = (tagSelect.getValue() as string[]).sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
+
+                                if ((tagSelect.getValue() as string[]).join(';') !== sortedTags.join(';')) tagSelect.setValue(sortedTags);
+
+                                (this.actionsToTake as RedirectActions)[index].requests[requestedTitle].redirectTemplates = sortedTags;
+                            });
+                            tagSelect.setValue((this.actionsToTake as RedirectActions)[index].requests[requestedTitle].redirectTemplates ?? []);
+
+                            const tagSelectLayout = new OO.ui.FieldLayout(tagSelect, { classes: ['afcrc-helper-tag-select-layout'], align: 'inline', label: 'Redirect templates' });
+
+                            requestedTitleDiv.append(tagSelectLayout.$element[0]);
 
                             (this.actionsToTake as RedirectActions)[index].requests[requestedTitle].redirectTemplates = tagSelect.getValue() as string[];
 
@@ -448,23 +469,6 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                         }
                     }
                 });
-
-                const tagSelect = new OO.ui.MenuTagMultiselectWidget({
-                    allowArbitrary: false,
-                    allowReordering: false,
-                    options: this.redirectTemplateItems,
-                });
-                (tagSelect.getMenu() as OO.ui.MenuSelectWidget.ConfigOptions).filterMode = 'substring';
-                tagSelect.on('change', () => {
-                    const sortedTags = (tagSelect.getValue() as string[]).sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
-
-                    if ((tagSelect.getValue() as string[]).join(';') !== sortedTags.join(';')) tagSelect.setValue(sortedTags);
-
-                    (this.actionsToTake as RedirectActions)[index].requests[requestedTitle].redirectTemplates = sortedTags;
-                });
-
-                const tagSelectLayout = new OO.ui.FieldLayout(tagSelect, { align: 'inline', label: 'Redirect templates' });
-                tagSelectLayout.$element.hide();
 
                 const denyReason = new OO.ui.ComboBoxInputWidget({
                     classes: ['afcrc-closing-reason-input'],
@@ -523,7 +527,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                 const commentInputLayout = new OO.ui.FieldLayout(commentInput, { classes: ['afcrc-comment-input'], align: 'inline', label: 'Comment' });
                 commentInputLayout.$element.hide();
 
-                requestedTitleDiv.append(actionRadioInput.$element[0], tagSelectLayout.$element[0], denyReasonLayout.$element[0], closingReasonLayout.$element[0], commentInputLayout.$element[0]);
+                requestedTitleDiv.append(actionRadioInput.$element[0], denyReasonLayout.$element[0], closingReasonLayout.$element[0], commentInputLayout.$element[0]);
 
                 requestResponderElement.append(requestedTitleDiv);
             }

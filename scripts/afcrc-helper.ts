@@ -92,9 +92,9 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
 
     type RedirectAction = Action & { redirectTemplates?: string[]; denyReason?: string; closingReason?: { name: string; id: string } };
 
-    type RedirectActions = Record<string, Record<string, RedirectAction>>;
+    type RedirectActions = { target: string; requests: Record<string, RedirectAction> }[];
 
-    type CategoryActions = Record<string, Record<string, Action>>;
+    type CategoryActions = { target: string; requests: Record<string, Action> }[];
 
     /**
      * An instance of this class is a dialog that handles redirect and category requests.
@@ -113,7 +113,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
         private pageContent!: string;
 
         private parsedRequests: RedirectRequestData[] | CategoryRequestData[] = [];
-        private actionsToTake: RedirectActions | CategoryActions = {};
+        private actionsToTake: RedirectActions | CategoryActions = [];
 
         constructor(requestPageType: 'redirect' | 'category', pageTitle: string) {
             super({ size: 'large' });
@@ -270,9 +270,12 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
 
                     this.parsedRequests.push(parsedData);
 
-                    this.actionsToTake[parsedData.target] = Object.fromEntries(requestedPages.map((page) => [page, { originalText: sectionText.replace(/^==.*?==$/m, '').trim(), action: 'none' }]));
+                    this.actionsToTake.push({
+                        target: parsedData.target,
+                        requests: Object.fromEntries(requestedPages.map((page) => [page, { originalText: sectionText.replace(/^==.*?==$/m, '').trim(), action: 'none' }])),
+                    });
                 } else {
-                    const parsedData = {} as RedirectRequestData;
+                    const parsedData = {} as CategoryRequestData;
                 }
             }
         }
@@ -287,7 +290,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                 const handle = () => {
                     (this as unknown as { title: OO.ui.LabelWidget }).title.setLabel(`afcrc-helper (loaded ${index + 1}/${this.parsedRequests.length})`);
 
-                    this.loadRedirectRequestElements(this.parsedRequests[index] as RedirectRequestData);
+                    this.loadRedirectRequestElements(index);
 
                     if (index < this.parsedRequests.length - 1) {
                         index++;
@@ -312,9 +315,11 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
 
         /**
          * Loads a given redirect request into the dialog.
-         * @param request The request to load.
+         * @param index The index of the request to load.
          */
-        private loadRedirectRequestElements(request: RedirectRequestData) {
+        private loadRedirectRequestElements(index: number) {
+            const request = this.parsedRequests[index] as RedirectRequestData;
+
             const detailsElement = document.createElement('details');
             detailsElement.classList.add('afcrc-helper-request');
             detailsElement.addEventListener('click', () => setTimeout(() => this.updateSize(), 0));
@@ -398,21 +403,21 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
 
                     const option = ((actionRadioInput.findSelectedItem() as OO.ui.RadioOptionWidget).getData() as string).toLowerCase() as ActionType;
 
-                    this.actionsToTake[request.target][requestedTitle].action = option;
+                    this.actionsToTake[index].requests[requestedTitle].action = option;
 
                     if (['comment', 'close'].includes(option)) {
                         commentInputLayout.$element.show();
 
                         const comment = commentInput.getValue().trim();
-                        if (comment) this.actionsToTake[request.target][requestedTitle].comment = comment;
-                        else delete this.actionsToTake[request.target][requestedTitle].comment;
+                        if (comment) this.actionsToTake[index].requests[requestedTitle].comment = comment;
+                        else delete this.actionsToTake[index].requests[requestedTitle].comment;
                     } else {
                         commentInputLayout.$element.hide();
 
-                        delete this.actionsToTake[request.target][requestedTitle].comment;
+                        delete this.actionsToTake[index].requests[requestedTitle].comment;
                     }
 
-                    this.updateRequestColor(detailsElement, request.target);
+                    this.updateRequestColor(detailsElement, index);
 
                     tagSelectLayout.$element.hide();
                     denyReasonLayout.$element.hide();
@@ -422,14 +427,14 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                         case 'accept': {
                             tagSelectLayout.$element.show();
 
-                            (this.actionsToTake as RedirectActions)[request.target][requestedTitle].redirectTemplates = tagSelect.getValue() as string[];
+                            (this.actionsToTake as RedirectActions)[index].requests[requestedTitle].redirectTemplates = tagSelect.getValue() as string[];
 
                             break;
                         }
                         case 'deny': {
                             denyReasonLayout.$element.show();
 
-                            (this.actionsToTake as RedirectActions)[request.target][requestedTitle].denyReason = denyReason.getValue();
+                            (this.actionsToTake as RedirectActions)[index].requests[requestedTitle].denyReason = denyReason.getValue();
 
                             break;
                         }
@@ -437,7 +442,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                             closingReasonLayout.$element.show();
 
                             const selected = closingReason.getMenu().findSelectedItem() as OO.ui.MenuOptionWidget;
-                            (this.actionsToTake as RedirectActions)[request.target][requestedTitle].closingReason = { name: selected.getLabel() as string, id: selected.getData() as string };
+                            (this.actionsToTake as RedirectActions)[index].requests[requestedTitle].closingReason = { name: selected.getLabel() as string, id: selected.getData() as string };
 
                             break;
                         }
@@ -455,7 +460,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
 
                     if ((tagSelect.getValue() as string[]).join(';') !== sortedTags.join(';')) tagSelect.setValue(sortedTags);
 
-                    (this.actionsToTake as RedirectActions)[request.target][requestedTitle].redirectTemplates = sortedTags;
+                    (this.actionsToTake as RedirectActions)[index].requests[requestedTitle].redirectTemplates = sortedTags;
                 });
 
                 const tagSelectLayout = new OO.ui.FieldLayout(tagSelect, { align: 'inline', label: 'Redirect templates' });
@@ -476,7 +481,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                     ].map(([value, label]) => ({ data: `autofill:${value}`, label: `Autofilled text for ${label}` })),
                 });
                 denyReason.getMenu().on('choose', () => {
-                    (this.actionsToTake as RedirectActions)[request.target][requestedTitle].denyReason = denyReason.getValue();
+                    (this.actionsToTake as RedirectActions)[index].requests[requestedTitle].denyReason = denyReason.getValue();
                 });
                 denyReason.setValue('autofill:unlikely');
                 denyReason.getMenu().selectItemByData('autofill:unlikely');
@@ -497,12 +502,12 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                 closingReason.getMenu().on('choose', () => {
                     const selected = closingReason.getMenu().findSelectedItem() as OO.ui.MenuOptionWidget;
 
-                    (this.actionsToTake as RedirectActions)[request.target][requestedTitle].closingReason = { name: selected.getLabel() as string, id: selected.getData() as string };
+                    (this.actionsToTake as RedirectActions)[index].requests[requestedTitle].closingReason = { name: selected.getLabel() as string, id: selected.getData() as string };
 
-                    this.updateRequestColor(detailsElement, request.target);
+                    this.updateRequestColor(detailsElement, index);
                 });
-                closingReason.getMenu().selectItemByLabel('No response');
-                (this.actionsToTake as RedirectActions)[request.target][requestedTitle].closingReason = { name: 'No response', id: 'r' };
+                closingReason.getMenu().selectItemByData('r');
+                (this.actionsToTake as RedirectActions)[index].requests[requestedTitle].closingReason = { name: 'No response', id: 'r' };
 
                 const closingReasonLayout = new OO.ui.FieldLayout(closingReason, { align: 'inline', label: 'Closing reason' });
                 closingReasonLayout.$element.hide();
@@ -511,8 +516,8 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                 commentInput.on('change', () => {
                     const comment = commentInput.getValue().trim();
 
-                    if (comment) this.actionsToTake[request.target][requestedTitle].comment = comment;
-                    else delete this.actionsToTake[request.target][requestedTitle].comment;
+                    if (comment) this.actionsToTake[index].requests[requestedTitle].comment = comment;
+                    else delete this.actionsToTake[index].requests[requestedTitle].comment;
                 });
 
                 const commentInputLayout = new OO.ui.FieldLayout(commentInput, { classes: ['afcrc-comment-input'], align: 'inline', label: 'Comment' });
@@ -533,10 +538,10 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
         /**
          * Updates the color of a details element based on the handling of the requests inside.
          * @param detailsElement The details element to update.
-         * @param target The redirect target.
+         * @param index The index of the redirect target.
          */
-        private updateRequestColor(detailsElement: HTMLDetailsElement, target: string) {
-            const actionsToTake = Object.values(this.actionsToTake[target]) as RedirectAction[];
+        private updateRequestColor(detailsElement: HTMLDetailsElement, index: number) {
+            const actionsToTake = Object.values((this.actionsToTake as RedirectActions)[index].requests);
 
             const allRequestsAcceptedDenied = actionsToTake.every((action) => action.action === 'accept' || action.action === 'deny');
 
@@ -562,7 +567,6 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
 
         /**
          * Performs all actions and logs their results.
-         * @param dryRun If true, no pages will be edited or created.
          */
         private async performActions() {
             const windowManager = new OO.ui.WindowManager();
@@ -576,15 +580,15 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
             let newPageText = this.beforeText + this.pageContent;
 
             if (this.requestPageType === 'redirect') {
-                const anyRequestHandled = Object.values(this.actionsToTake).some((actions) => Object.values(actions).some((action) => action.action !== 'none'));
+                const anyRequestHandled = this.actionsToTake.some((actionData) => Object.values(actionData.requests).some((action) => action.action !== 'none'));
 
                 if (anyRequestHandled) {
-                    for (const [target, actions] of Object.entries(this.actionsToTake)) {
-                        const someRequestAcceptedDenied = Object.values(actions).some((action) => action.action === 'accept' || action.action === 'deny');
-                        const allRequestsAcceptedDenied = Object.values(actions).every((action) => action.action === 'accept' || action.action === 'deny');
+                    for (const { target, requests } of this.actionsToTake) {
+                        const someRequestAcceptedDenied = Object.values(requests).some((action) => action.action === 'accept' || action.action === 'deny');
+                        const allRequestsAcceptedDenied = Object.values(requests).every((action) => action.action === 'accept' || action.action === 'deny');
 
-                        const firstCloseReason = Object.values(actions as Record<string, RedirectAction>).find((action) => action.action === 'close')?.closingReason?.id;
-                        const allRequestsClosed = Object.values(actions as Record<string, RedirectAction>).every(
+                        const firstCloseReason = Object.values(requests as Record<string, RedirectAction>).find((action) => action.action === 'close')?.closingReason?.id;
+                        const allRequestsClosed = Object.values(requests as Record<string, RedirectAction>).every(
                             (action) => action.action === 'close' && action.closingReason?.id === firstCloseReason,
                         );
 
@@ -592,9 +596,9 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                         const deniedPages = [];
                         const comments = [];
 
-                        const amountOfPages = Object.keys(actions).length;
+                        const amountOfPages = Object.keys(requests).length;
 
-                        for (const [requestedTitle, action] of Object.entries(actions) as [string, RedirectAction][]) {
+                        for (const [requestedTitle, action] of Object.entries(requests) as [string, RedirectAction][]) {
                             const messagePrefix = `The request to create "${requestedTitle}" → "${target}" has been `;
                             const commentedMessage = action.comment ? ' and commented on' : '';
 
@@ -647,12 +651,12 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                             }
                         }
 
-                        let sectionReplaceText = Object.values(actions)[0].originalText;
+                        let sectionReplaceText = Object.values(requests)[0].originalText;
 
                         if (comments.length > 0) {
                             sectionReplaceText += '\n' + comments.map((comment) => `* {{AfC comment|1=${comment}}} ~~~~`).join('\n');
 
-                            newPageText = newPageText.replace(Object.values(actions)[0].originalText, sectionReplaceText);
+                            newPageText = newPageText.replace(Object.values(requests)[0].originalText, sectionReplaceText);
                         }
 
                         if (someRequestAcceptedDenied) {
@@ -668,14 +672,14 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                                     ([page, reason]) => `* {{subst:AfC redirect|${reason.startsWith('autofill:') ? reason.replace('autofill:', '') : `decline|1=${reason}`}}} [${page}] ~~~~`,
                                 );
 
-                                for (const page of acceptedPages) this.handleAcceptedRedirect(page, actions[page], target);
+                                for (const page of acceptedPages) this.handleAcceptedRedirect(page, requests[page], target);
 
                                 sectionReplaceText += '\n' + mappedAcceptedPages.join('\n') + '\n' + mappedDeniedPages.join('\n');
                                 newPageText = newPageText.replace(sectionTextBefore, sectionReplaceText);
                             } else if (acceptedPages.length > 0) {
                                 closingId = 'a';
 
-                                for (const page of acceptedPages) this.handleAcceptedRedirect(page, actions[page], target);
+                                for (const page of acceptedPages) this.handleAcceptedRedirect(page, requests[page], target);
 
                                 sectionReplaceText += `\n* {{subst:AfC redirect${acceptedPages.length > 1 ? '|all' : ''}}} ~~~~`;
                                 newPageText = newPageText.replace(sectionTextBefore, sectionReplaceText);

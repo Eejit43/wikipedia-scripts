@@ -1,5 +1,5 @@
-import { ApiQueryRevisionsParams } from 'types-mediawiki/api_params';
-import { PageRevisionsResult } from '../global-types';
+import { ApiEditPageParams, ApiQueryRevisionsParams } from 'types-mediawiki/api_params';
+import { MediaWikiDataError, PageRevisionsResult } from '../global-types';
 
 mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-windows'], () => {
     const isRedirectRequestPage = mw.config.get('wgPageName') === 'Wikipedia:Articles_for_creation/Redirects';
@@ -28,9 +28,10 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
     class ShowActionsDialog extends OO.ui.Dialog {
         private contentLayout!: OO.ui.PanelLayout;
         private logOutput!: HTMLDivElement;
+        private closeButton!: OO.ui.ButtonWidget;
 
         constructor() {
-            super({ size: 'medium' });
+            super({ size: 'large' });
 
             ShowActionsDialog.static.name = 'ShowActionsDialog';
             ShowActionsDialog.static.title = 'Actions';
@@ -50,10 +51,10 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
             this.logOutput = document.createElement('div');
             this.logOutput.classList.add('afcrc-helper-actions-container');
 
-            const closeButton = new OO.ui.ButtonWidget({ label: 'Close', flags: ['safe', 'close'] });
-            closeButton.on('click', () => this.close());
+            this.closeButton = new OO.ui.ButtonWidget({ label: 'Close', flags: ['safe', 'close'] });
+            this.closeButton.on('click', () => this.close());
 
-            this.contentLayout.$element.append(this.logOutput, closeButton.$element);
+            this.contentLayout.$element.append(this.logOutput, this.closeButton.$element);
 
             return this;
         };
@@ -61,12 +62,28 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
         /**
          * Adds a log entry to the dialog.
          * @param message The message to add.
+         * @param type The message type.
          */
-        public addLogEntry(message: string) {
-            const logEntry = document.createElement('div');
-            logEntry.textContent = message;
+        public addLogEntry(message: string, type: OO.ui.MessageWidget.Type = 'notice') {
+            const messageWidget = new OO.ui.MessageWidget({ type, inline: true, label: message });
 
-            this.logOutput.append(logEntry);
+            this.logOutput.append(messageWidget.$element[0]);
+
+            this.updateSize();
+
+            this.closeButton.scrollElementIntoView();
+        }
+
+        /**
+         * Removes the close button and adds a reload button.
+         */
+        public showReload() {
+            this.closeButton.$element.remove();
+
+            const reloadButton = new OO.ui.ButtonWidget({ label: 'Reload', flags: ['primary'] });
+            reloadButton.on('click', () => window.location.reload());
+
+            this.contentLayout.$element.append(reloadButton.$element);
         }
     }
 
@@ -114,6 +131,10 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
 
         private parsedRequests: RedirectRequestData[] | CategoryRequestData[] = [];
         private actionsToTake: RedirectActions | CategoryActions = [];
+        private editsCreationsToMake: (
+            | { type: 'edit'; title: string; transform: (data: { content: string }) => ApiEditPageParams }
+            | { type: 'create'; title: string; text: string; summary: string }
+        )[] = [];
 
         constructor(requestPageType: 'redirect' | 'category', pageTitle: string) {
             super({ size: 'large' });
@@ -284,35 +305,24 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
          * Loads the input elements in the dialog.
          */
         private loadInputElements() {
-            if (this.requestPageType === 'redirect') {
-                let index = 0;
+            let index = 0;
 
-                const handle = () => {
-                    const batchSize = 5;
-                    const endIndex = Math.min(index + batchSize, this.parsedRequests.length);
-                    (this as unknown as { title: OO.ui.LabelWidget }).title.setLabel(`afcrc-helper (loaded ${index + 1}-${endIndex}/${this.parsedRequests.length})`);
+            const handle = () => {
+                const batchSize = 5;
+                const endIndex = Math.min(index + batchSize, this.parsedRequests.length);
+                (this as unknown as { title: OO.ui.LabelWidget }).title.setLabel(`afcrc-helper (loading ${index + 1}-${endIndex}/${this.parsedRequests.length} requests)`);
 
-                    for (let subIndex = index; subIndex < endIndex; subIndex++) this.loadRedirectRequestElements(subIndex);
+                for (let subIndex = index; subIndex < endIndex; subIndex++)
+                    if (this.requestPageType === 'redirect') this.loadRedirectRequestElements(subIndex);
+                    else this.loadCategoryRequestElements(subIndex);
 
-                    if (endIndex < this.parsedRequests.length) {
-                        index = endIndex;
-                        setTimeout(handle, 0);
-                    } else (this as unknown as { title: OO.ui.LabelWidget }).title.setLabel(`afcrc-helper (${this.parsedRequests.length} loaded)`);
-                };
+                if (endIndex < this.parsedRequests.length) {
+                    index = endIndex;
+                    setTimeout(handle, 0);
+                } else (this as unknown as { title: OO.ui.LabelWidget }).title.setLabel(`afcrc-helper (${this.parsedRequests.length} requests loaded)`);
+            };
 
-                handle();
-            } else
-                for (const request of this.parsedRequests as CategoryRequestData[]) {
-                    const detailsElement = document.createElement('details');
-                    detailsElement.classList.add('afcrc-helper-request');
-
-                    const summaryElement = document.createElement('summary');
-                    summaryElement.textContent = request.name;
-
-                    detailsElement.append(summaryElement);
-
-                    (this as unknown as { $body: JQuery }).$body.append(detailsElement);
-                }
+            handle();
         }
 
         /**
@@ -540,6 +550,12 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
         }
 
         /**
+         * Loads a given category request into the dialog.
+         * @param index The index of the request to load.
+         */
+        private loadCategoryRequestElements(index: number) {}
+
+        /**
          * Updates the color of a details element based on the handling of the requests inside.
          * @param detailsElement The details element to update.
          * @param index The index of the redirect target.
@@ -609,10 +625,8 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                             switch (action.action) {
                                 case 'accept': {
                                     if (someRequestAcceptedDenied && !allRequestsAcceptedDenied)
-                                        showActionsDialog.addLogEntry(`Not all requests to "${target}" were accepted or denied, the handling of "${requestedTitle}" will be ignored.`);
+                                        showActionsDialog.addLogEntry(`Not all requests to "${target}" were accepted or denied, the handling of "${requestedTitle}" will be ignored.`, 'warning');
                                     else {
-                                        showActionsDialog.addLogEntry(messagePrefix + `accepted${commentedMessage}.`);
-
                                         acceptedPages.push(requestedTitle);
                                         counts.accepted++;
                                     }
@@ -621,10 +635,8 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                                 }
                                 case 'deny': {
                                     if (someRequestAcceptedDenied && !allRequestsAcceptedDenied)
-                                        showActionsDialog.addLogEntry(`Not all requests to "${target}" were accepted or denied, the handling of "${requestedTitle}" is being ignored.`);
+                                        showActionsDialog.addLogEntry(`Not all requests to "${target}" were accepted or denied, the handling of "${requestedTitle}" is being ignored.`, 'warning');
                                     else {
-                                        showActionsDialog.addLogEntry(messagePrefix + 'denied.');
-
                                         deniedPages.push([requestedTitle, action.denyReason! || 'decline']);
                                         counts.denied++;
                                     }
@@ -633,23 +645,21 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                                 }
                                 case 'comment': {
                                     if (action.comment) {
-                                        showActionsDialog.addLogEntry(messagePrefix + 'commented on.');
-
                                         comments.push(`${action.comment}${amountOfPages > 1 ? ` [${requestedTitle}]` : ''}`);
-
                                         counts.commented++;
-                                    } else showActionsDialog.addLogEntry(messagePrefix + 'marked to be commented on, but no comment was provided.');
+                                    } else showActionsDialog.addLogEntry(messagePrefix + 'marked to be commented on, but no comment was provided so it will be skipped.', 'warning');
 
                                     break;
                                 }
                                 case 'close': {
                                     if (allRequestsClosed) {
-                                        showActionsDialog.addLogEntry(messagePrefix + `closed as ${action.closingReason!.name.toLowerCase()}${commentedMessage}.`);
-
                                         if (action.comment) comments.push(`${action.comment}${amountOfPages > 1 ? ` [${requestedTitle}]` : ''}`);
-
                                         counts.closed++;
-                                    } else showActionsDialog.addLogEntry(`Not all requests to "${target}" were closed with the same reason, the handling of "${requestedTitle}" is being ignored.`);
+                                    } else
+                                        showActionsDialog.addLogEntry(
+                                            `Not all requests to "${target}" were closed with the same reason, the handling of "${requestedTitle}" is being ignored.`,
+                                            'warning',
+                                        );
                                     break;
                                 }
                             }
@@ -703,18 +713,24 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                         } else if (allRequestsClosed) newPageText = newPageText.replace(sectionReplaceText, `{{AfC-c|${firstCloseReason}}}\n${sectionReplaceText}\n{{AfC-c|b}}`);
                     }
 
-                    if (this.beforeText + this.pageContent === newPageText) return;
+                    if (this.beforeText + this.pageContent === newPageText) return showActionsDialog.addLogEntry('No requests have been handled!');
 
                     const mappedCounts = Object.entries(counts)
                         .filter(([, count]) => count > 0)
                         .map(([action, count]) => `${action} ${count}`)
                         .join(', ');
 
-                    await this.api.edit(this.pageTitle, () => ({ text: newPageText, summary: `Handling AfC redirect requests (${mappedCounts})${this.scriptMessage}` }));
+                    this.editsCreationsToMake.push({
+                        type: 'edit',
+                        title: this.pageTitle,
+                        transform: () => ({ text: newPageText, summary: `Handling AfC redirect requests (${mappedCounts})${this.scriptMessage}` }),
+                    });
 
-                    mw.notify('All redirect requests handled, reloading...');
+                    await this.makeAllEditsCreations(showActionsDialog);
 
-                    window.location.reload();
+                    showActionsDialog.addLogEntry('All redirect requests handled, click below to reload!', 'success');
+
+                    showActionsDialog.showReload();
                 } else showActionsDialog.addLogEntry('No requests have been handled!');
             }
         }
@@ -728,19 +744,47 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
         private handleAcceptedRedirect(page: string, data: RedirectAction, target: string) {
             const mappedTags = data.redirectTemplates && data.redirectTemplates.length > 0 ? data.redirectTemplates?.map((tag) => `{{${tag}}}`).join('\n') : null;
 
-            this.api.create(
-                page,
-                { summary: `Creating redirect to [[${target}]] as requested at [[WP:AFC/R]]${this.scriptMessage}` },
-                `#REDIRECT [[${target}]]${mappedTags ? `\n\n{{Redirect category shell|\n${mappedTags}\n}}` : ''}`,
+            this.editsCreationsToMake.push(
+                {
+                    type: 'create',
+                    title: page,
+                    text: `#REDIRECT [[${target}]]${mappedTags ? `\n\n{{Redirect category shell|\n${mappedTags}\n}}` : ''}`,
+                    summary: `Creating redirect to [[${target}]] as requested at [[WP:AFC/R]]${this.scriptMessage}`,
+                },
+                {
+                    type: 'create',
+                    title: mw.Title.newFromText(page)!.getTalkPage()!.getPrefixedText(),
+                    text: `{{WikiProject banner shell|\n{{WikiProject Articles for creation|ts={{subst:LOCALTIMESTAMP}}|reviewer=${mw.config.get('wgUserName')}}}\n}}`,
+                    summary: `Adding [[Wikipedia:WikiProject Articles for creation|WikiProject Articles for creation]] banner${this.scriptMessage}`,
+                },
             );
+        }
 
-            const talkName = mw.Title.newFromText(page)!.getTalkPage()!.getPrefixedText();
+        /**
+         * Makes all edits and creations that need to be made.
+         * @param showActionsDialog The dialog to log the results to.
+         */
+        private async makeAllEditsCreations(showActionsDialog: ShowActionsDialog) {
+            for (const action of this.editsCreationsToMake) {
+                const apiFunction = action.type === 'edit' ? this.api.edit(action.title, action.transform) : this.api.create(action.title, { summary: action.summary }, action.text);
 
-            this.api.create(
-                talkName,
-                { summary: `Placing banner for [[Wikipedia:WikiProject Articles for creation|WikiProject Articles for creation]] ${this.scriptMessage}` },
-                `{{WikiProject banner shell|\n{{WikiProject Articles for creation|ts={{subst:LOCALTIMESTAMP}}|reviewer=${mw.config.get('wgUserName')}}}\n}}`,
-            );
+                showActionsDialog.addLogEntry(`${action.type === 'edit' ? 'Editing' : 'Creating'} ${action.title}...`);
+
+                // eslint-disable-next-line no-await-in-loop
+                await apiFunction.catch(async (errorCode: string, errorInfo: MediaWikiDataError) => {
+                    if (errorCode === 'ratelimited') {
+                        showActionsDialog.addLogEntry('Rate limited. Waiting for 65 seconds...');
+                        await new Promise((resolve) => setTimeout(resolve, 65_000));
+
+                        showActionsDialog.addLogEntry('Continuing...');
+
+                        // eslint-disable-next-line no-await-in-loop
+                        await apiFunction.catch((errorCode: string, errorInfo: MediaWikiDataError) => {
+                            showActionsDialog.addLogEntry(`Error ${action.type === 'edit' ? 'editing' : 'creating'} ${action.title}: ${errorInfo?.error.info ?? 'Unknown error'} (${errorCode})`);
+                        });
+                    } else showActionsDialog.addLogEntry(`Error ${action.type === 'edit' ? 'editing' : 'creating'} ${action.title}: ${errorInfo?.error.info ?? 'Unknown error'} (${errorCode})`);
+                });
+            }
         }
     }
 

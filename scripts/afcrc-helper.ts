@@ -305,24 +305,35 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
          * Loads the input elements in the dialog.
          */
         private loadInputElements() {
-            let index = 0;
+            if (this.parsedRequests.length > 0) {
+                let index = 0;
 
-            const handle = () => {
-                const batchSize = 5;
-                const endIndex = Math.min(index + batchSize, this.parsedRequests.length);
-                (this as unknown as { title: OO.ui.LabelWidget }).title.setLabel(`afcrc-helper (loading ${index + 1}-${endIndex}/${this.parsedRequests.length} requests)`);
+                const handle = () => {
+                    const batchSize = 5;
+                    const endIndex = Math.min(index + batchSize, this.parsedRequests.length);
+                    (this as unknown as { title: OO.ui.LabelWidget }).title.setLabel(`afcrc-helper (loading ${index + 1}-${endIndex}/${this.parsedRequests.length} requests)`);
 
-                for (let subIndex = index; subIndex < endIndex; subIndex++)
-                    if (this.requestPageType === 'redirect') this.loadRedirectRequestElements(subIndex);
-                    else this.loadCategoryRequestElements(subIndex);
+                    for (let subIndex = index; subIndex < endIndex; subIndex++)
+                        if (this.requestPageType === 'redirect') this.loadRedirectRequestElements(subIndex);
+                        else this.loadCategoryRequestElements(subIndex);
 
-                if (endIndex < this.parsedRequests.length) {
-                    index = endIndex;
-                    setTimeout(handle, 0);
-                } else (this as unknown as { title: OO.ui.LabelWidget }).title.setLabel(`afcrc-helper (${this.parsedRequests.length} requests loaded)`);
-            };
+                    if (endIndex < this.parsedRequests.length) {
+                        index = endIndex;
+                        setTimeout(handle, 0);
+                    } else (this as unknown as { title: OO.ui.LabelWidget }).title.setLabel(`afcrc-helper (${this.parsedRequests.length} requests loaded)`);
+                };
 
-            handle();
+                handle();
+            } else {
+                const messageWidget = new OO.ui.MessageWidget({ type: 'notice', label: 'No requests to handle!' });
+
+                const messageWidgetLayout = new OO.ui.PanelLayout({ padded: true, expanded: false });
+                messageWidgetLayout.$element.append(messageWidget.$element);
+
+                (this as unknown as { $body: JQuery }).$body.append(messageWidgetLayout.$element);
+
+                this.updateSize();
+            }
         }
 
         /**
@@ -618,10 +629,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
 
                         const amountOfPages = Object.keys(requests).length;
 
-                        for (const [requestedTitle, action] of Object.entries(requests) as [string, RedirectAction][]) {
-                            const messagePrefix = `The request to create "${requestedTitle}" → "${target}" has been `;
-                            const commentedMessage = action.comment ? ' and commented on' : '';
-
+                        for (const [requestedTitle, action] of Object.entries(requests) as [string, RedirectAction][])
                             switch (action.action) {
                                 case 'accept': {
                                     if (someRequestAcceptedDenied && !allRequestsAcceptedDenied)
@@ -647,7 +655,11 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                                     if (action.comment) {
                                         comments.push(`${action.comment}${amountOfPages > 1 ? ` [${requestedTitle}]` : ''}`);
                                         counts.commented++;
-                                    } else showActionsDialog.addLogEntry(messagePrefix + 'marked to be commented on, but no comment was provided so it will be skipped.', 'warning');
+                                    } else
+                                        showActionsDialog.addLogEntry(
+                                            `The request to create "${requestedTitle}" → "${target}" has been marked to be commented on, but no comment was provided so it will be skipped.`,
+                                            'warning',
+                                        );
 
                                     break;
                                 }
@@ -663,7 +675,6 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                                     break;
                                 }
                             }
-                        }
 
                         let sectionReplaceText = Object.values(requests)[0].originalText;
 

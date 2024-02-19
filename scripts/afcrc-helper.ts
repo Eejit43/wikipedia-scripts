@@ -1147,8 +1147,6 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
 
                     if (this.beforeText + this.pageContent === newPageText) return showActionsDialog.addLogEntry('No requests have been handled!');
 
-                    return;
-
                     const mappedCounts = Object.entries(counts)
                         .filter(([, count]) => count > 0)
                         .map(([action, count]) => `${action} ${count}`)

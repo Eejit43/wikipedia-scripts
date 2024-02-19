@@ -92,6 +92,56 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
     interface LookupElementConfig extends OO.ui.TextInputWidget.ConfigOptions, OO.ui.mixin.LookupElement.ConfigOptions {}
 
     /**
+     * An instance of this class is a page lookup element.
+     */
+    class PageInputWidget extends OO.ui.TextInputWidget {
+        // Utility variables
+        private api = new mw.Api();
+
+        constructor(config: LookupElementConfig) {
+            super(config);
+            OO.ui.mixin.LookupElement.call(this as unknown as OO.ui.mixin.LookupElement, config);
+        }
+
+        getLookupRequest = () => {
+            const value = this.getValue();
+            const deferred = $.Deferred();
+
+            if (!value) deferred.resolve([]);
+
+            const parsedTitle = mw.Title.newFromText(value);
+
+            this.api
+                .get({
+                    action: 'query',
+                    formatversion: '2',
+                    gaplimit: 20,
+                    gapnamespace: parsedTitle?.getNamespaceId() ?? 0,
+                    gapprefix: parsedTitle?.getMainText() ?? value,
+                    generator: 'allpages',
+                } satisfies ApiQueryAllPagesGeneratorParams)
+                .catch(() => null)
+                .then((result: { query: { pages: { title: string }[] } } | null) => {
+                    if (result?.query?.pages) {
+                        const pages = result.query.pages.map((page) => ({ data: page.title, label: page.title }));
+
+                        this.emit('showing-values', pages);
+
+                        deferred.resolve(pages);
+                    } else deferred.resolve([]);
+                });
+
+            return deferred.promise({ abort() {} }); // eslint-disable-line @typescript-eslint/no-empty-function
+        };
+
+        getLookupCacheDataFromResponse = <T>(response: T[] | null | undefined) => response ?? [];
+
+        getLookupMenuOptionsFromData = (data: { data: string; label: string }[]) => data.map(({ data, label }) => new OO.ui.MenuOptionWidget({ data, label }));
+    }
+
+    Object.assign(PageInputWidget.prototype, OO.ui.mixin.LookupElement.prototype);
+
+    /**
      * An instance of this class is a category lookup element.
      */
     class CategoryInputWidget extends OO.ui.TextInputWidget {
@@ -175,7 +225,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
 
     type RedirectAction = Action & { redirectTemplates?: string[] };
 
-    type CategoryAction = Action & { category: string; parents: string[] };
+    type CategoryAction = Action & { category: string; examples: string[]; parents: string[] };
 
     type RedirectActions = { target: string; requests: Record<string, RedirectAction> }[];
 
@@ -386,6 +436,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
 
                     (this.actionsToTake as CategoryActions).push({
                         category: parsedData.category,
+                        examples: parsedData.examples,
                         parents: parsedData.parents,
                         originalText: sectionText.replace(/^==.*?==$/m, '').trim(),
                         action: 'none',
@@ -558,26 +609,19 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                             });
                             tagSelect.setValue((this.actionsToTake as RedirectActions)[index].requests[requestedTitle].redirectTemplates ?? []);
 
-                            const tagSelectLayout = new OO.ui.FieldLayout(tagSelect, { classes: ['afcrc-helper-tag-select-layout'], align: 'inline', label: 'Redirect templates' });
+                            const tagSelectLayout = new OO.ui.FieldLayout(tagSelect, { classes: ['afcrc-helper-tag-select-layout'], align: 'inline', label: 'Redirect templates:' });
 
                             requestedTitleDiv.append(tagSelectLayout.$element[0]);
-
-                            (this.actionsToTake as RedirectActions)[index].requests[requestedTitle].redirectTemplates = tagSelect.getValue() as string[];
 
                             break;
                         }
                         case 'deny': {
                             denyReasonLayout.$element.show();
 
-                            (this.actionsToTake as RedirectActions)[index].requests[requestedTitle].denyReason = denyReason.getValue();
-
                             break;
                         }
                         case 'close': {
                             closingReasonLayout.$element.show();
-
-                            const selected = closingReason.getMenu().findSelectedItem() as OO.ui.MenuOptionWidget;
-                            (this.actionsToTake as RedirectActions)[index].requests[requestedTitle].closingReason = { name: selected.getLabel() as string, id: selected.getData() as string };
 
                             break;
                         }
@@ -604,7 +648,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                 denyReason.setValue('autofill:unlikely');
                 denyReason.getMenu().selectItemByData('autofill:unlikely');
 
-                const denyReasonLayout = new OO.ui.FieldLayout(denyReason, { align: 'inline', label: 'Deny reason' });
+                const denyReasonLayout = new OO.ui.FieldLayout(denyReason, { align: 'inline', label: 'Deny reason:' });
                 denyReasonLayout.$element.hide();
 
                 const closingReason = new OO.ui.DropdownWidget({
@@ -627,7 +671,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                 closingReason.getMenu().selectItemByData('r');
                 (this.actionsToTake as RedirectActions)[index].requests[requestedTitle].closingReason = { name: 'No response', id: 'r' };
 
-                const closingReasonLayout = new OO.ui.FieldLayout(closingReason, { align: 'inline', label: 'Closing reason' });
+                const closingReasonLayout = new OO.ui.FieldLayout(closingReason, { align: 'inline', label: 'Closing reason:' });
                 closingReasonLayout.$element.hide();
 
                 const commentInput = new OO.ui.TextInputWidget();
@@ -638,7 +682,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                     else delete (this.actionsToTake as RedirectActions)[index].requests[requestedTitle].comment;
                 });
 
-                const commentInputLayout = new OO.ui.FieldLayout(commentInput, { classes: ['afcrc-comment-input'], align: 'inline', label: 'Comment' });
+                const commentInputLayout = new OO.ui.FieldLayout(commentInput, { classes: ['afcrc-comment-input'], align: 'inline', label: 'Comment:' });
                 commentInputLayout.$element.hide();
 
                 requestedTitleDiv.append(actionRadioInput.$element[0], denyReasonLayout.$element[0], closingReasonLayout.$element[0], commentInputLayout.$element[0]);
@@ -764,12 +808,14 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
 
                 this.updateRequestColor(detailsElement, index);
 
+                pageSelectLayout.$element.hide();
                 categorySelectLayout.$element.hide();
                 denyReasonLayout.$element.hide();
                 closingReasonLayout.$element.hide();
 
                 switch (option) {
                     case 'accept': {
+                        pageSelectLayout.$element.show();
                         categorySelectLayout.$element.show();
 
                         break;
@@ -777,20 +823,44 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                     case 'deny': {
                         denyReasonLayout.$element.show();
 
-                        (this.actionsToTake as CategoryActions)[index].denyReason = denyReason.getValue();
-
                         break;
                     }
                     case 'close': {
                         closingReasonLayout.$element.show();
 
-                        const selected = closingReason.getMenu().findSelectedItem() as OO.ui.MenuOptionWidget;
-                        (this.actionsToTake as CategoryActions)[index].closingReason = { name: selected.getLabel() as string, id: selected.getData() as string };
-
                         break;
                     }
                 }
             });
+
+            const pageSelectInput = new PageInputWidget({ placeholder: 'Add pages here' });
+            pageSelectInput.on('change', () => {
+                let value = pageSelectInput.getValue();
+                value = value.replace(new RegExp(`^(https?:)?/{2}?${mw.config.get('wgServer').replace(/^\/{2}/, '')}/wiki/`), '');
+                value = value.replace(/^:/, '');
+
+                if (value.length > 0) pageSelectInput.setValue(value[0].toUpperCase() + value.slice(1).replaceAll('_', ' '));
+            });
+            pageSelectInput.on('showing-values', (pages: { data: string; label: string }[]) => {
+                for (const page of pages) pageSelect.addAllowedValue(page.data);
+            });
+
+            const pageSelect = new OO.ui.TagMultiselectWidget({ allowReordering: false, inputPosition: 'outline', inputWidget: pageSelectInput });
+            pageSelect.on('change', () => {
+                const sortedTags = (pageSelect.getValue() as string[]).sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
+
+                if ((pageSelect.getValue() as string[]).join(';') !== sortedTags.join(';')) pageSelect.setValue(sortedTags);
+
+                (this.actionsToTake as CategoryActions)[index].examples = sortedTags;
+            });
+
+            const { examples } = (this.actionsToTake as CategoryActions)[index];
+
+            for (const example of examples) pageSelect.addAllowedValue(example);
+            pageSelect.setValue(examples);
+
+            const pageSelectLayout = new OO.ui.FieldLayout(pageSelect, { align: 'inline', label: 'Pages to categorize:' });
+            pageSelectLayout.$element.hide();
 
             const categorySelectInput = new CategoryInputWidget({ placeholder: 'Add categories here' });
             categorySelectInput.on('change', () => {
@@ -818,7 +888,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
             for (const parent of parents) categorySelect.addAllowedValue(parent);
             categorySelect.setValue(parents);
 
-            const categorySelectLayout = new OO.ui.FieldLayout(categorySelect, { align: 'inline', label: 'Categories' });
+            const categorySelectLayout = new OO.ui.FieldLayout(categorySelect, { align: 'inline', label: 'Categories:' });
             categorySelectLayout.$element.hide();
 
             const denyReason = new OO.ui.ComboBoxInputWidget({
@@ -838,7 +908,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
             denyReason.setValue('autofill:unlikely');
             denyReason.getMenu().selectItemByData('autofill:unlikely');
 
-            const denyReasonLayout = new OO.ui.FieldLayout(denyReason, { align: 'inline', label: 'Deny reason' });
+            const denyReasonLayout = new OO.ui.FieldLayout(denyReason, { align: 'inline', label: 'Deny reason:' });
             denyReasonLayout.$element.hide();
 
             const closingReason = new OO.ui.DropdownWidget({
@@ -861,7 +931,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
             closingReason.getMenu().selectItemByData('r');
             (this.actionsToTake as CategoryActions)[index].closingReason = { name: 'No response', id: 'r' };
 
-            const closingReasonLayout = new OO.ui.FieldLayout(closingReason, { align: 'inline', label: 'Closing reason' });
+            const closingReasonLayout = new OO.ui.FieldLayout(closingReason, { align: 'inline', label: 'Closing reason:' });
             closingReasonLayout.$element.hide();
 
             const commentInput = new OO.ui.TextInputWidget();
@@ -872,11 +942,12 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                 else delete (this.actionsToTake as CategoryActions)[index].comment;
             });
 
-            const commentInputLayout = new OO.ui.FieldLayout(commentInput, { classes: ['afcrc-comment-input'], align: 'inline', label: 'Comment' });
+            const commentInputLayout = new OO.ui.FieldLayout(commentInput, { classes: ['afcrc-comment-input'], align: 'inline', label: 'Comment:' });
             commentInputLayout.$element.hide();
 
             requestResponderElement.append(
                 actionRadioInput.$element[0],
+                pageSelectLayout.$element[0],
                 categorySelectLayout.$element[0],
                 denyReasonLayout.$element[0],
                 closingReasonLayout.$element[0],
@@ -1201,6 +1272,14 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                     text: `{{WikiProject banner shell|\n{{WikiProject Articles for creation|ts={{subst:LOCALTIMESTAMP}}|reviewer=${mw.config.get('wgUserName')}}}\n}}`,
                     summary: `Adding [[Wikipedia:WikiProject Articles for creation|WikiProject Articles for creation]] banner${this.scriptMessage}`,
                 },
+                ...data.examples.map((example) => ({
+                    type: 'edit' as const,
+                    title: example,
+                    transform: ({ content }: { content: string }) => ({
+                        text: `${content}\n[[Category:${data.category}]]`,
+                        summary: `Adding page to [[:Category:${data.category}]] as requested at [[WP:AFC/R]]${this.scriptMessage}`,
+                    }),
+                })),
             );
         }
 

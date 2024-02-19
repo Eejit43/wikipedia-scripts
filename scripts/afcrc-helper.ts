@@ -1,5 +1,5 @@
 import { ApiEditPageParams, ApiQueryRevisionsParams } from 'types-mediawiki/api_params';
-import { MediaWikiDataError, PageRevisionsResult } from '../global-types';
+import { ApiQueryAllPagesGeneratorParams, MediaWikiDataError, PageRevisionsResult } from '../global-types'; // eslint-disable-line unicorn/prevent-abbreviations
 
 mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-windows'], () => {
     const isRedirectRequestPage = mw.config.get('wgPageName') === 'Wikipedia:Articles_for_creation/Redirects';
@@ -89,6 +89,65 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
 
     Object.assign(ShowActionsDialog.prototype, OO.ui.Dialog.prototype);
 
+    interface LookupElementConfig extends OO.ui.TextInputWidget.ConfigOptions, OO.ui.mixin.LookupElement.ConfigOptions {}
+
+    /**
+     * An instance of this class is a category lookup element.
+     */
+    class CategoryInputWidget extends OO.ui.TextInputWidget {
+        // Utility variables
+        private api = new mw.Api();
+
+        constructor(config: LookupElementConfig) {
+            super(config);
+            OO.ui.mixin.LookupElement.call(this as unknown as OO.ui.mixin.LookupElement, config);
+        }
+
+        getLookupRequest = () => {
+            const value = this.getValue();
+            const deferred = $.Deferred();
+
+            if (!value) deferred.resolve([]);
+
+            const parsedTitle = mw.Title.newFromText(value);
+
+            this.api
+                .get({
+                    action: 'query',
+                    formatversion: '2',
+                    gaplimit: 20,
+                    gapnamespace: 14,
+                    gapprefix: parsedTitle?.getMainText() ?? value,
+                    generator: 'allpages',
+                    prop: 'categories',
+                } satisfies ApiQueryAllPagesGeneratorParams)
+                .catch(() => null)
+                .then((result: { query: { pages: { title: string; categories?: { title: string }[] }[] } } | null) => {
+                    if (result?.query?.pages) {
+                        const pages = result.query.pages //
+                            .filter((page) => !(page.categories && page.categories.some((category) => category.title === 'Category:Wikipedia soft redirected categories')))
+                            .map((page) => {
+                                const titleWithoutNamespace = page.title.split(':')[1];
+
+                                return { data: titleWithoutNamespace, label: titleWithoutNamespace };
+                            });
+
+                        this.emit('showing-values', pages);
+
+                        deferred.resolve(pages);
+                    } else deferred.resolve([]);
+                });
+
+            return deferred.promise({ abort() {} }); // eslint-disable-line @typescript-eslint/no-empty-function
+        };
+
+        getLookupCacheDataFromResponse = <T>(response: T[] | null | undefined) => response ?? [];
+
+        getLookupMenuOptionsFromData = (data: { data: string; label: string }[]) => data.map(({ data, label }) => new OO.ui.MenuOptionWidget({ data, label }));
+    }
+
+    Object.assign(CategoryInputWidget.prototype, OO.ui.mixin.LookupElement.prototype);
+
     interface RedirectRequestData {
         pages: string[];
         target: string;
@@ -97,7 +156,12 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
         requester: { type: 'user' | 'ip'; name: string };
     }
 
-    interface CategoryRequestData {}
+    interface CategoryRequestData {
+        category: string;
+        examples: string[];
+        parents: string[];
+        requester: { type: 'user' | 'ip'; name: string };
+    }
 
     type ActionType = 'accept' | 'deny' | 'comment' | 'close' | 'none';
 
@@ -105,13 +169,17 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
         originalText: string;
         action: ActionType;
         comment?: string;
+        denyReason?: string;
+        closingReason?: { name: string; id: string };
     }
 
-    type RedirectAction = Action & { redirectTemplates?: string[]; denyReason?: string; closingReason?: { name: string; id: string } };
+    type RedirectAction = Action & { redirectTemplates?: string[] };
+
+    type CategoryAction = Action & { category: string; parents: string[] };
 
     type RedirectActions = { target: string; requests: Record<string, RedirectAction> }[];
 
-    type CategoryActions = { target: string; requests: Record<string, Action> }[];
+    type CategoryActions = CategoryAction[];
 
     /**
      * An instance of this class is a dialog that handles redirect and category requests.
@@ -289,14 +357,39 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
 
                     parsedData.requester = { type: requester.includes('[[User:') ? 'user' : 'ip', name: requester.match(/(?:Special:Contributions\/|User:)(.*?)\|/)![1].trim() };
 
-                    this.parsedRequests.push(parsedData);
+                    (this.parsedRequests as RedirectRequestData[]).push(parsedData);
 
-                    this.actionsToTake.push({
+                    (this.actionsToTake as RedirectActions).push({
                         target: parsedData.target,
                         requests: Object.fromEntries(requestedPages.map((page) => [page, { originalText: sectionText.replace(/^==.*?==$/m, '').trim(), action: 'none' }])),
                     });
                 } else {
                     const parsedData = {} as CategoryRequestData;
+
+                    parsedData.category = sectionHeader.match(/\[\[:Category:(.*?)]]/)![1].trim();
+
+                    parsedData.examples =
+                        [...sectionText.match(/example pages which belong to this category:(.*?)parent category\/categories:/is)![1].matchAll(/\[\[(.*?)]]/g)]
+                            .map((match) => match[1].trim().replace(/^:/, '').replaceAll('_', ' '))
+                            .filter(Boolean) ?? [];
+
+                    parsedData.parents =
+                        [...sectionText.match(/parent category\/categories:(.*?)\n\n/is)![1].matchAll(/\[\[:Category:(.*?)]]/g)]
+                            ?.map((match) => match[1].trim().replace(/^:/, '').replaceAll('_', ' '))
+                            .filter(Boolean) ?? [];
+
+                    const matchedUser = sectionText.match(/\[\[User:(.*?)\|/);
+
+                    parsedData.requester = { type: matchedUser ? 'user' : 'ip', name: matchedUser ? matchedUser[1].trim() : sectionText.match(/Special:Contributions\/(.*?)\|/)![1].trim() };
+
+                    (this.parsedRequests as CategoryRequestData[]).push(parsedData);
+
+                    (this.actionsToTake as CategoryActions).push({
+                        category: parsedData.category,
+                        parents: parsedData.parents,
+                        originalText: sectionText.replace(/^==.*?==$/m, '').trim(),
+                        action: 'none',
+                    });
                 }
             }
         }
@@ -373,7 +466,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
             reasonDiv.append(reasonLabel);
 
             if (request.reason) reasonDiv.append(request.reason);
-            else reasonDiv.append(noneElement);
+            else reasonDiv.append(noneElement.cloneNode(true));
 
             requestInfoElement.append(reasonDiv);
 
@@ -384,7 +477,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
             sourceDiv.append(sourceLabel);
 
             if (request.source) sourceDiv.append(request.source);
-            else sourceDiv.append(noneElement);
+            else sourceDiv.append(noneElement.cloneNode(true));
 
             requestInfoElement.append(sourceDiv);
 
@@ -426,18 +519,18 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
 
                     const option = ((actionRadioInput.findSelectedItem() as OO.ui.RadioOptionWidget).getData() as string).toLowerCase() as ActionType;
 
-                    this.actionsToTake[index].requests[requestedTitle].action = option;
+                    (this.actionsToTake as RedirectActions)[index].requests[requestedTitle].action = option;
 
                     if (['comment', 'close'].includes(option)) {
                         commentInputLayout.$element.show();
 
                         const comment = commentInput.getValue().trim();
-                        if (comment) this.actionsToTake[index].requests[requestedTitle].comment = comment;
-                        else delete this.actionsToTake[index].requests[requestedTitle].comment;
+                        if (comment) (this.actionsToTake as RedirectActions)[index].requests[requestedTitle].comment = comment;
+                        else delete (this.actionsToTake as RedirectActions)[index].requests[requestedTitle].comment;
                     } else {
                         commentInputLayout.$element.hide();
 
-                        delete this.actionsToTake[index].requests[requestedTitle].comment;
+                        delete (this.actionsToTake as RedirectActions)[index].requests[requestedTitle].comment;
                     }
 
                     this.updateRequestColor(detailsElement, index);
@@ -505,8 +598,8 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                         ['notenglish', 'requests not in English'],
                     ].map(([value, label]) => ({ data: `autofill:${value}`, label: `Autofilled text for ${label}` })),
                 });
-                denyReason.getMenu().on('choose', () => {
-                    (this.actionsToTake as RedirectActions)[index].requests[requestedTitle].denyReason = denyReason.getValue();
+                denyReason.on('change', () => {
+                    (this.actionsToTake as RedirectActions)[index].requests[requestedTitle].denyReason = denyReason.getValue() || 'autofill:unlikely';
                 });
                 denyReason.setValue('autofill:unlikely');
                 denyReason.getMenu().selectItemByData('autofill:unlikely');
@@ -541,8 +634,8 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                 commentInput.on('change', () => {
                     const comment = commentInput.getValue().trim();
 
-                    if (comment) this.actionsToTake[index].requests[requestedTitle].comment = comment;
-                    else delete this.actionsToTake[index].requests[requestedTitle].comment;
+                    if (comment) (this.actionsToTake as RedirectActions)[index].requests[requestedTitle].comment = comment;
+                    else delete (this.actionsToTake as RedirectActions)[index].requests[requestedTitle].comment;
                 });
 
                 const commentInputLayout = new OO.ui.FieldLayout(commentInput, { classes: ['afcrc-comment-input'], align: 'inline', label: 'Comment' });
@@ -564,7 +657,236 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
          * Loads a given category request into the dialog.
          * @param index The index of the request to load.
          */
-        private loadCategoryRequestElements(index: number) {}
+        private loadCategoryRequestElements(index: number) {
+            const request = this.parsedRequests[index] as CategoryRequestData;
+
+            const detailsElement = document.createElement('details');
+            detailsElement.classList.add('afcrc-helper-request');
+            detailsElement.addEventListener('click', () => setTimeout(() => this.updateSize(), 0));
+
+            const summaryElement = document.createElement('summary');
+            summaryElement.innerHTML = `<b>Category:${request.category}</b>`;
+            detailsElement.append(summaryElement);
+
+            const requestInfoElement = document.createElement('div');
+            requestInfoElement.classList.add('afcrc-helper-request-info');
+
+            const noneElement = document.createElement('span');
+            noneElement.style.color = 'dimgray';
+            noneElement.textContent = 'None';
+
+            const examplesDiv = document.createElement('div');
+
+            const examplesLabel = document.createElement('b');
+            examplesLabel.textContent = 'Examples: ';
+            examplesDiv.append(examplesLabel);
+
+            if (request.examples.length > 0)
+                for (const [index, example] of request.examples.entries()) {
+                    const linkElement = document.createElement('a');
+                    linkElement.target = '_blank';
+                    linkElement.href = mw.util.getUrl(example);
+                    linkElement.textContent = example;
+
+                    examplesDiv.append(linkElement);
+
+                    if (index !== request.examples.length - 1) examplesDiv.append(', ');
+                }
+            else examplesDiv.append(noneElement.cloneNode(true));
+
+            requestInfoElement.append(examplesDiv);
+
+            const parentsDiv = document.createElement('div');
+
+            const parentsLabel = document.createElement('b');
+            parentsLabel.textContent = 'Parents: ';
+            parentsDiv.append(parentsLabel);
+
+            if (request.parents.length > 0)
+                for (const [index, parent] of request.parents.entries()) {
+                    const linkElement = document.createElement('a');
+                    linkElement.target = '_blank';
+                    linkElement.href = mw.util.getUrl(`Category:${parent}`);
+                    linkElement.textContent = parent;
+
+                    parentsDiv.append(linkElement);
+
+                    if (index !== request.parents.length - 1) parentsDiv.append(', ');
+                }
+            else parentsDiv.append(noneElement.cloneNode(true));
+
+            requestInfoElement.append(parentsDiv);
+
+            const requesterDiv = document.createElement('div');
+
+            const requesterLabel = document.createElement('b');
+            requesterLabel.textContent = 'Requester: ';
+            requesterDiv.append(requesterLabel);
+
+            const requesterLink = document.createElement('a');
+            requesterLink.target = '_blank';
+            requesterLink.href = request.requester.type === 'user' ? mw.util.getUrl(`User:${request.requester.name}`) : mw.util.getUrl(`Special:Contributions/${request.requester.name}`);
+            requesterLink.textContent = request.requester.name;
+            requesterDiv.append(requesterLink);
+
+            requestInfoElement.append(requesterDiv);
+
+            detailsElement.append(requestInfoElement);
+
+            detailsElement.append(document.createElement('hr'));
+
+            const requestResponderElement = document.createElement('div');
+            requestResponderElement.classList.add('afcrc-helper-request-responder');
+
+            const actionRadioInput = new OO.ui.RadioSelectWidget({
+                classes: ['afcrc-helper-action-radio'],
+                items: ['Accept', 'Deny', 'Comment', 'Close', 'None'].map((label) => new OO.ui.RadioOptionWidget({ data: label, label })),
+            });
+            actionRadioInput.selectItemByLabel('None');
+            actionRadioInput.on('choose', () => {
+                setTimeout(() => this.updateSize(), 0);
+
+                const option = ((actionRadioInput.findSelectedItem() as OO.ui.RadioOptionWidget).getData() as string).toLowerCase() as ActionType;
+
+                (this.actionsToTake as CategoryActions)[index].action = option;
+
+                if (['comment', 'close'].includes(option)) {
+                    commentInputLayout.$element.show();
+
+                    const comment = commentInput.getValue().trim();
+                    if (comment) (this.actionsToTake as CategoryActions)[index].comment = comment;
+                    else delete (this.actionsToTake as CategoryActions)[index].comment;
+                } else {
+                    commentInputLayout.$element.hide();
+
+                    delete (this.actionsToTake as CategoryActions)[index].comment;
+                }
+
+                this.updateRequestColor(detailsElement, index);
+
+                categorySelectLayout.$element.hide();
+                denyReasonLayout.$element.hide();
+                closingReasonLayout.$element.hide();
+
+                switch (option) {
+                    case 'accept': {
+                        break;
+                    }
+                    case 'deny': {
+                        denyReasonLayout.$element.show();
+
+                        (this.actionsToTake as CategoryActions)[index].denyReason = denyReason.getValue();
+
+                        break;
+                    }
+                    case 'close': {
+                        closingReasonLayout.$element.show();
+
+                        const selected = closingReason.getMenu().findSelectedItem() as OO.ui.MenuOptionWidget;
+                        (this.actionsToTake as CategoryActions)[index].closingReason = { name: selected.getLabel() as string, id: selected.getData() as string };
+
+                        break;
+                    }
+                }
+            });
+
+            const categorySelectInput = new CategoryInputWidget({ placeholder: 'Add categories here' });
+            categorySelectInput.on('change', () => {
+                let value = categorySelectInput.getValue();
+                value = value.replace(new RegExp(`^(https?:)?/{2}?${mw.config.get('wgServer').replace(/^\/{2}/, '')}/wiki/`), '');
+                value = value.replace(/^Category:/, '');
+
+                if (value.length > 0) categorySelectInput.setValue(value[0].toUpperCase() + value.slice(1).replaceAll('_', ' '));
+            });
+            categorySelectInput.on('showing-values', (pages: { data: string; label: string }[]) => {
+                for (const page of pages) categorySelect.addAllowedValue(page.data);
+            });
+
+            const categorySelect = new OO.ui.TagMultiselectWidget({ allowReordering: false, inputPosition: 'outline', inputWidget: categorySelectInput });
+            categorySelect.on('change', () => {
+                const sortedTags = (categorySelect.getValue() as string[]).sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
+
+                if ((categorySelect.getValue() as string[]).join(';') !== sortedTags.join(';')) categorySelect.setValue(sortedTags);
+
+                (this.actionsToTake as CategoryActions)[index].parents = sortedTags;
+            });
+
+            const { parents } = (this.actionsToTake as CategoryActions)[index];
+
+            for (const parent of parents) categorySelect.addAllowedValue(parent);
+            categorySelect.setValue(parents);
+
+            const categorySelectLayout = new OO.ui.FieldLayout(categorySelect, { align: 'inline', label: 'Categories' });
+            categorySelectLayout.$element.hide();
+
+            const denyReason = new OO.ui.ComboBoxInputWidget({
+                classes: ['afcrc-closing-reason-input'],
+                placeholder: 'autofill:unlikely',
+                options: [
+                    ['exists', 'existing categories'],
+                    ['empty', 'empty submissions'],
+                    ['unlikely', 'categories that are unlikely to have enough pages'],
+                    ['notcategory', 'page creation requests'],
+                    ['notenglish', 'requests not in English'],
+                ].map(([value, label]) => ({ data: `autofill:${value}`, label: `Autofilled text for ${label}` })),
+            });
+            denyReason.on('change', () => {
+                (this.actionsToTake as CategoryActions)[index].denyReason = denyReason.getValue() || 'autofill:unlikely';
+            });
+            denyReason.setValue('autofill:unlikely');
+            denyReason.getMenu().selectItemByData('autofill:unlikely');
+
+            const denyReasonLayout = new OO.ui.FieldLayout(denyReason, { align: 'inline', label: 'Deny reason' });
+            denyReasonLayout.$element.hide();
+
+            const closingReason = new OO.ui.DropdownWidget({
+                classes: ['afcrc-closing-reason-input'],
+                menu: {
+                    items: [
+                        ['No response', 'r'],
+                        ['Succeeded', 's'],
+                        ['Withdrawn', 'w'],
+                    ].map(([title, id]) => new OO.ui.MenuOptionWidget({ data: id, label: title })),
+                },
+            });
+            closingReason.getMenu().on('choose', () => {
+                const selected = closingReason.getMenu().findSelectedItem() as OO.ui.MenuOptionWidget;
+
+                (this.actionsToTake as CategoryActions)[index].closingReason = { name: selected.getLabel() as string, id: selected.getData() as string };
+
+                this.updateRequestColor(detailsElement, index);
+            });
+            closingReason.getMenu().selectItemByData('r');
+            (this.actionsToTake as CategoryActions)[index].closingReason = { name: 'No response', id: 'r' };
+
+            const closingReasonLayout = new OO.ui.FieldLayout(closingReason, { align: 'inline', label: 'Closing reason' });
+            closingReasonLayout.$element.hide();
+
+            const commentInput = new OO.ui.TextInputWidget();
+            commentInput.on('change', () => {
+                const comment = commentInput.getValue().trim();
+
+                if (comment) (this.actionsToTake as CategoryActions)[index].comment = comment;
+                else delete (this.actionsToTake as CategoryActions)[index].comment;
+            });
+
+            const commentInputLayout = new OO.ui.FieldLayout(commentInput, { classes: ['afcrc-comment-input'], align: 'inline', label: 'Comment' });
+            commentInputLayout.$element.hide();
+
+            requestResponderElement.append(
+                actionRadioInput.$element[0],
+                categorySelectLayout.$element[0],
+                denyReasonLayout.$element[0],
+                closingReasonLayout.$element[0],
+                commentInputLayout.$element[0],
+            );
+
+            detailsElement.append(requestResponderElement);
+
+            (this as unknown as { $body: JQuery }).$body.append(detailsElement);
+
+            this.updateSize();
+        }
 
         /**
          * Updates the color of a details element based on the handling of the requests inside.
@@ -572,28 +894,44 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
          * @param index The index of the redirect target.
          */
         private updateRequestColor(detailsElement: HTMLDetailsElement, index: number) {
-            const actionsToTake = Object.values((this.actionsToTake as RedirectActions)[index].requests);
+            if (this.requestPageType === 'redirect') {
+                const actionsToTake = Object.values((this.actionsToTake as RedirectActions)[index].requests);
 
-            const allRequestsAcceptedDenied = actionsToTake.every((action) => action.action === 'accept' || action.action === 'deny');
+                const allRequestsAcceptedDenied = actionsToTake.every((action) => action.action === 'accept' || action.action === 'deny');
 
-            const firstCloseReason = actionsToTake.find((action) => action.action === 'close')?.closingReason?.id;
-            const allRequestsClosed = actionsToTake.every((action) => action.action === 'close' && action.closingReason?.id === firstCloseReason);
+                const firstCloseReason = actionsToTake.find((action) => action.action === 'close')?.closingReason?.id;
+                const allRequestsClosed = actionsToTake.every((action) => action.action === 'close' && action.closingReason?.id === firstCloseReason);
 
-            let backgroundColor = '';
+                let backgroundColor = '';
 
-            if (allRequestsAcceptedDenied) {
-                const acceptedCount = actionsToTake.filter((action) => action.action === 'accept').length;
-                const deniedCount = actionsToTake.filter((action) => action.action === 'deny').length;
+                if (allRequestsAcceptedDenied) {
+                    const acceptedCount = actionsToTake.filter((action) => action.action === 'accept').length;
+                    const deniedCount = actionsToTake.filter((action) => action.action === 'deny').length;
 
-                if (acceptedCount > 0 && deniedCount > 0) backgroundColor = '#fff17e';
-                else if (acceptedCount > 0) backgroundColor = '#a0ffa0';
-                else backgroundColor = '#ffcece';
-            } else if (allRequestsClosed)
-                if (firstCloseReason === 'r') backgroundColor = '#ffcece';
-                else if (firstCloseReason === 's') backgroundColor = '#90c090';
-                else backgroundColor = '#b8b8b8';
+                    if (acceptedCount > 0 && deniedCount > 0) backgroundColor = '#fff17e';
+                    else if (acceptedCount > 0) backgroundColor = '#a0ffa0';
+                    else backgroundColor = '#ffcece';
+                } else if (allRequestsClosed)
+                    if (firstCloseReason === 'r') backgroundColor = '#ffcece';
+                    else if (firstCloseReason === 's') backgroundColor = '#90c090';
+                    else backgroundColor = '#b8b8b8';
 
-            detailsElement.style.backgroundColor = backgroundColor;
+                detailsElement.style.backgroundColor = backgroundColor;
+            } else {
+                const { action } = (this.actionsToTake as CategoryActions)[index];
+
+                let backgroundColor = '';
+
+                // eslint-disable-next-line unicorn/prefer-switch
+                if (action === 'accept') backgroundColor = '#a0ffa0';
+                else if (action === 'deny') backgroundColor = '#ffcece';
+                else if (action === 'close')
+                    if ((this.actionsToTake as CategoryActions)[index].closingReason?.id === 'r') backgroundColor = '#ffcece';
+                    else if ((this.actionsToTake as CategoryActions)[index].closingReason?.id === 's') backgroundColor = '#90c090';
+                    else backgroundColor = '#b8b8b8';
+
+                detailsElement.style.backgroundColor = backgroundColor;
+            }
         }
 
         /**
@@ -611,10 +949,10 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
             let newPageText = this.beforeText + this.pageContent;
 
             if (this.requestPageType === 'redirect') {
-                const anyRequestHandled = this.actionsToTake.some((actionData) => Object.values(actionData.requests).some((action) => action.action !== 'none'));
+                const anyRequestHandled = (this.actionsToTake as RedirectActions).some((actionData) => Object.values(actionData.requests).some((action) => action.action !== 'none'));
 
                 if (anyRequestHandled) {
-                    for (const { target, requests } of this.actionsToTake) {
+                    for (const { target, requests } of this.actionsToTake as RedirectActions) {
                         const someRequestAcceptedDenied = Object.values(requests).some((action) => action.action === 'accept' || action.action === 'deny');
                         const allRequestsAcceptedDenied = Object.values(requests).every((action) => action.action === 'accept' || action.action === 'deny');
 
@@ -743,6 +1081,78 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
 
                     showActionsDialog.showReload();
                 } else showActionsDialog.addLogEntry('No requests have been handled!');
+            } else {
+                const anyRequestHandled = (this.actionsToTake as CategoryActions).some((actionData) => actionData.action !== 'none');
+
+                if (anyRequestHandled) {
+                    for (const actionData of this.actionsToTake as CategoryActions) {
+                        const sectionText = actionData.originalText;
+
+                        switch (actionData.action) {
+                            case 'accept': {
+                                newPageText = newPageText.replace(sectionText, `{{AfC-c|a}}\n${sectionText}\n* {{subst:AfC category}} ~~~~\n{{AfC-c|b}}`);
+
+                                this.handleAcceptedCategory(actionData);
+
+                                counts.accepted++;
+
+                                break;
+                            }
+                            case 'deny': {
+                                newPageText = newPageText.replace(
+                                    sectionText,
+                                    `{{AfC-c|d}}\n${sectionText}\n* {{subst:AfC category|${actionData.denyReason!.startsWith('autofill:') ? actionData.denyReason!.replace('autofill:', '') : `decline|1=${actionData.denyReason}`}}} ~~~~\n{{AfC-c|b}}`,
+                                );
+
+                                counts.denied++;
+
+                                break;
+                            }
+                            case 'comment': {
+                                if (actionData.comment) {
+                                    newPageText = newPageText.replace(sectionText, `${sectionText}\n* {{AfC comment|1=${actionData.comment}}} ~~~~`);
+
+                                    counts.commented++;
+                                } else
+                                    showActionsDialog.addLogEntry(
+                                        `The request to create "${actionData.category}" has been marked to be commented on, but no comment was provided so it will be skipped.`,
+                                        'warning',
+                                    );
+
+                                break;
+                            }
+                            case 'close': {
+                                newPageText = newPageText.replace(
+                                    sectionText,
+                                    `{{AfC-c|${actionData.closingReason!.id}}}\n${sectionText}${actionData.comment ? `\n* {{AfC comment|1=${actionData.comment}}} ~~~~` : ''}\n{{AfC-c|b}}`,
+                                );
+
+                                counts.closed++;
+
+                                break;
+                            }
+                        }
+                    }
+
+                    if (this.beforeText + this.pageContent === newPageText) return showActionsDialog.addLogEntry('No requests have been handled!');
+
+                    const mappedCounts = Object.entries(counts)
+                        .filter(([, count]) => count > 0)
+                        .map(([action, count]) => `${action} ${count}`)
+                        .join(', ');
+
+                    this.editsCreationsToMake.push({
+                        type: 'edit',
+                        title: this.pageTitle,
+                        transform: () => ({ text: newPageText, summary: `Handling AfC category requests (${mappedCounts})${this.scriptMessage}` }),
+                    });
+
+                    await this.makeAllEditsCreations(showActionsDialog);
+
+                    showActionsDialog.addLogEntry('All category requests handled, click below to reload!', 'success');
+
+                    showActionsDialog.showReload();
+                } else showActionsDialog.addLogEntry('No requests have been handled!');
             }
         }
 
@@ -765,6 +1175,27 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                 {
                     type: 'create',
                     title: mw.Title.newFromText(page)!.getTalkPage()!.getPrefixedText(),
+                    text: `{{WikiProject banner shell|\n{{WikiProject Articles for creation|ts={{subst:LOCALTIMESTAMP}}|reviewer=${mw.config.get('wgUserName')}}}\n}}`,
+                    summary: `Adding [[Wikipedia:WikiProject Articles for creation|WikiProject Articles for creation]] banner${this.scriptMessage}`,
+                },
+            );
+        }
+
+        /**
+         * Handles the creation of pages related to an accepted category request.
+         * @param data The data of the requested category.
+         */
+        private handleAcceptedCategory(data: CategoryAction) {
+            this.editsCreationsToMake.push(
+                {
+                    type: 'create',
+                    title: `Category:${data.category}`,
+                    text: data.parents.map((parent) => `[[Category:${parent}]]`).join('\n'),
+                    summary: `Creating category as requested at [[WP:AFC/R]]${this.scriptMessage}`,
+                },
+                {
+                    type: 'create',
+                    title: `Category talk:${data.category}`,
                     text: `{{WikiProject banner shell|\n{{WikiProject Articles for creation|ts={{subst:LOCALTIMESTAMP}}|reviewer=${mw.config.get('wgUserName')}}}\n}}`,
                     summary: `Adding [[Wikipedia:WikiProject Articles for creation|WikiProject Articles for creation]] banner${this.scriptMessage}`,
                 },

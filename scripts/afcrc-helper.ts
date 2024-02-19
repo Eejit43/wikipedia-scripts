@@ -1019,7 +1019,17 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
             showActionsDialog.open();
 
             const counts = { accepted: 0, denied: 0, commented: 0, closed: 0 };
-            let newPageText = this.beforeText + this.pageContent;
+
+            let newPageText = (
+                (await this.api.get({
+                    action: 'query',
+                    formatversion: '2',
+                    prop: 'revisions',
+                    rvprop: 'content',
+                    rvslots: 'main',
+                    titles: this.pageTitle,
+                } satisfies ApiQueryRevisionsParams)) as PageRevisionsResult
+            ).query.pages[0].revisions[0].slots.main.content.trim();
 
             if (this.requestPageType === 'redirect') {
                 const anyRequestHandled = (this.actionsToTake as RedirectActions).some((actionData) => Object.values(actionData.requests).some((action) => action.action !== 'none'));

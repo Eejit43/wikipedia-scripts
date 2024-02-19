@@ -770,6 +770,8 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
 
                 switch (option) {
                     case 'accept': {
+                        categorySelectLayout.$element.show();
+
                         break;
                     }
                     case 'deny': {

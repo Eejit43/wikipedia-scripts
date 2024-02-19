@@ -1066,7 +1066,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                                     if (someRequestAcceptedDenied && !allRequestsAcceptedDenied)
                                         showActionsDialog.addLogEntry(`Not all requests to "${target}" were accepted or denied, the handling of "${requestedTitle}" is being ignored.`, 'warning');
                                     else {
-                                        deniedPages.push([requestedTitle, action.denyReason! || 'decline']);
+                                        deniedPages.push([requestedTitle, action.denyReason!]);
                                         counts.denied++;
                                     }
 
@@ -1115,7 +1115,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
 
                                 const mappedAcceptedPages = acceptedPages.map((page) => `* {{subst:AfC redirect}} [${page}] ~~~~`);
                                 const mappedDeniedPages = deniedPages.map(
-                                    ([page, reason]) => `* {{subst:AfC redirect|${reason.startsWith('autofill:') ? reason.replace('autofill:', '') : `decline|1=${reason}`}}} [${page}] ~~~~`,
+                                    ([page, reason]) => `* {{subst:AfC redirect|${reason.startsWith('autofill:') ? reason.replace('autofill:', '') : `decline|2=${reason}`}}} [${page}] ~~~~`,
                                 );
 
                                 for (const page of acceptedPages) this.handleAcceptedRedirect(page, requests[page], target);
@@ -1134,7 +1134,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
 
                                 const mappedReasons = deniedPages.map(
                                     ([page, reason]) =>
-                                        `* {{subst:AfC redirect|${reason.startsWith('autofill:') ? reason.replace('autofill:', '') : `decline|1=${reason}`}}}${deniedPages.length > 1 ? ` [${page}]` : ''} ~~~~`,
+                                        `* {{subst:AfC redirect|${reason.startsWith('autofill:') ? reason.replace('autofill:', '') : `decline|2=${reason}`}}}${deniedPages.length > 1 ? ` [${page}]` : ''} ~~~~`,
                                 );
 
                                 sectionReplaceText += '\n' + mappedReasons.join('\n');
@@ -1146,6 +1146,8 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                     }
 
                     if (this.beforeText + this.pageContent === newPageText) return showActionsDialog.addLogEntry('No requests have been handled!');
+
+                    return;
 
                     const mappedCounts = Object.entries(counts)
                         .filter(([, count]) => count > 0)
@@ -1184,7 +1186,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                             case 'deny': {
                                 newPageText = newPageText.replace(
                                     sectionText,
-                                    `{{AfC-c|d}}\n${sectionText}\n* {{subst:AfC category|${actionData.denyReason!.startsWith('autofill:') ? actionData.denyReason!.replace('autofill:', '') : `decline|1=${actionData.denyReason}`}}} ~~~~\n{{AfC-c|b}}`,
+                                    `{{AfC-c|d}}\n${sectionText}\n* {{subst:AfC category|${actionData.denyReason!.startsWith('autofill:') ? actionData.denyReason!.replace('autofill:', '') : `decline|2=${actionData.denyReason}`}}} ~~~~\n{{AfC-c|b}}`,
                                 );
 
                                 counts.denied++;

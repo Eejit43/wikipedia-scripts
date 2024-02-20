@@ -1274,7 +1274,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                     type: 'create',
                     title: `Category:${data.category}`,
                     text: data.parents.map((parent) => `[[Category:${parent}]]`).join('\n'),
-                    summary: `Creating category as requested at [[WP:AFC/R]]${this.scriptMessage}`,
+                    summary: `Creating category as requested at [[WP:AFC/C]]${this.scriptMessage}`,
                 },
                 {
                     type: 'create',
@@ -1287,7 +1287,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                     title: example,
                     transform: ({ content }: { content: string }) => ({
                         text: `${content}\n[[Category:${data.category}]]`,
-                        summary: `Adding page to [[:Category:${data.category}]] as requested at [[WP:AFC/R]]${this.scriptMessage}`,
+                        summary: `Adding page to [[:Category:${data.category}]] as requested at [[WP:AFC/C]]${this.scriptMessage}`,
                     }),
                 })),
             );

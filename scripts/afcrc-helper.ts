@@ -1110,7 +1110,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                                 closingId = 'p';
 
                                 const acceptedPagesMessage = `* {{subst:AfC redirect}} (${acceptedPages.map((page) => `[[${page}]]`).join(', ')}) ~~~~`;
-                                const deniedPagesMessage = this.mapDeniedReasons(deniedPages, false);
+                                const deniedPagesMessage = this.mapDeniedReasons(deniedPages, false, false);
 
                                 for (const page of acceptedPages) this.handleAcceptedRedirect(page, requests[page], target);
 
@@ -1124,7 +1124,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                             } else {
                                 closingId = 'd';
 
-                                sectionData = this.modifySectionData(sectionData, { append: this.mapDeniedReasons(deniedPages, amountOfPages === 1) });
+                                sectionData = this.modifySectionData(sectionData, { append: this.mapDeniedReasons(deniedPages, amountOfPages === 1, true) });
                             }
 
                             sectionData = this.modifySectionData(sectionData, { prepend: `{{AfC-c|${closingId}}}`, append: '{{AfC-c|b}}' });
@@ -1243,8 +1243,9 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
          * Maps a group of denied reasons.
          * @param deniedPages The pages to map.
          * @param singularRequest Whether the request is the only request.
+         * @param allRequests Whether all requests are being mapped.
          */
-        private mapDeniedReasons(deniedPages: string[][], singularRequest: boolean) {
+        private mapDeniedReasons(deniedPages: string[][], singularRequest: boolean, allRequests: boolean) {
             if (singularRequest) return `* ${this.formatDeniedReason(deniedPages[0][1])} ~~~~`;
 
             const reasons: Record<string, string[]> = {};
@@ -1254,8 +1255,10 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                 reasons[reason].push(page);
             }
 
-            return Object.entries(reasons)
-                .map(([reason, pages]) => `* ${this.formatDeniedReason(reason)} (${pages.map((page) => `[[${page}]]`).join(', ')}) ~~~~`)
+            const reasonsArray = Object.entries(reasons);
+
+            return reasonsArray
+                .map(([reason, pages]) => `* ${this.formatDeniedReason(reason)}${reasonsArray.length > 1 || !allRequests ? ` (${pages.map((page) => `[[${page}]]`).join(', ')})` : ''} ~~~~`)
                 .join('\n');
         }
 

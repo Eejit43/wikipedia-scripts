@@ -1076,11 +1076,11 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                                 }
                                 case 'comment': {
                                     if (action.comment) {
-                                        comments.push(`${action.comment}${amountOfPages > 1 ? ` (${requestedTitle})` : ''}`);
+                                        comments.push([requestedTitle, action.comment]);
                                         counts.commented++;
                                     } else
                                         showActionsDialog.addLogEntry(
-                                            `The request to create "${requestedTitle}" → "${target}" has been marked to be commented on, but no comment was provided so it will be skipped.`,
+                                            `The request to create "${requestedTitle}" → "${target}" was marked to be commented on, but no comment was provided so it will be skipped.`,
                                             'warning',
                                         );
 
@@ -1088,7 +1088,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                                 }
                                 case 'close': {
                                     if (allRequestsClosed) {
-                                        if (action.comment) comments.push(`${action.comment}${amountOfPages > 1 ? ` (${requestedTitle})` : ''}`);
+                                        if (action.comment) comments.push([requestedTitle, action.comment]);
                                         counts.closed++;
                                     } else
                                         showActionsDialog.addLogEntry(
@@ -1101,7 +1101,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
 
                         let sectionData = { pageText: newPageText, ...Object.values(requests)[0].originalText };
 
-                        if (comments.length > 0) sectionData = this.modifySectionData(sectionData, { append: comments.map((comment) => `* {{AfC comment|1=${comment}}} ~~~~`).join('\n') });
+                        if (comments.length > 0) sectionData = this.modifySectionData(sectionData, { append: this.mapComments(comments, amountOfPages === 1, comments.length === amountOfPages) });
 
                         if (someRequestAcceptedDenied) {
                             let closingId: string;
@@ -1172,7 +1172,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                             case 'deny': {
                                 sectionData = this.modifySectionData(sectionData, {
                                     prepend: '{{AfC-c|d}}',
-                                    append: `* {{subst:AfC category|${actionData.denyReason!.startsWith('autofill:') ? actionData.denyReason!.replace('autofill:', '') : `decline|2=${actionData.denyReason}`}}} ~~~~\n{{AfC-c|b}}`,
+                                    append: `* ${this.formatDeniedReason(actionData.denyReason!)} ~~~~\n{{AfC-c|b}}`,
                                 });
 
                                 counts.denied++;
@@ -1186,7 +1186,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                                     counts.commented++;
                                 } else
                                     showActionsDialog.addLogEntry(
-                                        `The request to create "${actionData.category}" has been marked to be commented on, but no comment was provided so it will be skipped.`,
+                                        `The request to create "${actionData.category}" was marked to be commented on, but no comment was provided so it will be skipped.`,
                                         'warning',
                                     );
 
@@ -1236,7 +1236,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
         private formatDeniedReason(reason: string) {
             const templateParameters = reason.startsWith('autofill:') ? reason.replace('autofill:', '') : `decline|2=${reason}`;
 
-            return `{{subst:AfC redirect|${templateParameters}}}`;
+            return `{{subst:AfC ${this.requestPageType}|${templateParameters}}}`;
         }
 
         /**
@@ -1259,6 +1259,29 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
 
             return reasonsArray
                 .map(([reason, pages]) => `* ${this.formatDeniedReason(reason)}${reasonsArray.length > 1 || !allRequests ? ` (${pages.map((page) => `[[${page}]]`).join(', ')})` : ''} ~~~~`)
+                .join('\n');
+        }
+
+        /**
+         * Maps a group of comments.
+         * @param comments The comments to map.
+         * @param singularRequest Whether the request is the only request.
+         * @param allRequests Whether all requests are being mapped.
+         */
+        private mapComments(comments: string[][], singularRequest: boolean, allRequests: boolean) {
+            if (singularRequest) return `* {{AfC comment|1=${comments[0][1]}}} ~~~~`;
+
+            const commentMessages: Record<string, string[]> = {};
+
+            for (const [page, comment] of comments) {
+                if (!commentMessages[comment]) commentMessages[comment] = [];
+                commentMessages[comment].push(page);
+            }
+
+            const commentsArray = Object.entries(commentMessages);
+
+            return commentsArray
+                .map(([comment, pages]) => `* {{AfC comment|1=${comment}}}${commentsArray.length > 1 || !allRequests ? ` (${pages.map((page) => `[[${page}]]`).join(', ')})` : ''} ~~~~`)
                 .join('\n');
         }
 

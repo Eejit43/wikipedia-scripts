@@ -1076,7 +1076,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                                 }
                                 case 'comment': {
                                     if (action.comment) {
-                                        comments.push(`${action.comment}${amountOfPages > 1 ? ` [${requestedTitle}]` : ''}`);
+                                        comments.push(`${action.comment}${amountOfPages > 1 ? ` (${requestedTitle})` : ''}`);
                                         counts.commented++;
                                     } else
                                         showActionsDialog.addLogEntry(
@@ -1088,7 +1088,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                                 }
                                 case 'close': {
                                     if (allRequestsClosed) {
-                                        if (action.comment) comments.push(`${action.comment}${amountOfPages > 1 ? ` [${requestedTitle}]` : ''}`);
+                                        if (action.comment) comments.push(`${action.comment}${amountOfPages > 1 ? ` (${requestedTitle})` : ''}`);
                                         counts.closed++;
                                     } else
                                         showActionsDialog.addLogEntry(
@@ -1109,14 +1109,12 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                             if (acceptedPages.length > 0 && deniedPages.length > 0) {
                                 closingId = 'p';
 
-                                const mappedAcceptedPages = acceptedPages.map((page) => `* {{subst:AfC redirect}} [${page}] ~~~~`);
-                                const mappedDeniedPages = deniedPages.map(
-                                    ([page, reason]) => `* {{subst:AfC redirect|${reason.startsWith('autofill:') ? reason.replace('autofill:', '') : `decline|2=${reason}`}}} [${page}] ~~~~`,
-                                );
+                                const acceptedPagesMessage = `* {{subst:AfC redirect}} (${acceptedPages.map((page) => `[[${page}]]`).join(', ')}) ~~~~`;
+                                const deniedPagesMessage = this.mapDeniedReasons(deniedPages, false);
 
                                 for (const page of acceptedPages) this.handleAcceptedRedirect(page, requests[page], target);
 
-                                sectionData = this.modifySectionData(sectionData, { append: [...mappedAcceptedPages, ...mappedDeniedPages].join('\n') });
+                                sectionData = this.modifySectionData(sectionData, { append: `${acceptedPagesMessage}\n${deniedPagesMessage}` });
                             } else if (acceptedPages.length > 0) {
                                 closingId = 'a';
 
@@ -1126,12 +1124,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                             } else {
                                 closingId = 'd';
 
-                                const mappedReasons = deniedPages.map(
-                                    ([page, reason]) =>
-                                        `* {{subst:AfC redirect|${reason.startsWith('autofill:') ? reason.replace('autofill:', '') : `decline|2=${reason}`}}}${deniedPages.length > 1 ? ` [${page}]` : ''} ~~~~`,
-                                );
-
-                                sectionData = this.modifySectionData(sectionData, { append: mappedReasons.join('\n') });
+                                sectionData = this.modifySectionData(sectionData, { append: this.mapDeniedReasons(deniedPages, amountOfPages === 1) });
                             }
 
                             sectionData = this.modifySectionData(sectionData, { prepend: `{{AfC-c|${closingId}}}`, append: '{{AfC-c|b}}' });
@@ -1234,6 +1227,36 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                     showActionsDialog.showReload();
                 } else showActionsDialog.addLogEntry('No requests have been handled!');
             }
+        }
+
+        /**
+         * Formats a request denial reason to a {{subst:AfC redirect}} call.
+         * @param reason The reason to format.
+         */
+        private formatDeniedReason(reason: string) {
+            const templateParameters = reason.startsWith('autofill:') ? reason.replace('autofill:', '') : `decline|2=${reason}`;
+
+            return `{{subst:AfC redirect|${templateParameters}}}`;
+        }
+
+        /**
+         * Maps a group of denied reasons.
+         * @param deniedPages The pages to map.
+         * @param singularRequest Whether the request is the only request.
+         */
+        private mapDeniedReasons(deniedPages: string[][], singularRequest: boolean) {
+            if (singularRequest) return `* ${this.formatDeniedReason(deniedPages[0][1])} ~~~~`;
+
+            const reasons: Record<string, string[]> = {};
+
+            for (const [page, reason] of deniedPages) {
+                if (!reasons[reason]) reasons[reason] = [];
+                reasons[reason].push(page);
+            }
+
+            return Object.entries(reasons)
+                .map(([reason, pages]) => `* ${this.formatDeniedReason(reason)} (${pages.map((page) => `[[${page}]]`).join(', ')}) ~~~~`)
+                .join('\n');
         }
 
         /**

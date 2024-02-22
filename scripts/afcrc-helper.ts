@@ -216,7 +216,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
     type ActionType = 'accept' | 'deny' | 'comment' | 'close' | 'none';
 
     interface Action {
-        originalText: string;
+        originalText: { fullSectionText: string; sectionText: string };
         action: ActionType;
         comment?: string;
         denyReason?: string;
@@ -411,7 +411,9 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
 
                     (this.actionsToTake as RedirectActions).push({
                         target: parsedData.target,
-                        requests: Object.fromEntries(requestedPages.map((page) => [page, { originalText: sectionText.replace(/^==.*?==$/m, '').trim(), action: 'none' }])),
+                        requests: Object.fromEntries(
+                            requestedPages.map((page) => [page, { originalText: { fullSectionText: sectionText, sectionText: sectionText.replace(/^==.*?==$/m, '').trim() }, action: 'none' }]),
+                        ),
                     });
                 } else {
                     const parsedData = {} as CategoryRequestData;
@@ -438,7 +440,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                         category: parsedData.category,
                         examples: parsedData.examples,
                         parents: parsedData.parents,
-                        originalText: sectionText.replace(/^==.*?==$/m, '').trim(),
+                        originalText: { fullSectionText: sectionText, sectionText: sectionText.replace(/^==.*?==$/m, '').trim() },
                         action: 'none',
                     });
                 }
@@ -1097,18 +1099,12 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                                 }
                             }
 
-                        let sectionReplaceText = Object.values(requests)[0].originalText;
+                        let sectionData = { pageText: newPageText, ...Object.values(requests)[0].originalText };
 
-                        if (comments.length > 0) {
-                            sectionReplaceText += '\n' + comments.map((comment) => `* {{AfC comment|1=${comment}}} ~~~~`).join('\n');
-
-                            newPageText = newPageText.replace(Object.values(requests)[0].originalText, sectionReplaceText);
-                        }
+                        if (comments.length > 0) sectionData = this.modifySectionData(sectionData, { append: comments.map((comment) => `* {{AfC comment|1=${comment}}} ~~~~`).join('\n') });
 
                         if (someRequestAcceptedDenied) {
                             let closingId: string;
-
-                            const sectionTextBefore = sectionReplaceText;
 
                             if (acceptedPages.length > 0 && deniedPages.length > 0) {
                                 closingId = 'p';
@@ -1120,15 +1116,13 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
 
                                 for (const page of acceptedPages) this.handleAcceptedRedirect(page, requests[page], target);
 
-                                sectionReplaceText += '\n' + mappedAcceptedPages.join('\n') + '\n' + mappedDeniedPages.join('\n');
-                                newPageText = newPageText.replace(sectionTextBefore, sectionReplaceText);
+                                sectionData = this.modifySectionData(sectionData, { append: [...mappedAcceptedPages, ...mappedDeniedPages].join('\n') });
                             } else if (acceptedPages.length > 0) {
                                 closingId = 'a';
 
                                 for (const page of acceptedPages) this.handleAcceptedRedirect(page, requests[page], target);
 
-                                sectionReplaceText += `\n* {{subst:AfC redirect${acceptedPages.length > 1 ? '|all' : ''}}} ~~~~`;
-                                newPageText = newPageText.replace(sectionTextBefore, sectionReplaceText);
+                                sectionData = this.modifySectionData(sectionData, { append: `* {{subst:AfC redirect${acceptedPages.length > 1 ? '|all' : ''}}} ~~~~` });
                             } else {
                                 closingId = 'd';
 
@@ -1137,15 +1131,16 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                                         `* {{subst:AfC redirect|${reason.startsWith('autofill:') ? reason.replace('autofill:', '') : `decline|2=${reason}`}}}${deniedPages.length > 1 ? ` [${page}]` : ''} ~~~~`,
                                 );
 
-                                sectionReplaceText += '\n' + mappedReasons.join('\n');
-                                newPageText = newPageText.replace(sectionTextBefore, sectionReplaceText);
+                                sectionData = this.modifySectionData(sectionData, { append: mappedReasons.join('\n') });
                             }
 
-                            newPageText = newPageText.replace(sectionReplaceText, `{{AfC-c|${closingId}}}\n${sectionReplaceText}\n{{AfC-c|b}}`);
-                        } else if (allRequestsClosed) newPageText = newPageText.replace(sectionReplaceText, `{{AfC-c|${firstCloseReason}}}\n${sectionReplaceText}\n{{AfC-c|b}}`);
+                            sectionData = this.modifySectionData(sectionData, { prepend: `{{AfC-c|${closingId}}}`, append: '{{AfC-c|b}}' });
+                        } else if (allRequestsClosed) sectionData = this.modifySectionData(sectionData, { prepend: `{{AfC-c|${firstCloseReason}}}`, append: '{{AfC-c|b}}' });
+
+                        newPageText = sectionData.pageText;
                     }
 
-                    if (this.beforeText + this.pageContent === newPageText) return showActionsDialog.addLogEntry('No requests have been handled!');
+                    if (this.beforeText + this.pageContent === newPageText) return showActionsDialog.addLogEntry('No requests have been handled (page content identical)!');
 
                     const mappedCounts = Object.entries(counts)
                         .filter(([, count]) => count > 0)
@@ -1169,11 +1164,11 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
 
                 if (anyRequestHandled) {
                     for (const actionData of this.actionsToTake as CategoryActions) {
-                        const sectionText = actionData.originalText;
+                        let sectionData = { pageText: newPageText, ...actionData.originalText };
 
                         switch (actionData.action) {
                             case 'accept': {
-                                newPageText = newPageText.replace(sectionText, `{{AfC-c|a}}\n${sectionText}\n* {{subst:AfC category}} ~~~~\n{{AfC-c|b}}`);
+                                sectionData = this.modifySectionData(sectionData, { prepend: '{{AfC-c|a}}', append: '* {{subst:AfC category}} ~~~~\n{{AfC-c|b}}' });
 
                                 this.handleAcceptedCategory(actionData);
 
@@ -1182,10 +1177,10 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                                 break;
                             }
                             case 'deny': {
-                                newPageText = newPageText.replace(
-                                    sectionText,
-                                    `{{AfC-c|d}}\n${sectionText}\n* {{subst:AfC category|${actionData.denyReason!.startsWith('autofill:') ? actionData.denyReason!.replace('autofill:', '') : `decline|2=${actionData.denyReason}`}}} ~~~~\n{{AfC-c|b}}`,
-                                );
+                                sectionData = this.modifySectionData(sectionData, {
+                                    prepend: '{{AfC-c|d}}',
+                                    append: `* {{subst:AfC category|${actionData.denyReason!.startsWith('autofill:') ? actionData.denyReason!.replace('autofill:', '') : `decline|2=${actionData.denyReason}`}}} ~~~~\n{{AfC-c|b}}`,
+                                });
 
                                 counts.denied++;
 
@@ -1193,7 +1188,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                             }
                             case 'comment': {
                                 if (actionData.comment) {
-                                    newPageText = newPageText.replace(sectionText, `${sectionText}\n* {{AfC comment|1=${actionData.comment}}} ~~~~`);
+                                    sectionData = this.modifySectionData(sectionData, { append: `* {{AfC comment|1=${actionData.comment}}} ~~~~` });
 
                                     counts.commented++;
                                 } else
@@ -1205,19 +1200,21 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                                 break;
                             }
                             case 'close': {
-                                newPageText = newPageText.replace(
-                                    sectionText,
-                                    `{{AfC-c|${actionData.closingReason!.id}}}\n${sectionText}${actionData.comment ? `\n* {{AfC comment|1=${actionData.comment}}} ~~~~` : ''}\n{{AfC-c|b}}`,
-                                );
+                                sectionData = this.modifySectionData(sectionData, {
+                                    prepend: `{{AfC-c|${actionData.closingReason!.id}}}`,
+                                    append: (actionData.comment ? `* {{AfC comment|1=${actionData.comment}}} ~~~~` : '') + '\n{{AfC-c|b}',
+                                });
 
                                 counts.closed++;
 
                                 break;
                             }
                         }
+
+                        newPageText = sectionData.pageText;
                     }
 
-                    if (this.beforeText + this.pageContent === newPageText) return showActionsDialog.addLogEntry('No requests have been handled!');
+                    if (this.beforeText + this.pageContent === newPageText) return showActionsDialog.addLogEntry('No requests have been handled (page content identical)!');
 
                     const mappedCounts = Object.entries(counts)
                         .filter(([, count]) => count > 0)
@@ -1237,6 +1234,26 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                     showActionsDialog.showReload();
                 } else showActionsDialog.addLogEntry('No requests have been handled!');
             }
+        }
+
+        /**
+         * Modifies a given section text with prepended and appended text.
+         * @param sectionData The section data.
+         * @param changes The prepending and appending text.
+         * @param changes.prepend The text to prepend to the section text.
+         * @param changes.append The text to append to the section text.
+         */
+        private modifySectionData(sectionData: { pageText: string } & Action['originalText'], { prepend, append }: { prepend?: string; append?: string }) {
+            const { fullSectionText: oldFullSectionText, sectionText: oldSectionText } = sectionData;
+
+            if (prepend) sectionData.sectionText = prepend + '\n' + sectionData.sectionText;
+            if (append) sectionData.sectionText += '\n' + append;
+
+            sectionData.fullSectionText = sectionData.fullSectionText.replace(oldSectionText, sectionData.sectionText);
+
+            sectionData.pageText = sectionData.pageText.replace(oldFullSectionText, sectionData.fullSectionText);
+
+            return sectionData;
         }
 
         /**

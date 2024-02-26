@@ -1020,7 +1020,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
             windowManager.addWindows([showActionsDialog]);
             showActionsDialog.open();
 
-            const counts = { accepted: 0, denied: 0, commented: 0, closed: 0 };
+            const counts = { accepted: 0, denied: 0, 'commented on': 0, closed: 0 }; // eslint-disable-line @typescript-eslint/naming-convention
 
             let newPageText = (
                 (await this.api.get({
@@ -1077,7 +1077,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                                 case 'comment': {
                                     if (action.comment) {
                                         comments.push([requestedTitle, action.comment]);
-                                        counts.commented++;
+                                        counts['commented on']++;
                                     } else
                                         showActionsDialog.addLogEntry(
                                             `The request to create "${requestedTitle}" → "${target}" was marked to be commented on, but no comment was provided so it will be skipped.`,
@@ -1183,7 +1183,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                                 if (actionData.comment) {
                                     sectionData = this.modifySectionData(sectionData, { append: `* {{AfC comment|1=${actionData.comment}}} ~~~~` });
 
-                                    counts.commented++;
+                                    counts['commented on']++;
                                 } else
                                     showActionsDialog.addLogEntry(
                                         `The request to create "${actionData.category}" was marked to be commented on, but no comment was provided so it will be skipped.`,

@@ -17,7 +17,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
         const windowManager = new OO.ui.WindowManager();
         document.body.append(windowManager.$element[0]);
 
-        const afcrcHelperDialog = new AfcrcHelperDialog(requestPageType, mw.config.get('wgPageName'));
+        const afcrcHelperDialog = new AfcrcHelperDialog(requestPageType, mw.config.get('wgPageName').replaceAll('_', ' '));
 
         windowManager.addWindows([afcrcHelperDialog]);
 

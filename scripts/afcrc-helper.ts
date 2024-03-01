@@ -1148,7 +1148,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
 
                     await this.makeAllEditsCreations(showActionsDialog);
 
-                    showActionsDialog.addLogEntry('All redirect requests handled, click below to reload!', 'success');
+                    showActionsDialog.addLogEntry('All changes made, click below to reload!', 'success');
 
                     showActionsDialog.showReload();
                 } else showActionsDialog.addLogEntry('No requests have been handled!');
@@ -1222,7 +1222,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
 
                     await this.makeAllEditsCreations(showActionsDialog);
 
-                    showActionsDialog.addLogEntry('All category requests handled, click below to reload!', 'success');
+                    showActionsDialog.addLogEntry('All changes made, click below to reload!', 'success');
 
                     showActionsDialog.showReload();
                 } else showActionsDialog.addLogEntry('No requests have been handled!');

@@ -1103,7 +1103,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
 
                         if (comments.length > 0) sectionData = this.modifySectionData(sectionData, { append: this.mapComments(comments, amountOfPages === 1, comments.length === amountOfPages) });
 
-                        if (someRequestAcceptedDenied) {
+                        if (allRequestsAcceptedDenied) {
                             let closingId: string;
 
                             if (acceptedPages.length > 0 && deniedPages.length > 0) {

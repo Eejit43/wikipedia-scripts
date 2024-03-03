@@ -426,7 +426,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                             .filter(Boolean) ?? [];
 
                     parsedData.parents =
-                        [...sectionText.match(/parent category\/categories:(.*?)\n\n/is)![1].matchAll(/\[\[:Category:(.*?)]]/g)]
+                        [...sectionText.match(/parent category\/categories:(.*?)(\n\n|\n\[\[(special:contributions\/|user:))/is)![1].matchAll(/\[\[:Category:(.*?)]]/g)]
                             ?.map((match) => match[1].trim().replace(/^:/, '').replaceAll('_', ' '))
                             .filter(Boolean) ?? [];
 

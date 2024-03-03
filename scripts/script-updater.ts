@@ -22,8 +22,12 @@ interface Script {
 mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-windows'], () => {
     if (mw.config.get('wgUserName') !== 'Eejit43' || mw.config.get('wgPageName') !== 'User:Eejit43') return;
 
-    const link = mw.util.addPortletLink(mw.config.get('skin') === 'minerva' ? 'p-tb' : 'p-cactions', '#', 'Sync user scripts from GitHub', 'sync-scripts')!;
+    const fullLinkElement = document.querySelector('.mw-editsection')!.cloneNode(true) as HTMLSpanElement;
 
+    const link = document.createElement('a');
+    link.href = '#';
+    link.style.fontWeight = 'bold';
+    link.textContent = 'Sync from GitHub';
     link.addEventListener('click', (event) => {
         event.preventDefault();
 
@@ -35,6 +39,10 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
 
         scriptUpdaterDialog.open();
     });
+
+    fullLinkElement.querySelector('a')!.replaceWith(link);
+
+    document.querySelector('#My_user_scripts.mw-headline')!.after(fullLinkElement);
 
     /**
      * An instance of this class is a dialog that manages updating scripts.

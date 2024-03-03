@@ -11,8 +11,12 @@ interface SearchData {
 mw.loader.using(['mediawiki.util'], () => {
     if (mw.config.get('wgPageName') !== 'User:Eejit43') return;
 
-    const link = mw.util.addPortletLink(mw.config.get('skin') === 'minerva' ? 'p-tb' : 'p-cactions', '#', 'Add counts to monitoring list', 'add-monitoring-counts')!;
+    const fullLinkElement = document.querySelector('.mw-editsection')!.cloneNode(true) as HTMLSpanElement;
 
+    const link = document.createElement('a');
+    link.href = '#';
+    link.style.fontWeight = 'bold';
+    link.textContent = 'Add missing counts';
     link.addEventListener('click', async (event) => {
         event.preventDefault();
 
@@ -28,6 +32,10 @@ mw.loader.using(['mediawiki.util'], () => {
                 } satisfies ApiQueryRevisionsParams)) as PageRevisionsResult
             ).query.pages[0].revisions[0].slots.main.content,
         ) as SearchData;
+
+        const totalRequests = Object.entries(toCheck).reduce((accumulator, [, value]: [string, unknown[]]) => accumulator + value.length, 0);
+
+        let handledRequests = 0;
 
         // eslint-disable-next-line unicorn/no-array-for-each
         toCheck.categories.forEach(async (check) => {
@@ -51,6 +59,9 @@ mw.loader.using(['mediawiki.util'], () => {
             const element = document.querySelector(`#to-monitor-list-${check.id}`);
             if (!element) return mw.notify(`Failed to find element for ID "${check.id}"`);
             element.innerHTML = count === 0 ? '<span style="color: #00733f">None</span>' : `<b><span style="color: #bd2828">${count === 500 ? '500+' : count}</span></b>`;
+
+            handledRequests++;
+            link.textContent = `Add missing counts (${handledRequests}/${totalRequests} loaded)`;
         });
 
         // eslint-disable-next-line unicorn/no-array-for-each
@@ -75,6 +86,9 @@ mw.loader.using(['mediawiki.util'], () => {
             const element = document.querySelector(`#to-monitor-list-${check.id}`);
             if (!element) return mw.notify(`Failed to find element for ID "${check.id}"`);
             element.innerHTML = count === 0 ? '<span style="color: #00733f">None</span>' : `<b><span style="color: #bd2828">${count.toLocaleString()}</span></b>`;
+
+            handledRequests++;
+            link.textContent = `Add missing counts (${handledRequests}/${totalRequests} loaded)`;
         });
 
         // eslint-disable-next-line unicorn/no-array-for-each
@@ -99,6 +113,9 @@ mw.loader.using(['mediawiki.util'], () => {
             const element = document.querySelector(`#to-monitor-list-${check.id}`);
             if (!element) return mw.notify(`Failed to find element for ID "${check.id}"`);
             element.innerHTML = count === 0 ? '<span style="color: #00733f">None</span>' : `<b><span style="color: #bd2828">${count === 500 ? '500+' : count}</span></b>`;
+
+            handledRequests++;
+            link.textContent = `Add missing counts (${handledRequests}/${totalRequests} loaded)`;
         });
 
         // eslint-disable-next-line unicorn/no-array-for-each
@@ -123,10 +140,15 @@ mw.loader.using(['mediawiki.util'], () => {
             const element = document.querySelector(`#to-monitor-list-${check.id}`);
             if (!element) return mw.notify(`Failed to find element for ID "${check.id}"`);
             element.innerHTML = count === 0 ? '<span style="color: #00733f">None</span>' : `<b><span style="color: #bd2828">${count === 500 ? '500+' : count}</span></b>`;
-        });
 
-        mw.notify('Successfully added missing counts to "Stuff to monitor"', { type: 'success' });
+            handledRequests++;
+            link.textContent = `Add missing counts (${handledRequests}/${totalRequests} loaded)`;
+        });
     });
+
+    fullLinkElement.querySelector('a')!.replaceWith(link);
+
+    document.querySelector('#Stuff_to_monitor.mw-headline')!.after(fullLinkElement);
 });
 
 /**

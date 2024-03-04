@@ -687,7 +687,13 @@ mw.loader.using(
 
                         this.defaultSortInput.setValue(lastName + ', ' + otherNames + generationalSuffix);
                     } else {
-                        const newName = name.replaceAll('Mr.', 'Mister').replaceAll('&', 'And');
+                        let newName = name.replaceAll('Mr.', 'Mister').replaceAll('&', 'And');
+
+                        for (const leadingArticle of ['An', 'A', 'The'])
+                            if (newName.startsWith(leadingArticle + ' ')) {
+                                newName = newName.slice(leadingArticle.length + 1) + ', ' + leadingArticle;
+                                break;
+                            }
 
                         if (newName === name) mw.notify("redirect-helper wasn't able to find a sort key different from the current page title!", { type: 'warn' });
                         else this.defaultSortInput.setValue(newName);

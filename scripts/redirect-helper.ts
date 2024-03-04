@@ -444,7 +444,8 @@ mw.loader.using(
             private categorySelectInput!: CategoryInputWidget;
             private categorySelectLayout!: OO.ui.FieldLayout;
             private defaultSortInput!: OO.ui.TextInputWidget;
-            private defaultSortInputLayout!: OO.ui.FieldLayout;
+            private defaultSortSuggestButton!: OO.ui.ButtonWidget;
+            private defaultSortInputLayout!: OO.ui.ActionFieldLayout;
             private summaryInput!: OO.ui.ComboBoxInputWidget;
             private summaryInputLayout!: OO.ui.FieldLayout;
             private submitButton!: OO.ui.ButtonWidget;
@@ -595,9 +596,11 @@ mw.loader.using(
 
                     if (value.length > 0) {
                         this.redirectInput.setValue(value[0].toUpperCase() + value.slice(1).replaceAll('_', ' '));
+                        this.defaultSortSuggestButton.setDisabled(false);
                         this.submitButton.setDisabled(false);
                         this.showChangesButton.setDisabled(false);
                     } else {
+                        this.defaultSortSuggestButton.setDisabled(true);
                         this.submitButton.setDisabled(true);
                         this.showChangesButton.setDisabled(true);
                     }
@@ -660,7 +663,37 @@ mw.loader.using(
                     this.needsCheck = true;
                 });
 
-                this.defaultSortInputLayout = new OO.ui.FieldLayout(this.defaultSortInput, {
+                this.defaultSortSuggestButton = new OO.ui.ButtonWidget({ icon: 'robot', label: 'Suggest', disabled: true });
+                this.defaultSortSuggestButton.on('click', () => {
+                    let name = this.pageTitleParsed.getMainText().replace(/ \(.*\)$/, ''); // Remove disambiguation
+
+                    if (this.tagSelect.getValue().includes('R from person')) {
+                        // Handling is modified from evad37's "Rater"
+
+                        if (!name.includes(' ')) return;
+
+                        let generationalSuffix = '';
+                        if (/ (?:[JS]r.?|[IVX]+)$/.test(name)) {
+                            generationalSuffix = name.slice(name.lastIndexOf(' '));
+                            name = name.slice(0, name.lastIndexOf(' '));
+                            if (!name.includes(' ')) return name + generationalSuffix;
+                        }
+
+                        const lastName = name
+                            .slice(name.lastIndexOf(' ') + 1)
+                            .replace(/,$/, '')
+                            .replace(/O'/, 'O');
+                        const otherNames = name.slice(0, name.lastIndexOf(' '));
+
+                        this.defaultSortInput.setValue(lastName + ', ' + otherNames + generationalSuffix);
+                    } else {
+                        const newName = name.replaceAll('Mr.', 'Mister').replaceAll('&', 'And');
+
+                        if (newName !== name) this.defaultSortInput.setValue(newName);
+                    }
+                });
+
+                this.defaultSortInputLayout = new OO.ui.ActionFieldLayout(this.defaultSortInput, this.defaultSortSuggestButton, {
                     label: new OO.ui.HtmlSnippet(`Default sort key (DEFAULTSORT) (see <a href="${mw.util.getUrl('Wikipedia:Categorization#Sort keys')}" target="_blank">guideline</a>):`),
                     classes: ['redirect-input-layout'],
                     align: 'top',
@@ -1139,6 +1172,19 @@ mw.loader.using(
                 const formattedTitle = parsedTarget
                     ? `${parsedTarget.getNamespaceId() === 14 ? ':' : ''}${parsedTarget.getPrefixedText()}${parsedTarget.getFragment() ? `#${parsedTarget.getFragment()}` : ''}`
                     : target.trim();
+
+                if (
+                    this.pageTitleParsed
+                        .getMainText()
+                        .toLocaleLowerCase()
+                        .normalize('NFD')
+                        .replaceAll(/[\u0300-\u036F]/g, '') ===
+                    defaultSort
+                        ?.toLowerCase()
+                        .normalize('NFD')
+                        .replaceAll(/[\u0300-\u036F]/g, '')
+                )
+                    defaultSort = undefined; // Check if titles normalize to the same text, and removes the DEFAULTSORT if so
 
                 return [
                     `#REDIRECT [[${formattedTitle}]]\n`, //

@@ -689,7 +689,8 @@ mw.loader.using(
                     } else {
                         const newName = name.replaceAll('Mr.', 'Mister').replaceAll('&', 'And');
 
-                        if (newName !== name) this.defaultSortInput.setValue(newName);
+                        if (newName === name) mw.notify("redirect-helper wasn't able to find a sort key different from the current page title!", { type: 'warn' });
+                        else this.defaultSortInput.setValue(newName);
                     }
                 });
 

@@ -8,21 +8,125 @@ interface SearchData {
     transclusions: { id: string; title: string; namespace?: string; notNamespace?: string }[];
 }
 
-mw.loader.using(['mediawiki.util'], () => {
-    if (mw.config.get('wgPageName') !== 'User:Eejit43') return;
+type SearchDataCheck = SearchData['categories'][0] | SearchData['searches'][0] | SearchData['whatLinksHere'][0] | SearchData['transclusions'][0];
 
-    const fullLinkElement = document.querySelector('.mw-editsection')!.cloneNode(true) as HTMLSpanElement;
+/**
+ * An instance of this class handles the entire functionality of the to-monitor-list script.
+ */
+class MonitoringListManager {
+    private api = new mw.Api();
 
-    const link = document.createElement('a');
-    link.href = '#';
-    link.style.fontWeight = 'bold';
-    link.textContent = 'Add missing counts';
-    link.addEventListener('click', async (event) => {
-        event.preventDefault();
+    private link!: HTMLAnchorElement;
 
-        const toCheck = JSON.parse(
+    private toCheck!: SearchData;
+    private totalToCheck!: number;
+
+    private handledRequests = 0;
+
+    /**
+     * Loads the "Add missing counts" link element.
+     */
+    public load() {
+        const fullLinkElement = document.querySelector('.mw-editsection')!.cloneNode(true) as HTMLSpanElement;
+
+        this.link = document.createElement('a');
+        this.link.href = '#';
+        this.link.style.fontWeight = 'bold';
+        this.link.textContent = 'Add missing counts';
+        this.link.addEventListener('click', async (event) => {
+            event.preventDefault();
+
+            await this.loadToCheckData();
+
+            for (const check of this.toCheck.categories)
+                this.handleCheck(check, async () => {
+                    const data: SearchResult | null = await this.api
+                        .get({
+                            action: 'query',
+                            list: 'search',
+                            srinfo: 'totalhits',
+                            srnamespace: this.getCategory(check),
+                            srsearch: `incategory:"${check.category}"`,
+                        } satisfies ApiQuerySearchParams)
+                        .catch((errorCode: string, errorInfo: MediaWikiDataError) => {
+                            mw.notify(`An error occurred while trying to get category members: ${errorInfo?.error.info ?? 'Unknown error'} (${errorCode})`, { type: 'error' });
+                            return null;
+                        });
+                    if (!data) return;
+
+                    return (data as SearchResult).query.searchinfo.totalhits;
+                });
+
+            for (const check of this.toCheck.searches)
+                this.handleCheck(check, async () => {
+                    const data: SearchResult | null = await this.api
+                        .get({
+                            action: 'query',
+                            list: 'search',
+                            srinfo: 'totalhits',
+                            srnamespace: this.getCategory(check),
+                            srsearch: check.search,
+                        } satisfies ApiQuerySearchParams)
+                        .catch((errorCode: string, errorInfo: MediaWikiDataError) => {
+                            mw.notify(`An error occurred while trying to get search results: ${errorInfo?.error.info ?? 'Unknown error'} (${errorCode})`, { type: 'error' });
+                            return null;
+                        });
+                    if (!data) return;
+
+                    return (data as SearchResult).query.searchinfo.totalhits;
+                });
+
+            for (const check of this.toCheck.whatLinksHere)
+                this.handleCheck(check, async () => {
+                    const data: BacklinksResult | null = await this.api
+                        .get({
+                            action: 'query',
+                            list: 'backlinks',
+                            bllimit: 500,
+                            blnamespace: this.getCategory(check),
+                            bltitle: check.title,
+                        } satisfies ApiQueryBacklinksParams)
+                        .catch((errorCode: string, errorInfo: MediaWikiDataError) => {
+                            mw.notify(`An error occurred while trying to get backlinks: ${errorInfo?.error.info ?? 'Unknown error'} (${errorCode})`, { type: 'error' });
+                            return null;
+                        });
+                    if (!data) return;
+
+                    return (data as BacklinksResult).query.backlinks.length;
+                });
+
+            for (const check of this.toCheck.transclusions)
+                this.handleCheck(check, async () => {
+                    const data: EmbeddedinResult | null = await this.api
+                        .get({
+                            action: 'query',
+                            list: 'embeddedin',
+                            eilimit: 500,
+                            einamespace: this.getCategory(check),
+                            eititle: check.title,
+                        } satisfies ApiQueryBacklinksParams)
+                        .catch((errorCode: string, errorInfo: MediaWikiDataError) => {
+                            mw.notify(`An error occurred while trying to get transclusions: ${errorInfo?.error.info ?? 'Unknown error'} (${errorCode})`, { type: 'error' });
+                            return null;
+                        });
+                    if (!data) return;
+
+                    return (data as EmbeddedinResult).query.embeddedin.length;
+                });
+        });
+
+        fullLinkElement.querySelector('a')!.replaceWith(this.link);
+
+        document.querySelector('#Stuff_to_monitor.mw-headline')!.after(fullLinkElement);
+    }
+
+    /**
+     * Loads the data of checks to handle.
+     */
+    public async loadToCheckData() {
+        this.toCheck = JSON.parse(
             (
-                (await new mw.Api().get({
+                (await this.api.get({
                     action: 'query',
                     formatversion: '2',
                     prop: 'revisions',
@@ -33,139 +137,46 @@ mw.loader.using(['mediawiki.util'], () => {
             ).query.pages[0].revisions[0].slots.main.content,
         ) as SearchData;
 
-        const totalRequests = Object.entries(toCheck).reduce((accumulator, [, value]: [string, unknown[]]) => accumulator + value.length, 0);
+        this.totalToCheck = Object.values(this.toCheck).flat().length;
+    }
 
-        let handledRequests = 0;
+    /**
+     * Handles a given check.
+     * @param check The check data to handle.
+     * @param handler The handler to find the count from a check.
+     */
+    private async handleCheck(check: SearchDataCheck, handler: () => Promise<number | void>) {
+        const count = await handler();
+        if (count === undefined) return;
 
-        // eslint-disable-next-line unicorn/no-array-for-each
-        toCheck.categories.forEach(async (check) => {
-            const data: SearchResult | null = await new mw.Api()
-                .get({
-                    action: 'query',
-                    list: 'search',
-                    srinfo: 'totalhits',
-                    srnamespace: getCategory(check),
-                    srsearch: `incategory:"${check.category}"`,
-                } satisfies ApiQuerySearchParams)
-                .catch((errorCode: string, errorInfo: MediaWikiDataError) => {
-                    mw.notify(`An error occurred while trying to get category members: ${errorInfo?.error.info ?? 'Unknown error'} (${errorCode})`, { type: 'error' });
-                    return null;
-                });
+        const element = document.querySelector(`#to-monitor-list-${check.id}`);
+        if (!element) return mw.notify(`Failed to find element for ID "${check.id}"`);
+        element.innerHTML = count === 0 ? '<span style="color: #00733f">None</span>' : `<b><span style="color: #bd2828">${count === 500 ? '500+' : count}</span></b>`;
 
-            if (!data) return;
+        this.handledRequests++;
+        this.link.textContent = `Add missing counts (${this.handledRequests}/${this.totalToCheck} loaded)`;
+    }
 
-            const count = (data as SearchResult).query.searchinfo.totalhits;
+    /**
+     * Parses the searched categories from the check object.
+     * @param check The check object.
+     * @param check.namespace The namespace to search in.
+     * @param check.notNamespace The namespace to exclude from the search.
+     * @returns The category ID or list of category IDs (separated by '|').
+     */
+    private getCategory({ namespace, notNamespace }: { namespace?: string; notNamespace?: string }) {
+        if (!namespace && !notNamespace) return 0;
+        else if (namespace) {
+            const foundNamespace = Object.entries(mw.config.get('wgFormattedNamespaces')).find(([, namespaceName]) => namespaceName === namespace);
 
-            const element = document.querySelector(`#to-monitor-list-${check.id}`);
-            if (!element) return mw.notify(`Failed to find element for ID "${check.id}"`);
-            element.innerHTML = count === 0 ? '<span style="color: #00733f">None</span>' : `<b><span style="color: #bd2828">${count === 500 ? '500+' : count}</span></b>`;
-
-            handledRequests++;
-            link.textContent = `Add missing counts (${handledRequests}/${totalRequests} loaded)`;
-        });
-
-        // eslint-disable-next-line unicorn/no-array-for-each
-        toCheck.searches.forEach(async (check) => {
-            const data: SearchResult | null = await new mw.Api()
-                .get({
-                    action: 'query',
-                    list: 'search',
-                    srinfo: 'totalhits',
-                    srnamespace: getCategory(check),
-                    srsearch: check.search,
-                } satisfies ApiQuerySearchParams)
-                .catch((errorCode: string, errorInfo: MediaWikiDataError) => {
-                    mw.notify(`An error occurred while trying to get search results: ${errorInfo?.error.info ?? 'Unknown error'} (${errorCode})`, { type: 'error' });
-                    return null;
-                });
-
-            if (!data) return;
-
-            const count = (data as SearchResult).query.searchinfo.totalhits;
-
-            const element = document.querySelector(`#to-monitor-list-${check.id}`);
-            if (!element) return mw.notify(`Failed to find element for ID "${check.id}"`);
-            element.innerHTML = count === 0 ? '<span style="color: #00733f">None</span>' : `<b><span style="color: #bd2828">${count.toLocaleString()}</span></b>`;
-
-            handledRequests++;
-            link.textContent = `Add missing counts (${handledRequests}/${totalRequests} loaded)`;
-        });
-
-        // eslint-disable-next-line unicorn/no-array-for-each
-        toCheck.whatLinksHere.forEach(async (check) => {
-            const data: BacklinksResult | null = await new mw.Api()
-                .get({
-                    action: 'query',
-                    list: 'backlinks',
-                    bllimit: 500,
-                    blnamespace: getCategory(check),
-                    bltitle: check.title,
-                } satisfies ApiQueryBacklinksParams)
-                .catch((errorCode: string, errorInfo: MediaWikiDataError) => {
-                    mw.notify(`An error occurred while trying to get backlinks: ${errorInfo?.error.info ?? 'Unknown error'} (${errorCode})`, { type: 'error' });
-                    return null;
-                });
-
-            if (!data) return;
-
-            const count = (data as BacklinksResult).query.backlinks.length;
-
-            const element = document.querySelector(`#to-monitor-list-${check.id}`);
-            if (!element) return mw.notify(`Failed to find element for ID "${check.id}"`);
-            element.innerHTML = count === 0 ? '<span style="color: #00733f">None</span>' : `<b><span style="color: #bd2828">${count === 500 ? '500+' : count}</span></b>`;
-
-            handledRequests++;
-            link.textContent = `Add missing counts (${handledRequests}/${totalRequests} loaded)`;
-        });
-
-        // eslint-disable-next-line unicorn/no-array-for-each
-        toCheck.transclusions.forEach(async (check) => {
-            const data: EmbeddedinResult | null = await new mw.Api()
-                .get({
-                    action: 'query',
-                    list: 'embeddedin',
-                    eilimit: 500,
-                    einamespace: getCategory(check),
-                    eititle: check.title,
-                } satisfies ApiQueryBacklinksParams)
-                .catch((errorCode: string, errorInfo: MediaWikiDataError) => {
-                    mw.notify(`An error occurred while trying to get transclusions: ${errorInfo?.error.info ?? 'Unknown error'} (${errorCode})`, { type: 'error' });
-                    return null;
-                });
-
-            if (!data) return;
-
-            const count = (data as EmbeddedinResult).query.embeddedin.length;
-
-            const element = document.querySelector(`#to-monitor-list-${check.id}`);
-            if (!element) return mw.notify(`Failed to find element for ID "${check.id}"`);
-            element.innerHTML = count === 0 ? '<span style="color: #00733f">None</span>' : `<b><span style="color: #bd2828">${count === 500 ? '500+' : count}</span></b>`;
-
-            handledRequests++;
-            link.textContent = `Add missing counts (${handledRequests}/${totalRequests} loaded)`;
-        });
-    });
-
-    fullLinkElement.querySelector('a')!.replaceWith(link);
-
-    document.querySelector('#Stuff_to_monitor.mw-headline')!.after(fullLinkElement);
-});
-
-/**
- * Parses the searched categories from the check object.
- * @param check The check object.
- * @param check.namespace The namespace to search in.
- * @param check.notNamespace The namespace to exclude from the search.
- * @returns The category ID or list of category IDs (separated by '|').
- */
-function getCategory({ namespace, notNamespace }: { namespace?: string; notNamespace?: string }) {
-    if (!namespace && !notNamespace) return 0;
-    else if (namespace) {
-        const foundNamespace = Object.entries(mw.config.get('wgFormattedNamespaces')).find(([, namespaceName]) => namespaceName === namespace);
-
-        return foundNamespace ? Number.parseInt(foundNamespace[0]) : 0;
-    } else
-        return Object.entries(mw.config.get('wgFormattedNamespaces'))
-            .filter(([, namespaceName]) => notNamespace !== (namespaceName || 'Article'))
-            .map(([namespaceId]) => Number.parseInt(namespaceId));
+            return foundNamespace ? Number.parseInt(foundNamespace[0]) : 0;
+        } else
+            return Object.entries(mw.config.get('wgFormattedNamespaces'))
+                .filter(([, namespaceName]) => notNamespace !== (namespaceName || 'Article'))
+                .map(([namespaceId]) => Number.parseInt(namespaceId));
+    }
 }
+
+mw.loader.using(['mediawiki.util'], () => {
+    if (mw.config.get('wgPageName') === 'User:Eejit43') new MonitoringListManager().load();
+});

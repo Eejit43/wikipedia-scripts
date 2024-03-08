@@ -1074,11 +1074,12 @@ mw.loader.using(
                 const elementsToDisable = [
                     this.redirectInput,
                     this.tagSelect,
+                    this.previewButton,
                     this.defaultSortInput,
+                    this.defaultSortSuggestButton,
                     this.categorySelect,
                     this.summaryInput,
                     this.submitButton,
-                    this.previewButton,
                     this.syncTalkCheckbox,
                     this.patrolCheckbox,
                 ].filter(Boolean);

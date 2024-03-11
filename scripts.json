@@ -62,6 +62,9 @@
         "description": "This user script is a fork of [[User:Taavi/Aligner.js|Taavi's script]], and adds the ability to align infobox (and similar) templates parameters (using a link in the \"More\"/\"Tools\" menu).",
         "other-authors": ["Taavi"],
         "fork": true,
+        "changelog": {
+            "2024|03|11": ["Improve loading checks.", "Prevent cursor from jumping to the end of text on click."]
+        },
         "skin-support": {
             "vector-2022": "yes",
             "vector": "yes",
@@ -72,7 +75,7 @@
             "cologne-blue": "yes"
         },
         "released": "2023|01|02",
-        "updated": "2024|03|01"
+        "updated": "2024|03|11"
     },
     {
         "name": "copy-search-results",

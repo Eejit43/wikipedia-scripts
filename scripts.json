@@ -63,7 +63,7 @@
         "other-authors": ["Taavi"],
         "fork": true,
         "changelog": {
-            "2024|03|11": ["Improve loading checks.", "Prevent cursor from jumping to the end of text on click."]
+            "2024|03|11": "Prevent cursor from jumping to the end of text on click."
         },
         "skin-support": {
             "vector-2022": "yes",

@@ -1372,16 +1372,20 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                 // eslint-disable-next-line no-await-in-loop
                 await apiFunction.catch(async (errorCode: string, errorInfo: MediaWikiDataError) => {
                     if (errorCode === 'ratelimited') {
-                        showActionsDialog.addLogEntry('Rate limited. Waiting for 65 seconds...');
-                        await new Promise((resolve) => setTimeout(resolve, 65_000));
+                        showActionsDialog.addLogEntry(`Rate limited. Waiting for 70 seconds... (resuming at ${new Date(Date.now() + 70_000).toLocaleTimeString()})`, 'warning');
+                        await new Promise((resolve) => setTimeout(resolve, 70_000));
 
-                        showActionsDialog.addLogEntry('Continuing...');
+                        showActionsDialog.addLogEntry('Continuing...', 'success');
 
                         // eslint-disable-next-line no-await-in-loop
                         await apiFunction.catch((errorCode: string, errorInfo: MediaWikiDataError) => {
-                            showActionsDialog.addLogEntry(`Error ${action.type === 'edit' ? 'editing' : 'creating'} ${action.title}: ${errorInfo?.error.info ?? 'Unknown error'} (${errorCode})`);
+                            showActionsDialog.addLogEntry(
+                                `Error ${action.type === 'edit' ? 'editing' : 'creating'} ${action.title}: ${errorInfo?.error.info ?? 'Unknown error'} (${errorCode}).`,
+                                'error',
+                            );
                         });
-                    } else showActionsDialog.addLogEntry(`Error ${action.type === 'edit' ? 'editing' : 'creating'} ${action.title}: ${errorInfo?.error.info ?? 'Unknown error'} (${errorCode})`);
+                    } else
+                        showActionsDialog.addLogEntry(`Error ${action.type === 'edit' ? 'editing' : 'creating'} ${action.title}: ${errorInfo?.error.info ?? 'Unknown error'} (${errorCode}).`, 'error');
                 });
             }
         }

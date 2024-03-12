@@ -5,8 +5,7 @@
     let alignerIsLoaded = false;
 
     mw.loader.using(['mediawiki.util', 'jquery.textSelection'], () => {
-        if (mw.config.get('wgAction') === 'edit') loadLink();
-        else mw.hook('wikipage.content').add(loadLink);
+        mw.hook('wikipage.content').add(loadLink);
 
         /**
          * Loads a link element to the menu.
@@ -15,7 +14,7 @@
         function loadLink() {
             if (alignerIsLoaded) return;
 
-            if (!$('#wpTextbox1')[0]) return;
+            if ($('#wpTextbox1').length === 0) return;
 
             alignerIsLoaded = true;
 

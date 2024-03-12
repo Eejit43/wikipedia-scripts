@@ -3,6 +3,15 @@
     if (!mw.config.get('wgIsProbablyEditable')) return; // Don't run if user can't edit page
 
     mw.loader.using(['mediawiki.util', 'jquery.textSelection'], () => {
+        mw.util.addCSS(`
+#align-parameters {
+    display: none;
+}
+
+#content:has(#wpTextbox1) #align-parameters {
+    display: unset;
+}`);
+
         const link = mw.util.addPortletLink(mw.config.get('skin') === 'minerva' ? 'p-navigation' : 'p-cactions', '#', 'Align template parameters', 'align-parameters')!;
         link.addEventListener('click', (event) => {
             event.preventDefault();

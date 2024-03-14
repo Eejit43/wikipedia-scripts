@@ -379,7 +379,8 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                 if (requestPageType === 'redirect') {
                     const parsedData = {} as RedirectRequestData;
 
-                    const requestedPages = [...sectionHeader.matchAll(/\[\[(.*?)]]/g)].map((match) => match[1].trim().replace(/^:/, '').replaceAll('_', ' '));
+                    const requestedPages = [...sectionHeader.matchAll(/\[\[(.*?)]]/g)].map((match) => match[1]?.trim().replace(/^:/, '').replaceAll('_', ' ')).filter(Boolean);
+                    if (requestedPages.length === 0) continue;
 
                     parsedData.pages = requestedPages;
 
@@ -388,22 +389,22 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                         .trim()
                         .replace(/^:/, '')
                         .replaceAll('_', ' ');
-
                     if (!parsedTarget) continue;
 
                     parsedData.target = parsedTarget;
 
-                    parsedData.reason = sectionText.match(/reason: ?(.*?)\*source(?: \(if applicable\))?:/is)![1].trim();
+                    parsedData.reason = sectionText.match(/reason: ?(.*?)\*source(?: \(if applicable\))?:/is)?.[1].trim() ?? '';
 
-                    parsedData.source = sectionText.match(/source(?: \(if applicable\))?: ?(.*?)(?:<references \/>|\n\n)/is)![1].trim();
+                    parsedData.source = sectionText.match(/source(?: \(if applicable\))?: ?(.*?)(?:<references \/>|\n\n)/is)?.[1].trim() ?? '';
 
                     const requester = sectionText
                         .match(
                             sectionText.includes('<references />')
                                 ? /<references \/>\n(.*)/
                                 : new RegExp(`(?:<references \\/>${parsedData.source ? `|${parsedData.source.replaceAll(/[\s#$()*+,.?[\\\]^{|}-]/g, '\\$&')}` : ''})\n+(.*)`),
-                        )![1]
+                        )?.[1]
                         .trim();
+                    if (!requester) continue;
 
                     parsedData.requester = { type: requester.includes('[[User:') ? 'user' : 'ip', name: requester.match(/(?:Special:Contributions\/|User:)(.*?)\|/)![1].trim() };
 
@@ -471,7 +472,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
 
                 handle();
             } else {
-                const messageWidget = new OO.ui.MessageWidget({ type: 'notice', label: 'No requests to handle!' });
+                const messageWidget = new OO.ui.MessageWidget({ type: 'notice', label: 'No valid requests to handle!' });
 
                 const messageWidgetLayout = new OO.ui.PanelLayout({ padded: true, expanded: false });
                 messageWidgetLayout.$element.append(messageWidget.$element);

@@ -400,7 +400,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                     const requester = sectionText
                         .match(
                             sectionText.includes('<references />')
-                                ? /<references \/>\n(.*)/
+                                ? /<references \/>\n+(.*)/
                                 : new RegExp(`(?:<references \\/>${parsedData.source ? `|${parsedData.source.replaceAll(/[\s#$()*+,.?[\\\]^{|}-]/g, '\\$&')}` : ''})\n+(.*)`),
                         )?.[1]
                         .trim();

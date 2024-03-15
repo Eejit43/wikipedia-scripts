@@ -147,6 +147,7 @@
     },
     {
         "name": "null-edit",
+        "image": false,
         "short-description": "User script to null edit the current page",
         "description": "This user script adds a link to the \"More\"/\"Tools\" menu which allows the current page to be null edited.",
         "skin-support": {
@@ -250,10 +251,11 @@
             "cologne-blue": "yes"
         },
         "released": "2023|04|05",
-        "updated": "2024|03|03"
+        "updated": "2024|03|14"
     },
     {
         "name": "search-links",
+        "image": false,
         "short-description": "User script that adds helpful links on [[Special:Search]]",
         "description": "This user script adds edit and history links to search results on [[Special:Search]].",
         "skin-support": {

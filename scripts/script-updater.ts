@@ -4,7 +4,7 @@ interface Script {
     name: string;
     'in-development'?: boolean;
     'use-instead'?: string;
-    'image-size'?: string;
+    image?: false;
     'image-caption'?: string;
     'short-description': string;
     description: string;
@@ -183,9 +183,9 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
 
             const fullSubpageInfo = [
                 '{{User:Eejit43/script-documentation', //
+                script.image === false ? `| image             = ${script.image}` : null,
                 script['in-development'] ? `| in-development    = ${script['in-development']}` : null,
                 script['use-instead'] ? `| use-instead       = [[User:Eejit43/scripts/${script['use-instead']}|${script['use-instead']}]]` : null,
-                script['image-size'] ? `| image-size        = ${script['image-size']}` : null,
                 script['image-caption'] ? `| image-caption     = ${script['image-caption']}` : null,
                 script['other-authors'] ? `| other-authors     = ${script['other-authors'].map((author) => `[[User:${author}|${author}]]`).join(', ')}` : null,
                 `| description-short = ${script['short-description']}`,

@@ -4,10 +4,11 @@
         "short-description": "User script to help handle requests at [[WP:AFC/R]] and [[WP:AFC/C]]",
         "description": "This user script was inspired by [[User:Enterprisey/AFCRHS|Enterprisey's \"AFCRHS\" script]], and helps to handle requests at [[WP:AFC/R]] and [[WP:AFC/C]] (redirects and categories creation requests). This script features an easier to use interface with improved functionality and new features. It can be run using the link in the \"More\"/\"Tools\" menu.",
         "changelog": {
-            "2024|03|14": "Improve handling of invalid sections",
-            "2024|03|12": "Improve rate limit handling",
+            "2024|03|17": "Better parse variatons of category request data.",
+            "2024|03|14": "Improve handling of invalid sections.",
+            "2024|03|12": "Improve rate limit handling.",
             "2024|02|22": "Merge identical comments where applicable.",
-            "2024|02|21": ["Merge identical acceptance and denial messages where applicable", "Improve section editing logic to handle sections with identical content."],
+            "2024|02|21": ["Merge identical acceptance and denial messages where applicable.", "Improve section editing logic to handle sections with identical content."],
             "2024|02|18": "Use latest page content when finalizing request handling."
         },
         "skin-support": {
@@ -20,7 +21,7 @@
             "cologne-blue": "yes"
         },
         "released": "2024|02|15",
-        "updated": "2024|03|14"
+        "updated": "2024|03|17"
     },
     {
         "name": "AFCRHS",
@@ -65,7 +66,7 @@
         "other-authors": ["Taavi"],
         "fork": true,
         "changelog": {
-            "2024|03|11": ["Only show link in edit mode", "Prevent cursor from jumping to the end of text on click."]
+            "2024|03|11": ["Only show link in edit mode.", "Prevent cursor from jumping to the end of text on click."]
         },
         "skin-support": {
             "vector-2022": "yes",

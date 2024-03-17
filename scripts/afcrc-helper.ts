@@ -25,6 +25,9 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
         afcrcHelperDialog.load();
     });
 
+    /**
+     * An instance of this class is an action dialog.
+     */
     class ShowActionsDialog extends OO.ui.Dialog {
         private contentLayout!: OO.ui.PanelLayout;
         private logOutput!: HTMLDivElement;
@@ -419,15 +422,18 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                 } else {
                     const parsedData = {} as CategoryRequestData;
 
-                    parsedData.category = sectionHeader.match(/\[\[:Category:(.*?)]]/)![1].trim();
+                    const foundCategory = sectionHeader.match(/:?Category:(.*)(]])?/)?.[1].trim();
+                    if (!foundCategory) continue;
+
+                    parsedData.category = foundCategory.replaceAll('_', ' ');
 
                     parsedData.examples =
-                        [...sectionText.match(/example pages which belong to this category:(.*?)parent category\/categories:/is)![1].matchAll(/\[\[(.*?)]]/g)]
+                        [...sectionText.match(/example pages which belong to this category:(.*?)parent category\/categories:/is)![1].matchAll(/\*\s*(?:\[\[)?(.*?)(\||]]|\s*?\n)/g)]
                             .map((match) => match[1].trim().replace(/^:/, '').replaceAll('_', ' '))
                             .filter(Boolean) ?? [];
 
                     parsedData.parents =
-                        [...sectionText.match(/parent category\/categories:(.*?)(\n\n|\n\[\[(special:contributions\/|user:))/is)![1].matchAll(/\[\[:Category:(.*?)]]/g)]
+                        [...sectionText.match(/parent category\/categories:(.*?)(\n\n|\n\[\[(special:contributions\/|user:))/is)![1].matchAll(/(?<!\|)#?:?Category:(.*?)(\||]]|\s*?\n)/g)]
                             ?.map((match) => match[1].trim().replace(/^:/, '').replaceAll('_', ' '))
                             .filter(Boolean) ?? [];
 

@@ -19,6 +19,8 @@ import {
     UserPermissionsResponse,
 } from '../global-types';
 
+type RedirectTemplateData = Record<string, { parameters: unknown; aliases: string[] }>;
+
 interface LookupElementConfig extends OO.ui.TextInputWidget.ConfigOptions, OO.ui.mixin.LookupElement.ConfigOptions {}
 
 mw.loader.using(
@@ -319,7 +321,7 @@ mw.loader.using(
             private api = new mw.Api();
 
             // Assigned in constructor
-            private redirectTemplates!: Record<string, string[]>;
+            private redirectTemplates!: RedirectTemplateData;
             private contentText!: HTMLDivElement;
             private pageTitle!: string;
             private pageTitleParsed!: mw.Title;
@@ -374,7 +376,7 @@ mw.loader.using(
                             titles: 'User:Eejit43/scripts/redirect-helper.json',
                         } satisfies ApiQueryRevisionsParams)) as PageRevisionsResult
                     ).query.pages?.[0]?.revisions?.[0]?.slots?.main?.content || '{}',
-                ) as Record<string, string[]>;
+                ) as RedirectTemplateData;
             }
 
             /**
@@ -424,7 +426,7 @@ mw.loader.using(
             private scriptAdvert = ' (via [[User:Eejit43/scripts/redirect-helper|redirect-helper]])';
 
             // Assigned in constructor
-            private redirectTemplates: Record<string, string[]>;
+            private redirectTemplates: RedirectTemplateData;
             private contentText: HTMLDivElement;
             private pageTitle: string;
             private pageTitleParsed: mw.Title;
@@ -471,12 +473,7 @@ mw.loader.using(
             private parsedDestination!: mw.Title | null;
 
             constructor(
-                {
-                    redirectTemplates,
-                    contentText,
-                    pageTitle,
-                    pageTitleParsed,
-                }: { redirectTemplates: Record<string, string[]>; contentText: HTMLDivElement; pageTitle: string; pageTitleParsed: mw.Title },
+                { redirectTemplates, contentText, pageTitle, pageTitleParsed }: { redirectTemplates: RedirectTemplateData; contentText: HTMLDivElement; pageTitle: string; pageTitleParsed: mw.Title },
                 exists: boolean,
             ) {
                 this.redirectTemplates = redirectTemplates;
@@ -576,7 +573,7 @@ mw.loader.using(
                     if (!target) return mw.notify('Failed to parse main page content!', { type: 'error' });
 
                     this.redirectInput.setValue(mw.Title.newFromText(target)?.getTalkPage()?.toString() ?? '');
-                    const fromMove = ['R from move', ...this.redirectTemplates['R from move']].some((tagOrRedirect) =>
+                    const fromMove = ['R from move', ...this.redirectTemplates['R from move'].aliases].some((tagOrRedirect) =>
                         new RegExp(`{{\\s*[${tagOrRedirect[0].toLowerCase()}${tagOrRedirect[0]}]${tagOrRedirect.slice(1)}\\s*(\\||}})`).test(mainPageContent),
                     );
                     if (fromMove) this.tagSelect.setValue(['R from move']);
@@ -869,8 +866,8 @@ mw.loader.using(
                 this.oldRedirectTarget = this.redirectRegex.exec(this.pageContent)?.[1];
                 this.oldRedirectTags = (
                     Object.entries(this.redirectTemplates)
-                        .map(([tag, redirects]) =>
-                            [tag, ...redirects].some((tagOrRedirect) =>
+                        .map(([tag, tagData]) =>
+                            [tag, ...tagData.aliases].some((tagOrRedirect) =>
                                 new RegExp(`{{\\s*[${tagOrRedirect[0].toLowerCase()}${tagOrRedirect[0]}]${tagOrRedirect.slice(1)}\\s*(\\||}})`).test(this.pageContent),
                             )
                                 ? tag
@@ -880,7 +877,7 @@ mw.loader.using(
                 ).sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
 
                 const originalRedirectTags = Object.entries(this.redirectTemplates)
-                    .flatMap(([tag, redirects]) => [tag, ...redirects])
+                    .flatMap(([tag, tagData]) => [tag, ...tagData.aliases])
                     .map((tagOrRedirect) =>
                         new RegExp(`{{\\s*[${tagOrRedirect[0].toLowerCase()}${tagOrRedirect[0]}]${tagOrRedirect.slice(1)}\\s*(\\||}})`).test(this.pageContent) ? tagOrRedirect : null,
                     )
@@ -891,7 +888,7 @@ mw.loader.using(
                         .map((tag) => {
                             const match = new RegExp(`{{\\s*[${tag[0].toLowerCase()}${tag[0]}]${tag.slice(1)}\\|?(.*?)\\s*}}`).exec(this.pageContent);
 
-                            const newTag = Object.entries(this.redirectTemplates).find(([template, redirects]) => [template, ...redirects].includes(tag))?.[0];
+                            const newTag = Object.entries(this.redirectTemplates).find(([template, tagData]) => [template, ...tagData.aliases].includes(tag))?.[0];
 
                             return match ? [newTag, match[1]] : null;
                         })

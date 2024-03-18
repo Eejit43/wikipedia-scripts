@@ -343,7 +343,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                 titles: 'User:Eejit43/scripts/redirect-helper.json',
             } satisfies ApiQueryRevisionsParams)) as PageRevisionsResult;
 
-            this.redirectTemplateItems = Object.keys(JSON.parse(redirectTemplateResponse.query.pages?.[0]?.revisions?.[0]?.slots?.main?.content || '{}') as Record<string, string>).map((tag) => ({
+            this.redirectTemplateItems = Object.keys(JSON.parse(redirectTemplateResponse.query.pages?.[0]?.revisions?.[0]?.slots?.main?.content || '{}') as Record<string, unknown>).map((tag) => ({
                 data: tag,
                 label: tag,
             }));

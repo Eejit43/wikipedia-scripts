@@ -646,6 +646,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                         ['notarget', 'nonexistent or no provided target'],
                         ['notitle', 'no title provided'],
                         ['unlikely', 'unlikely redirects'],
+                        ['notredirect', 'article creation requests'],
                         ['externallink', 'external link redirects'],
                         ['editrequest', 'edit requests'],
                         ['notenglish', 'requests not in English'],

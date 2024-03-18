@@ -4,7 +4,7 @@
         "short-description": "User script to help handle requests at [[WP:AFC/R]] and [[WP:AFC/C]]",
         "description": "This user script was inspired by [[User:Enterprisey/AFCRHS|Enterprisey's \"AFCRHS\" script]], and helps to handle requests at [[WP:AFC/R]] and [[WP:AFC/C]] (redirects and categories creation requests). This script features an easier to use interface with improved functionality and new features. It can be run using the link in the \"More\"/\"Tools\" menu.",
         "changelog": {
-            "2024|03|17": "Better parse variatons of category request data.",
+            "2024|03|17": ["Support \"notredirect\" autofill closing reason.", "Better parse variatons of category request data."],
             "2024|03|14": "Improve handling of invalid sections.",
             "2024|03|12": "Improve rate limit handling.",
             "2024|02|22": "Merge identical comments where applicable.",

@@ -43,7 +43,7 @@ interface TemplateEditorElementInfo {
 
 interface LookupElementConfig extends OO.ui.TextInputWidget.ConfigOptions, OO.ui.mixin.LookupElement.ConfigOptions {}
 
-mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-windows', 'oojs-ui.styles.icons-content'], () => {
+mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-windows', 'oojs-ui.styles.icons-content', 'oojs-ui.styles.icons-editing-core'], () => {
     // Setup RedirectInputWidget
 
     /**
@@ -986,8 +986,11 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
         /**
          * Loads existing page data.
          */
-        private loadExistingData() {
+        private async loadExistingData() {
+            if (this.exists) this.pageContent = await this.getPageContent(this.pageTitle);
+
             this.oldRedirectTarget = this.redirectRegex.exec(this.pageContent)?.[1];
+
             this.oldRedirectTags = (
                 Object.entries(this.redirectTemplates)
                     .map(([tag, tagData]) =>

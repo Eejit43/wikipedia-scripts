@@ -44,7 +44,7 @@ interface TemplateEditorElementInfo {
 interface LookupElementConfig extends OO.ui.TextInputWidget.ConfigOptions, OO.ui.mixin.LookupElement.ConfigOptions {}
 
 mw.loader.using(
-    ['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-windows', 'oojs-ui.styles.icons-content', 'oojs-ui.styles.icons-editing-core', 'oojs-ui.styles.icons-accessibility'],
+    ['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-windows', 'oojs-ui.styles.icons-content'],
     () => {
         // Setup RedirectInputWidget
 
@@ -224,7 +224,7 @@ mw.loader.using(
                             contentmodel: 'wikitext',
                             prop: ['text', 'categorieshtml'],
                             title: this.pageTitleParsed.getPrefixedDb(),
-                            text: `{{Redirect category shell|${(this.getData() as string[]).map((tag) => `{{${tag}}}`).join('')}}}`,
+                            text: this.getData() as string,
                         } satisfies ApiParseParams)
                         .then((result) => {
                             const tagsContent = (result as { parse: { text: string } }).parse.text;
@@ -474,7 +474,7 @@ mw.loader.using(
             private summaryInputLayout!: OO.ui.FieldLayout;
             private submitButton!: OO.ui.ButtonWidget;
             private showChangesButton!: OO.ui.ButtonWidget;
-            private previewButton!: OO.ui.ButtonWidget;
+            private showPreviewButton!: OO.ui.ButtonWidget;
             private syncTalkCheckbox?: OO.ui.CheckboxInputWidget;
             private syncTalkCheckboxLayout?: OO.ui.Widget;
             private patrolCheckbox?: OO.ui.CheckboxInputWidget;
@@ -639,10 +639,12 @@ mw.loader.using(
                         this.redirectInput.setValue(value[0].toUpperCase() + value.slice(1).replaceAll('_', ' '));
                         this.defaultSortSuggestButton.setDisabled(false);
                         this.submitButton.setDisabled(false);
+                        this.showPreviewButton.setDisabled(false);
                         this.showChangesButton.setDisabled(false);
                     } else {
                         this.defaultSortSuggestButton.setDisabled(true);
                         this.submitButton.setDisabled(true);
+                        this.showPreviewButton.setDisabled(true);
                         this.showChangesButton.setDisabled(true);
                     }
 
@@ -669,9 +671,6 @@ mw.loader.using(
                     this.submitButton.setLabel('Submit');
                     this.needsCheck = true;
 
-                    if (this.tagSelect.getValue().length > 0) this.previewButton.setDisabled(false);
-                    else this.previewButton.setDisabled(true);
-
                     for (const editorInfo of this.templateEditorsInfo) editorInfo.details.style.display = 'none';
 
                     let shownTemplateEditors = 0;
@@ -687,20 +686,7 @@ mw.loader.using(
                     noTemplatesMessage.style.display = shownTemplateEditors > 0 ? 'none' : 'block';
                 });
 
-                /* Redirect categorization template preview button */
-                const windowManager = new OO.ui.WindowManager();
-                document.body.append(windowManager.$element[0]);
-
-                const templatePreviewDialog = new TemplatePreviewDialog({ size: 'large' }, this.pageTitleParsed);
-                windowManager.addWindows([templatePreviewDialog]);
-
-                this.previewButton = new OO.ui.ButtonWidget({ icon: 'eye', label: 'Preview', disabled: true });
-                this.previewButton.on('click', () => {
-                    templatePreviewDialog.setData(this.tagSelect.getValue());
-                    templatePreviewDialog.open();
-                });
-
-                this.tagSelectLayout = new OO.ui.ActionFieldLayout(this.tagSelect, this.previewButton, {
+                this.tagSelectLayout = new OO.ui.FieldLayout(this.tagSelect, {
                     label: 'Redirect categorization templates:',
                     classes: ['redirect-input-layout'],
                     align: 'top',
@@ -854,21 +840,39 @@ mw.loader.using(
              * Loads the elements in the submit button row.
              */
             private async loadSubmitElements() {
+                const windowManager = new OO.ui.WindowManager();
+                document.body.append(windowManager.$element[0]);
+
                 /* Setup submit button */
                 this.submitButton = new OO.ui.ButtonWidget({ label: 'Submit', disabled: true, flags: ['progressive'] });
                 this.submitButton.on('click', () => this.handleSubmitButtonClick());
 
+                /* Setup show preview button */
+                const templatePreviewDialog = new TemplatePreviewDialog({ size: 'large' }, this.pageTitleParsed);
+                windowManager.addWindows([templatePreviewDialog]);
+
+                this.showPreviewButton = new OO.ui.ButtonWidget({ label: 'Show preview', disabled: true });
+                this.showPreviewButton.on('click', () => {
+                    templatePreviewDialog.setData(
+                        this.createOutput(
+                            this.redirectInput.getValue(),
+                            this.tagSelect.getValue() as string[],
+                            this.oldStrayText,
+                            this.defaultSortInput.getValue(),
+                            this.categorySelect.getValue() as string[],
+                        ),
+                    );
+                    templatePreviewDialog.open();
+                });
+
                 /* Setup show changes button */
-                if (this.exists) this.pageContent = await this.getPageContent(this.pageTitle);
-
-                const windowManager = new OO.ui.WindowManager();
-                document.body.append(windowManager.$element[0]);
-
                 const showChangesDialog = new ShowChangesDialog({ size: 'large' });
                 windowManager.addWindows([showChangesDialog]);
 
                 this.showChangesButton = new OO.ui.ButtonWidget({ label: 'Show changes', disabled: true });
-                this.showChangesButton.on('click', () => {
+                this.showChangesButton.on('click', async () => {
+                    if (this.exists) this.pageContent = await this.getPageContent(this.pageTitle);
+
                     showChangesDialog.setData([
                         this.pageContent,
                         this.createOutput(
@@ -905,7 +909,7 @@ mw.loader.using(
                 /* Setup layout */
                 this.submitLayout = new OO.ui.HorizontalLayout({
                     id: 'redirect-helper-submit-layout',
-                    items: [this.submitButton, this.showChangesButton, this.syncTalkCheckboxLayout, this.patrolCheckboxLayout].filter(Boolean) as OO.ui.Widget[],
+                    items: [this.submitButton, this.showPreviewButton, this.showChangesButton, this.syncTalkCheckboxLayout, this.patrolCheckboxLayout].filter(Boolean) as OO.ui.Widget[],
                 });
             }
 
@@ -1216,12 +1220,13 @@ mw.loader.using(
                     this.redirectInput,
                     this.tagSelect,
                     ...this.templateEditorsInfo.flatMap((template) => template.parameters.map((parameter) => parameter.editor)),
-                    this.previewButton,
                     this.defaultSortInput,
                     this.defaultSortSuggestButton,
                     this.categorySelect,
                     this.summaryInput,
                     this.submitButton,
+                    this.showPreviewButton,
+                    this.showChangesButton,
                     this.syncTalkCheckbox,
                     this.patrolCheckbox,
                 ].filter(Boolean);
@@ -1246,8 +1251,6 @@ mw.loader.using(
                     }
 
                     for (const element of elementsToDisable) (element as OO.ui.Widget).setDisabled(false);
-
-                    if (this.tagSelect.getValue().length > 0) this.previewButton.setDisabled(false);
 
                     this.submitButton.setLabel('Submit anyway');
                     this.needsCheck = false;

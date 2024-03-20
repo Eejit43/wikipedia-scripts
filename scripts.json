@@ -25,6 +25,7 @@
     },
     {
         "name": "AFCRHS",
+        "image": false,
         "use-instead": "afcrc-helper",
         "short-description": "User script to help handle requests at [[WP:AFC/R]] and [[WP:AFC/C]]",
         "description": "This user script is a fork of [[User:Enterprisey/AFCRHS|Enterprisey's script]], and helps handle requests at [[WP:AFC/R]] and [[WP:AFC/C]] (redirect and category creation requests).\n\n\nThis fork fixes many bugs, and makes some changes from the original script, such as:\n* Automatically uses {{tl|Redirect category shell}} in created redirects\n* Correctly handles partially accepted requests (instead of just using the accepted or declined headers)",
@@ -61,6 +62,7 @@
     },
     {
         "name": "aligner",
+        "image": false,
         "short-description": "User script to align infobox template parameters",
         "description": "This user script is a fork of [[User:Taavi/Aligner.js|Taavi's script]], and adds the ability to align infobox (and similar) templates parameters (using a link in the \"More\"/\"Tools\" menu).",
         "other-authors": ["Taavi"],
@@ -243,6 +245,7 @@
     },
     {
         "name": "script-updater",
+        "image": false,
         "short-description": "User script that updates on-wiki scripts from GitHub",
         "description": "A user script for ''personal'' use that updates on-wiki scripts from GitHub.",
         "personal": true,
@@ -277,6 +280,7 @@
     },
     {
         "name": "sync-redirect",
+        "image": false,
         "use-instead": "redirect-helper",
         "short-description": "User script to sync talk page redirects with their main page",
         "description": "This user script allows talk pages to be synced to their corresponding main page redirect. If the main page ''is'' a redirect, a link is added to the \"More\"/\"Tools\" dropdown menu (or sidebar), which, when clicked, automatically update the page. If it exists on the main page, {{tl|R from move}} is added in {{tl|Redirect category shell}} as well.",
@@ -294,6 +298,7 @@
     },
     {
         "name": "to-monitor-list",
+        "image": false,
         "short-description": "User script that adds counts to [[User:Eejit43#Stuff to monitor|§ Stuff to monitor]]",
         "description": "A user script for ''personal'' use that loads data that can't be parsed with wikitext in [[User:Eejit43#Stuff to monitor|§ Stuff to monitor]].",
         "personal": true,

@@ -19,7 +19,27 @@ import {
     UserPermissionsResponse,
 } from '../global-types';
 
-type RedirectTemplateData = Record<string, { parameters: unknown; aliases: string[] }>;
+type RedirectTemplateParameters = Record<
+    string,
+    {
+        aliases: string[];
+        label: string | null;
+        description: string | null;
+        type: string;
+        required: boolean;
+        suggested: boolean;
+        default: string | number | boolean | null;
+        example: string | number | boolean | null;
+    }
+>;
+
+type RedirectTemplateData = Record<string, { parameters: RedirectTemplateParameters; aliases: string[] }>;
+
+interface TemplateEditorElementInfo {
+    name: string;
+    details: HTMLDetailsElement;
+    parameters: { name: string; aliases: string[]; editor: OO.ui.TextInputWidget }[];
+}
 
 interface LookupElementConfig extends OO.ui.TextInputWidget.ConfigOptions, OO.ui.mixin.LookupElement.ConfigOptions {}
 
@@ -442,6 +462,8 @@ mw.loader.using(
             private redirectInputLayout!: OO.ui.FieldLayout;
             private tagSelect!: OO.ui.MenuTagMultiselectWidget;
             private tagSelectLayout!: OO.ui.ActionFieldLayout;
+            private templateParametersEditor!: HTMLDetailsElement;
+            private templateEditorsInfo: TemplateEditorElementInfo[] = [];
             private categorySelect!: OO.ui.TagMultiselectWidget;
             private categorySelectInput!: CategoryInputWidget;
             private categorySelectLayout!: OO.ui.FieldLayout;
@@ -465,7 +487,7 @@ mw.loader.using(
 
             private oldRedirectTarget?: string;
             private oldRedirectTags?: string[];
-            private oldRedirectTagData?: Record<string, string>;
+            private oldRedirectTagData?: Record<string, string[][]>;
             private oldDefaultSort?: string;
             private oldCategories?: string[];
             private oldStrayText?: string;
@@ -504,6 +526,27 @@ mw.loader.using(
 
 .redirect-input-layout label {
     font-weight: bold;
+}
+
+.redirect-helper-template-parameters-container, .redirect-helper-template-parameters-container details {
+    background-color: #e2e2e2;
+    border-radius: 5px;
+    margin-block: 10px;
+    padding: 5px;
+}
+
+.redirect-helper-template-parameters-container summary {
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.redirect-helper-template-parameters-container details {
+    background-color: #d1cece;
+    margin-block: 5px;
+}
+
+.redirect-helper-template-parameters-contained #redirect-helper-no-templates-message {
+    padding: 5px;
 }
 
 #redirect-helper-summary-layout {
@@ -549,6 +592,7 @@ mw.loader.using(
                         this.syncWithMainButton?.$element?.[0],
                         this.redirectInputLayout.$element[0],
                         this.tagSelectLayout.$element[0],
+                        this.templateParametersEditor,
                         this.defaultSortInputLayout.$element[0],
                         this.categorySelectLayout.$element[0],
                         this.summaryInputLayout.$element[0],
@@ -627,6 +671,20 @@ mw.loader.using(
 
                     if (this.tagSelect.getValue().length > 0) this.previewButton.setDisabled(false);
                     else this.previewButton.setDisabled(true);
+
+                    for (const editorInfo of this.templateEditorsInfo) editorInfo.details.style.display = 'none';
+
+                    let shownTemplateEditors = 0;
+                    for (const tag of this.tagSelect.getValue() as string[]) {
+                        const editorInfo = this.templateEditorsInfo.find((editorInfo) => editorInfo.name === tag);
+
+                        if (editorInfo) {
+                            editorInfo.details.style.display = 'block';
+                            shownTemplateEditors++;
+                        }
+                    }
+
+                    noTemplatesMessage.style.display = shownTemplateEditors > 0 ? 'none' : 'block';
                 });
 
                 /* Redirect categorization template preview button */
@@ -647,6 +705,58 @@ mw.loader.using(
                     classes: ['redirect-input-layout'],
                     align: 'top',
                 });
+
+                /* Redirect categorization template parameters */
+                this.templateParametersEditor = document.createElement('details');
+                this.templateParametersEditor.classList.add('redirect-helper-template-parameters-container');
+
+                const summaryElement = document.createElement('summary');
+                summaryElement.textContent = 'Template parameters';
+                this.templateParametersEditor.append(summaryElement);
+
+                for (const [templateName, templateData] of Object.entries(this.redirectTemplates)) {
+                    const parameters = Object.entries(templateData.parameters);
+                    if (parameters.length === 0) continue;
+
+                    const details = document.createElement('details');
+                    details.style.display = 'none';
+
+                    const summary = document.createElement('summary');
+                    summary.textContent = templateName;
+                    details.append(summary);
+
+                    const elementData: TemplateEditorElementInfo = { name: templateName, details, parameters: [] };
+
+                    for (const [parameterName, parameterData] of parameters) {
+                        const input = new OO.ui.TextInputWidget({ placeholder: parameterData.default?.toString(), required: parameterData.required });
+                        input.on('change', () => {
+                            this.updateSummary();
+                            this.submitButton.setLabel('Submit');
+                            this.needsCheck = true;
+                        });
+
+                        const inputLayout = new OO.ui.FieldLayout(input, {
+                            label: new OO.ui.HtmlSnippet(
+                                `${parameterName}${!parameterData.label || parameterName.toLowerCase() === parameterData.label?.toLowerCase() ? '' : ` (${parameterData.label})`}${parameterData.description ? ` (${parameterData.description})` : ''} (type: ${parameterData.type}) ${parameterData.suggested ? ' (suggested)' : ''}${parameterData.example ? ` (example: "${parameterData.example}")` : ''}`,
+                            ),
+                            align: 'inline',
+                        });
+                        details.append(inputLayout.$element[0]);
+
+                        elementData.parameters.push({ name: parameterName, aliases: parameterData.aliases, editor: input });
+                    }
+
+                    this.templateParametersEditor.append(details);
+
+                    this.templateEditorsInfo.push(elementData);
+                }
+
+                const noTemplatesMessage = document.createElement('div');
+                noTemplatesMessage.id = 'redirect-helper-no-templates-message';
+                noTemplatesMessage.textContent = 'No templates with parameters to display!';
+                noTemplatesMessage.style.display = this.exists ? 'none' : 'block';
+
+                this.templateParametersEditor.append(noTemplatesMessage);
 
                 /* DEFAULTSORT input */
                 this.defaultSortInput = new OO.ui.TextInputWidget();
@@ -692,7 +802,7 @@ mw.loader.using(
                                 break;
                             }
 
-                        if (newName === name) mw.notify("redirect-helper wasn't able to find a sort key different from the current page title!", { type: 'warn' });
+                        if (newName === name) mw.notify("redirect-helper wasn't able to determine a sort key different from the current page title!", { type: 'warn' });
                         else this.defaultSortInput.setValue(newName);
                     }
                 });
@@ -838,6 +948,17 @@ mw.loader.using(
                     const targetChanged = redirectValue !== this.oldRedirectTarget?.replaceAll('_', ' ');
                     const tagsChanged =
                         this.tagSelect.getValue().some((tag) => !this.oldRedirectTags!.includes(tag as string)) || this.oldRedirectTags!.some((tag) => !this.tagSelect.getValue().includes(tag));
+                    const tagArgumentsChanged = this.oldRedirectTagData
+                        ? this.tagSelect.getValue().some((tag) =>
+                              this.templateEditorsInfo
+                                  .find((template) => template.name === tag)
+                                  ?.parameters.some((parameter) => {
+                                      const foundOldArgument = this.oldRedirectTagData![tag as string]?.find((argument) => argument[0] === parameter.name)?.[1];
+
+                                      return foundOldArgument ? foundOldArgument !== parameter.editor.getValue().trim() : false;
+                                  }),
+                          )
+                        : false;
                     const defaultSortChanged = this.defaultSortInput.getValue().trim() !== this.oldDefaultSort!.replaceAll('_', ' ');
                     const categoriesChanged =
                         this.categorySelect.getValue().some((category) => !this.oldCategories!.includes(category as string)) ||
@@ -847,6 +968,7 @@ mw.loader.using(
 
                     if (targetChanged) changes.push(`retarget to [[${redirectValue}]]`);
                     if (tagsChanged) changes.push('change categorization templates');
+                    if (tagArgumentsChanged) changes.push('change categorization template arguments');
                     if (defaultSortChanged) changes.push('change default sort key');
                     if (categoriesChanged) changes.push('change categories');
 
@@ -890,9 +1012,20 @@ mw.loader.using(
 
                             const newTag = Object.entries(this.redirectTemplates).find(([template, tagData]) => [template, ...tagData.aliases].includes(tag))?.[0];
 
-                            return match ? [newTag, match[1]] : null;
+                            const originalArguments = match?.[1];
+                            if (!originalArguments) return null;
+
+                            const formattedArguments = match[1].split('|').map((argument, index) => {
+                                if (!argument.includes('=')) return [(index + 1).toString(), argument.trim()];
+
+                                const [name, value] = argument.split('=');
+
+                                return [name.trim(), value.trim()];
+                            });
+
+                            return [newTag, formattedArguments];
                         })
-                        .filter(Boolean) as [string, string][],
+                        .filter(Boolean) as [string, string[][]][],
                 );
 
                 this.oldDefaultSort =
@@ -917,6 +1050,17 @@ mw.loader.using(
                 else mw.notify('Could not find redirect target!', { type: 'error' });
 
                 this.tagSelect.setValue(this.oldRedirectTags);
+
+                for (const [templateName, data] of Object.entries(this.oldRedirectTagData)) {
+                    const foundTemplateEditor = this.templateEditorsInfo.find((editorInfo) => editorInfo.name === templateName);
+                    if (!foundTemplateEditor) continue;
+
+                    for (const [parameterName, argument] of data) {
+                        const foundParameterEditor = foundTemplateEditor.parameters.find((parameter) => [parameter.name, ...parameter.aliases].includes(parameterName));
+
+                        if (foundParameterEditor) foundParameterEditor.editor.setValue(argument);
+                    }
+                }
 
                 if (this.oldDefaultSort) this.defaultSortInput.setValue(this.oldDefaultSort);
 
@@ -1071,6 +1215,7 @@ mw.loader.using(
                 const elementsToDisable = [
                     this.redirectInput,
                     this.tagSelect,
+                    ...this.templateEditorsInfo.flatMap((template) => template.parameters.map((parameter) => parameter.editor)),
                     this.previewButton,
                     this.defaultSortInput,
                     this.defaultSortSuggestButton,
@@ -1191,11 +1336,26 @@ mw.loader.using(
                 )
                     defaultSort = undefined; // Check if titles normalize to the same text, and removes the DEFAULTSORT if so
 
+                const tagsWithArguments = tags.map((tag) => {
+                    const foundArgumentEditor = this.templateEditorsInfo.find((editorInfo) => editorInfo.name === tag);
+                    if (!foundArgumentEditor) return `{{${tag}}}`;
+
+                    const mappedArguments = foundArgumentEditor.parameters
+                        .map((parameter, index) => {
+                            const value = parameter.editor.getValue().trim();
+                            if (!value) return null;
+
+                            return `|${parameter.name === (index + 1).toString() ? '' : `${parameter.name}=`}${value}`;
+                        })
+                        .filter(Boolean)
+                        .join('');
+
+                    return `{{${tag}${mappedArguments}}}`;
+                });
+
                 return [
                     `#REDIRECT [[${formattedTitle}]]\n`, //
-                    tags.length > 0
-                        ? `{{Redirect category shell|\n${tags.map((tag) => `{{${tag}${this.oldRedirectTagData?.[tag] ? `|${this.oldRedirectTagData[tag]}` : ''}}}`).join('\n')}\n}}\n`
-                        : null,
+                    tags.length > 0 ? `{{Redirect category shell|\n${tagsWithArguments.join('\n')}\n}}\n` : null,
                     strayText ? strayText + '\n' : null,
                     defaultSort ? `{{DEFAULTSORT:${defaultSort.trim()}}}` : null,
                     categories.length > 0 ? categories.map((category) => `[[Category:${category}]]`).join('\n') : null,

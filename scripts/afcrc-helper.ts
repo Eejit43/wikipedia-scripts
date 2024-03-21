@@ -422,7 +422,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                 } else {
                     const parsedData = {} as CategoryRequestData;
 
-                    const foundCategory = sectionHeader.match(/:?Category:(.*)(]])?/)?.[1].trim();
+                    const foundCategory = sectionHeader.match(/:?Category:(.*?)(]]|$)/)?.[1].trim();
                     if (!foundCategory) continue;
 
                     parsedData.category = foundCategory.replaceAll('_', ' ');

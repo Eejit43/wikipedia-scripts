@@ -1203,6 +1203,23 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
             if (tags.includes('R with Wikidata item') && !mw.config.get('wgWikibaseItemId'))
                 errors.push({ message: 'is tagged with <code>{{R with Wikidata item}}</code> but it is not actually linked to a Wikidata item!' });
 
+            /* Missing tag required parameter */
+            for (const tag of tags as string[]) {
+                const tagData = this.redirectTemplates[tag];
+                if (!tagData) continue;
+
+                for (const [parameterName, parameterData] of Object.entries(tagData.parameters)) {
+                    const foundParameter = this.templateEditorsInfo
+                        .find((editorInfo) => editorInfo.name === tag)
+                        ?.parameters.find((parameter) => [parameter.name, ...parameter.aliases].includes(parameterName));
+
+                    if (!foundParameter) continue;
+
+                    if (parameterData.required && !foundParameter.editor.getValue().trim())
+                        errors.push({ message: `is tagged with <code>{{${tag}}}</code> but it is missing the required parameter <code>${parameterName}</code>!` });
+                }
+            }
+
             /* Syncing talk page but talk page exists and isn't a redirect */
             if (this.syncTalkCheckbox?.isSelected() && !this.talkData!.query.pages[0].missing && !this.talkData!.query.pages[0].redirect)
                 errors.push({ title: this.pageTitleParsed.getTalkPage()!.getPrefixedText(), message: 'exists, but is not a redirect!' });

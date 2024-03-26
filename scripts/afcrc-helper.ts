@@ -178,7 +178,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                 .then((result: { query: { pages: { title: string; categories?: { title: string }[] }[] } } | null) => {
                     if (result?.query?.pages) {
                         const pages = result.query.pages //
-                            .filter((page) => !(page.categories && page.categories.some((category) => category.title === 'Category:Wikipedia soft redirected categories')))
+                            .filter((page) => !page.categories?.some((category) => category.title === 'Category:Wikipedia soft redirected categories'))
                             .map((page) => {
                                 const titleWithoutNamespace = page.title.split(':')[1];
 
@@ -439,7 +439,8 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
 
                     const matchedUser = sectionText.match(/\[\[User:(.*?)\|/);
 
-                    parsedData.requester = { type: matchedUser ? 'user' : 'ip', name: matchedUser ? matchedUser[1].trim() : sectionText.match(/Special:Contributions\/(.*?)\|/)![1].trim() };
+                    parsedData.requester = { type: matchedUser ? 'user' : 'ip', name: matchedUser ? matchedUser[1].trim() : sectionText.match(/Special:Contributions\/(.*?)\|/)?.[1].trim() ?? '' };
+                    if (!parsedData.requester.name) continue;
 
                     (this.parsedRequests as CategoryRequestData[]).push(parsedData);
 

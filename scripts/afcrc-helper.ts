@@ -437,9 +437,17 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                             ?.map((match) => match[1].trim().replace(/^:/, '').replaceAll('_', ' '))
                             .filter(Boolean) ?? [];
 
-                    const matchedUser = sectionText.match(/\[\[User:(.*?)\|/);
+                    const firstUserIndex = sectionText.indexOf('[[User:');
+                    const firstUserTalkIndex = sectionText.indexOf('[[User talk:');
+                    const firstIpIndex = sectionText.indexOf('[[Special:Contributions/');
 
-                    parsedData.requester = { type: matchedUser ? 'user' : 'ip', name: matchedUser ? matchedUser[1].trim() : sectionText.match(/Special:Contributions\/(.*?)\|/)?.[1].trim() ?? '' };
+                    const firstIndex = Math.min(...[firstUserIndex, firstUserTalkIndex, firstIpIndex].filter((index) => index !== -1));
+                    if (firstIndex === Number.POSITIVE_INFINITY) continue;
+
+                    parsedData.requester =
+                        firstIndex === firstIpIndex
+                            ? { type: 'ip', name: sectionText.match(/\[\[Special:Contributions\/(.*?)(\||]])/)![1].trim() }
+                            : { type: 'user', name: sectionText.match(/\[\[User(?: talk)?:(.*?)(\||]])/)![1].trim() };
                     if (!parsedData.requester.name) continue;
 
                     (this.parsedRequests as CategoryRequestData[]).push(parsedData);

@@ -168,7 +168,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                 .then((result: { query: { pages: { title: string; categories?: { title: string }[] }[] } } | null) => {
                     if (result?.query?.pages) {
                         const pages = result.query.pages //
-                            .filter((page) => !(page.categories && page.categories.some((category) => category.title === 'Category:Wikipedia soft redirected categories')))
+                            .filter((page) => !page.categories?.some((category) => category.title === 'Category:Wikipedia soft redirected categories'))
                             .map((page) => {
                                 const titleWithoutNamespace = page.title.split(':')[1];
 
@@ -758,7 +758,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
             this.defaultSortSuggestButton.on('click', () => {
                 let name = this.pageTitleParsed.getMainText().replace(/ \(.*\)$/, ''); // Remove disambiguation
 
-                if (this.tagSelect.getValue().includes('R from person')) {
+                if (['R from person', 'R from birth name'].some((tag) => this.tagSelect.getValue().includes(tag))) {
                     // Handling is modified from evad37's "Rater"
 
                     if (!name.includes(' ')) return;
@@ -1163,7 +1163,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                 errors.push({ message: 'is not a redirect to a section/anchor, but it is tagged with <code>{{R from section}}</code> or <code>{{R from anchor}}</code>!' });
 
             const targetIsDisambiguationPage = !!(destinationData!.query.pages[0].pageprops && 'disambiguation' in destinationData!.query.pages[0].pageprops);
-            const targetIsSurnameList = !!(destinationData!.query.pages[0].categories && destinationData!.query.pages[0].categories.some((category) => category.title === 'Category:Surnames'));
+            const targetIsSurnameList = !!destinationData!.query.pages[0].categories?.some((category) => category.title === 'Category:Surnames');
 
             const toDisambiguationPageTags = ['R to disambiguation page', 'R from incomplete disambiguation'];
             const toSurnameListTags = ['R from ambiguous sort name', 'R from ambiguous term'];

@@ -409,7 +409,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                         .trim();
                     if (!requester) continue;
 
-                    parsedData.requester = { type: requester.includes('[[User:') ? 'user' : 'ip', name: requester.match(/(?:Special:Contributions\/|User:)(.*?)\|/)![1].trim() };
+                    parsedData.requester = { type: /\[\[User( talk)?:/.test(requester) ? 'user' : 'ip', name: requester.match(/(?:Special:Contributions\/|User( talk)?:)(.*?)\|/)![1].trim() };
 
                     (this.parsedRequests as RedirectRequestData[]).push(parsedData);
 

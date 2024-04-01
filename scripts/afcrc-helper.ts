@@ -68,7 +68,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
          * @param type The message type.
          */
         public addLogEntry(message: string, type: OO.ui.MessageWidget.Type = 'notice') {
-            const messageWidget = new OO.ui.MessageWidget({ type, inline: true, label: message });
+            const messageWidget = new OO.ui.MessageWidget({ type, inline: true, label: new OO.ui.HtmlSnippet(message) });
 
             this.logOutput.append(messageWidget.$element[0]);
 
@@ -1384,7 +1384,12 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
             for (const action of this.editsCreationsToMake) {
                 const apiFunction = action.type === 'edit' ? this.api.edit(action.title, action.transform) : this.api.create(action.title, { summary: action.summary }, action.text);
 
-                showActionsDialog.addLogEntry(`${action.type === 'edit' ? 'Editing' : 'Creating'} ${action.title}...`);
+                const linkElement = document.createElement('a');
+                linkElement.target = '_blank';
+                linkElement.href = mw.util.getUrl(action.title);
+                linkElement.textContent = action.title;
+
+                showActionsDialog.addLogEntry(`${action.type === 'edit' ? 'Editing' : 'Creating'} ${linkElement.outerHTML}...`);
 
                 // eslint-disable-next-line no-await-in-loop
                 await apiFunction.catch(async (errorCode: string, errorInfo: MediaWikiDataError) => {
@@ -1397,12 +1402,15 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                         // eslint-disable-next-line no-await-in-loop
                         await apiFunction.catch((errorCode: string, errorInfo: MediaWikiDataError) => {
                             showActionsDialog.addLogEntry(
-                                `Error ${action.type === 'edit' ? 'editing' : 'creating'} ${action.title}: ${errorInfo?.error.info ?? 'Unknown error'} (${errorCode}).`,
+                                `Error ${action.type === 'edit' ? 'editing' : 'creating'} ${linkElement.outerHTML}: ${errorInfo?.error.info ?? 'Unknown error'} (${errorCode}).`,
                                 'error',
                             );
                         });
                     } else
-                        showActionsDialog.addLogEntry(`Error ${action.type === 'edit' ? 'editing' : 'creating'} ${action.title}: ${errorInfo?.error.info ?? 'Unknown error'} (${errorCode}).`, 'error');
+                        showActionsDialog.addLogEntry(
+                            `Error ${action.type === 'edit' ? 'editing' : 'creating'} ${linkElement.outerHTML}: ${errorInfo?.error.info ?? 'Unknown error'} (${errorCode}).`,
+                            'error',
+                        );
                 });
             }
         }

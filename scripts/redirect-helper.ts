@@ -955,9 +955,12 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                           this.templateEditorsInfo
                               .find((template) => template.name === tag)
                               ?.parameters.some((parameter) => {
-                                  const foundOldArgument = this.oldRedirectTagData![tag as string]?.find((argument) => argument[0] === parameter.name)?.[1];
+                                  const oldTagData = this.oldRedirectTagData![tag as string];
+                                  if (!oldTagData) return false;
 
-                                  return foundOldArgument ? foundOldArgument !== parameter.editor.getValue().trim() : false;
+                                  const foundOldArgument = oldTagData.find((argument) => argument[0] === parameter.name)?.[1];
+
+                                  return (foundOldArgument ?? '') !== parameter.editor.getValue().trim();
                               }),
                       )
                     : false;

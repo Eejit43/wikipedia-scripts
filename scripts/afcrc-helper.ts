@@ -254,7 +254,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
         private actionsToTake: RedirectActions | CategoryActions = [];
         private editsCreationsToMake: (
             | { type: 'edit'; title: string; transform: (data: { content: string }) => ApiEditPageParams }
-            | { type: 'create'; title: string; text: string; summary: string }
+            | { type: 'create'; isRedirect: boolean; title: string; text: string; summary: string }
         )[] = [];
 
         constructor(requestPageType: 'redirect' | 'category', pageTitle: string) {
@@ -1334,12 +1334,14 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
             this.editsCreationsToMake.push(
                 {
                     type: 'create',
+                    isRedirect: true,
                     title: page,
                     text: `#REDIRECT [[${target}]]${mappedTags ? `\n\n{{Redirect category shell|\n${mappedTags}\n}}` : ''}`,
                     summary: `Creating redirect to [[${target}]] as requested at [[WP:AFC/R]]${this.scriptMessage}`,
                 },
                 {
                     type: 'create',
+                    isRedirect: true,
                     title: mw.Title.newFromText(page)!.getTalkPage()!.getPrefixedText(),
                     text: `{{WikiProject banner shell|\n{{WikiProject Articles for creation|ts={{subst:LOCALTIMESTAMP}}|reviewer=${mw.config.get('wgUserName')}}}\n}}`,
                     summary: `Adding [[Wikipedia:WikiProject Articles for creation|WikiProject Articles for creation]] banner${this.scriptMessage}`,
@@ -1355,12 +1357,14 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
             this.editsCreationsToMake.push(
                 {
                     type: 'create',
+                    isRedirect: false,
                     title: `Category:${data.category}`,
                     text: data.parents.map((parent) => `[[Category:${parent}]]`).join('\n'),
                     summary: `Creating category as requested at [[WP:AFC/C]]${this.scriptMessage}`,
                 },
                 {
                     type: 'create',
+                    isRedirect: false,
                     title: `Category talk:${data.category}`,
                     text: `{{WikiProject banner shell|\n{{WikiProject Articles for creation|ts={{subst:LOCALTIMESTAMP}}|reviewer=${mw.config.get('wgUserName')}}}\n}}`,
                     summary: `Adding [[Wikipedia:WikiProject Articles for creation|WikiProject Articles for creation]] banner${this.scriptMessage}`,
@@ -1386,7 +1390,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
 
                 const linkElement = document.createElement('a');
                 linkElement.target = '_blank';
-                linkElement.href = mw.util.getUrl(action.title);
+                linkElement.href = mw.util.getUrl(action.title, 'isRedirect' in action && action.isRedirect ? { redirect: 'no' } : undefined);
                 linkElement.textContent = action.title;
 
                 showActionsDialog.addLogEntry(`${action.type === 'edit' ? 'Editing' : 'Creating'} ${linkElement.outerHTML}...`);

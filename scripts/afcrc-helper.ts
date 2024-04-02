@@ -1341,7 +1341,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                 },
                 {
                     type: 'create',
-                    isRedirect: true,
+                    isRedirect: false,
                     title: mw.Title.newFromText(page)!.getTalkPage()!.getPrefixedText(),
                     text: `{{WikiProject banner shell|\n{{WikiProject Articles for creation|ts={{subst:LOCALTIMESTAMP}}|reviewer=${mw.config.get('wgUserName')}}}\n}}`,
                     summary: `Adding [[Wikipedia:WikiProject Articles for creation|WikiProject Articles for creation]] banner${this.scriptMessage}`,

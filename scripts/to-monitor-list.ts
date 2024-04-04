@@ -21,6 +21,8 @@ class MonitoringListManager {
     private toCheck!: SearchData;
     private totalToCheck!: number;
 
+    private isRunning = false;
+
     private handledRequests = 0;
 
     /**
@@ -35,6 +37,9 @@ class MonitoringListManager {
         this.link.textContent = 'Add missing counts';
         this.link.addEventListener('click', async (event) => {
             event.preventDefault();
+
+            if (this.isRunning) return;
+            this.isRunning = true;
 
             await this.loadToCheckData();
 
@@ -155,6 +160,14 @@ class MonitoringListManager {
 
         this.handledRequests++;
         this.link.textContent = `Add missing counts (${this.handledRequests}/${this.totalToCheck} loaded)`;
+
+        if (this.handledRequests === this.totalToCheck)
+            setTimeout(() => {
+                this.isRunning = false;
+
+                this.handledRequests = 0;
+                this.link.textContent = 'Add missing counts';
+            }, 1000);
     }
 
     /**

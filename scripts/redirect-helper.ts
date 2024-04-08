@@ -33,7 +33,7 @@ type RedirectTemplateParameters = Record<
     }
 >;
 
-type RedirectTemplateData = Record<string, { parameters: RedirectTemplateParameters; aliases: string[] }>;
+export type RedirectTemplateData = Record<string, { parameters: RedirectTemplateParameters; aliases: string[] }>;
 
 interface TemplateEditorElementInfo {
     name: string;
@@ -680,6 +680,8 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                         shownTemplateEditors++;
                     }
                 }
+
+                summaryElement.textContent = `Template parameters (${shownTemplateEditors > 0 ? `for ${shownTemplateEditors} template${shownTemplateEditors > 1 ? 's' : ''}` : 'none to show'})`;
 
                 noTemplatesMessage.style.display = shownTemplateEditors > 0 ? 'none' : 'block';
             });

@@ -315,8 +315,9 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
 }
 
 .afcrc-helper-template-parameters-container, .afcrc-helper-template-parameters-container details {
-    background-color: #e2e2e2;
-    border-radius: 5px;
+    background-color: #fff;
+    border: 1px solid #a2a9b1;
+    border-radius: 2px;
     margin-block: 10px;
     padding: 5px;
 }
@@ -331,7 +332,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
 }
 
 .afcrc-helper-template-parameters-container details {
-    background-color: #d1cece;
+    background-color: #e2e2e2;
     margin-block: 5px;
 }
 

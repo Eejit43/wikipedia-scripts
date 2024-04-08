@@ -227,7 +227,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
         closingReason?: { name: string; id: string };
     }
 
-    type RedirectAction = Action & { redirectTemplates?: string[] };
+    type RedirectAction = Action & { redirectTemplates?: string[]; redirectTemplateParameters?: TemplateEditorElementInfo[] };
 
     type CategoryAction = Action & { category: string; examples: string[]; parents: string[] };
 
@@ -247,8 +247,6 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
         private pageTitle!: string;
 
         private redirectTemplates!: RedirectTemplateData;
-
-        private templateEditorsInfo: TemplateEditorElementInfo[] = [];
 
         private beforeText!: string;
         private pageContent!: string;
@@ -606,6 +604,8 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
 
                 let tagSelectLayout: OO.ui.FieldLayout, templateParametersEditor: HTMLDetailsElement;
 
+                let templateEditorsInfo: TemplateEditorElementInfo[] = [];
+
                 const actionRadioInput = new OO.ui.RadioSelectWidget({
                     classes: ['afcrc-helper-action-radio'],
                     items: ['Accept', 'Deny', 'Comment', 'Close', 'None'].map((label) => new OO.ui.RadioOptionWidget({ data: label, label })),
@@ -632,11 +632,11 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
 
                             (this.actionsToTake as RedirectActions)[index].requests[requestedTitle].redirectTemplates = sortedTags;
 
-                            for (const editorInfo of this.templateEditorsInfo) editorInfo.details.style.display = 'none';
+                            for (const editorInfo of templateEditorsInfo) editorInfo.details.style.display = 'none';
 
                             let shownTemplateEditors = 0;
                             for (const tag of tagSelect.getValue() as string[]) {
-                                const editorInfo = this.templateEditorsInfo.find((editorInfo) => editorInfo.name === tag);
+                                const editorInfo = templateEditorsInfo.find((editorInfo) => editorInfo.name === tag);
 
                                 if (editorInfo) {
                                     editorInfo.details.style.display = 'block';
@@ -688,8 +688,10 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
 
                             templateParametersEditor.append(details);
 
-                            this.templateEditorsInfo.push(elementData);
+                            templateEditorsInfo.push(elementData);
                         }
+
+                        (this.actionsToTake as RedirectActions)[index].requests[requestedTitle].redirectTemplateParameters = templateEditorsInfo;
 
                         const noTemplatesMessage = document.createElement('div');
                         noTemplatesMessage.id = 'afcrc-helper-no-templates-message';
@@ -1425,7 +1427,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
             const tagsWithArguments =
                 data.redirectTemplates && data.redirectTemplates.length > 0
                     ? data.redirectTemplates.map((tag) => {
-                          const foundArgumentEditor = this.templateEditorsInfo.find((editorInfo) => editorInfo.name === tag);
+                          const foundArgumentEditor = data.redirectTemplateParameters?.find((editorInfo) => editorInfo.name === tag);
                           if (!foundArgumentEditor) return `{{${tag}}}`;
 
                           const mappedArguments = foundArgumentEditor.parameters

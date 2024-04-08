@@ -35,7 +35,7 @@ type RedirectTemplateParameters = Record<
 
 export type RedirectTemplateData = Record<string, { parameters: RedirectTemplateParameters; aliases: string[] }>;
 
-interface TemplateEditorElementInfo {
+export interface TemplateEditorElementInfo {
     name: string;
     details: HTMLDetailsElement;
     parameters: { name: string; aliases: string[]; editor: OO.ui.TextInputWidget }[];
@@ -49,7 +49,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
     /**
      * An instance of this class is a title lookup element.
      */
-    class RedirectInputWidget extends OO.ui.TextInputWidget {
+    class RedirectTargetInputWidget extends OO.ui.TextInputWidget {
         // Utility variables
         private api = new mw.Api();
 
@@ -130,7 +130,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
         getLookupMenuOptionsFromData = (data: { data: string; label: string }[]) => data.map(({ data, label }) => new OO.ui.MenuOptionWidget({ data, label }));
     }
 
-    Object.assign(RedirectInputWidget.prototype, OO.ui.mixin.LookupElement.prototype);
+    Object.assign(RedirectTargetInputWidget.prototype, OO.ui.mixin.LookupElement.prototype);
 
     // Setup CategoryInputWidget
 
@@ -456,7 +456,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
 
         private editorBox!: OO.ui.PanelLayout;
         private syncWithMainButton?: OO.ui.ButtonWidget;
-        private redirectInput!: RedirectInputWidget;
+        private redirectInput!: RedirectTargetInputWidget;
         private redirectInputLayout!: OO.ui.FieldLayout;
         private tagSelect!: OO.ui.MenuTagMultiselectWidget;
         private tagSelectLayout!: OO.ui.ActionFieldLayout;
@@ -543,7 +543,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
     margin-block: 5px;
 }
 
-.redirect-helper-template-parameters-contained #redirect-helper-no-templates-message {
+#redirect-helper-no-templates-message {
     padding: 5px;
 }
 
@@ -627,7 +627,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
          */
         private loadInputElements() {
             /* Redirect target input */
-            this.redirectInput = new RedirectInputWidget({ placeholder: 'Target page name', required: true }, this.pageTitleParsed);
+            this.redirectInput = new RedirectTargetInputWidget({ placeholder: 'Target page name', required: true }, this.pageTitleParsed);
             this.redirectInput.on('change', () => {
                 let value = this.redirectInput.getValue();
                 value = value.replace(new RegExp(`^(https?:)?/{2}?${mw.config.get('wgServer').replace(/^\/{2}/, '')}/wiki/`), '');
@@ -697,7 +697,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
             this.templateParametersEditor.classList.add('redirect-helper-template-parameters-container');
 
             const summaryElement = document.createElement('summary');
-            summaryElement.textContent = 'Template parameters';
+            summaryElement.textContent = 'Template parameters (none to show)';
             this.templateParametersEditor.append(summaryElement);
 
             for (const [templateName, templateData] of Object.entries(this.redirectTemplates)) {
@@ -740,7 +740,6 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
             const noTemplatesMessage = document.createElement('div');
             noTemplatesMessage.id = 'redirect-helper-no-templates-message';
             noTemplatesMessage.textContent = 'No templates with parameters to display!';
-            noTemplatesMessage.style.display = this.exists ? 'none' : 'block';
 
             this.templateParametersEditor.append(noTemplatesMessage);
 

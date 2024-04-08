@@ -1,5 +1,6 @@
 import { ApiEditPageParams, ApiQueryRevisionsParams } from 'types-mediawiki/api_params';
 import { ApiQueryAllPagesGeneratorParams, MediaWikiDataError, PageRevisionsResult } from '../global-types'; // eslint-disable-line unicorn/prevent-abbreviations
+import { RedirectTemplateData, TemplateEditorElementInfo } from './redirect-helper';
 
 mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-windows'], () => {
     const isRedirectRequestPage = mw.config.get('wgPageName') === 'Wikipedia:Articles_for_creation/Redirects';
@@ -245,7 +246,9 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
         private requestPageType: 'redirect' | 'category';
         private pageTitle!: string;
 
-        private redirectTemplateItems!: { data: string; label: string }[];
+        private redirectTemplates!: RedirectTemplateData;
+
+        private templateEditorsInfo: TemplateEditorElementInfo[] = [];
 
         private beforeText!: string;
         private pageContent!: string;
@@ -309,6 +312,31 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
 
 .afcrc-closing-reason-input, .afcrc-comment-input {
     max-width: 50%;
+}
+
+.afcrc-helper-template-parameters-container, .afcrc-helper-template-parameters-container details {
+    background-color: #e2e2e2;
+    border-radius: 5px;
+    margin-block: 10px;
+    padding: 5px;
+}
+
+.afcrc-helper-template-parameters-container {
+    margin-left: 8px;
+}
+
+.afcrc-helper-template-parameters-container summary {
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.afcrc-helper-template-parameters-container details {
+    background-color: #d1cece;
+    margin-block: 5px;
+}
+
+#afcrc-helper-no-templates-message {
+    padding: 5px;
 }`);
         }
 
@@ -343,10 +371,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                 titles: 'User:Eejit43/scripts/redirect-helper.json',
             } satisfies ApiQueryRevisionsParams)) as PageRevisionsResult;
 
-            this.redirectTemplateItems = Object.keys(JSON.parse(redirectTemplateResponse.query.pages?.[0]?.revisions?.[0]?.slots?.main?.content || '{}') as Record<string, unknown>).map((tag) => ({
-                data: tag,
-                label: tag,
-            }));
+            this.redirectTemplates = JSON.parse(redirectTemplateResponse.query.pages?.[0]?.revisions?.[0]?.slots?.main?.content || '{}') as RedirectTemplateData;
 
             const pageRevision = (await this.api.get({
                 action: 'query',
@@ -578,6 +603,8 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                 label.textContent = requestedTitle + ' → ' + request.target;
                 requestedTitleDiv.append(label);
 
+                let tagSelectLayout: OO.ui.FieldLayout, templateParametersEditor: HTMLDetailsElement;
+
                 const actionRadioInput = new OO.ui.RadioSelectWidget({
                     classes: ['afcrc-helper-action-radio'],
                     items: ['Accept', 'Deny', 'Comment', 'Close', 'None'].map((label) => new OO.ui.RadioOptionWidget({ data: label, label })),
@@ -589,6 +616,88 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                     const option = ((actionRadioInput.findSelectedItem() as OO.ui.RadioOptionWidget).getData() as string).toLowerCase() as ActionType;
 
                     (this.actionsToTake as RedirectActions)[index].requests[requestedTitle].action = option;
+
+                    if (!tagSelectLayout || !templateParametersEditor) {
+                        const tagSelect = new OO.ui.MenuTagMultiselectWidget({
+                            allowArbitrary: false,
+                            allowReordering: false,
+                            options: Object.keys(this.redirectTemplates).map((tag) => ({ data: tag, label: tag })),
+                        });
+                        (tagSelect.getMenu() as OO.ui.MenuSelectWidget.ConfigOptions).filterMode = 'substring';
+                        tagSelect.on('change', () => {
+                            const sortedTags = (tagSelect.getValue() as string[]).sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
+
+                            if ((tagSelect.getValue() as string[]).join(';') !== sortedTags.join(';')) tagSelect.setValue(sortedTags);
+
+                            (this.actionsToTake as RedirectActions)[index].requests[requestedTitle].redirectTemplates = sortedTags;
+
+                            for (const editorInfo of this.templateEditorsInfo) editorInfo.details.style.display = 'none';
+
+                            let shownTemplateEditors = 0;
+                            for (const tag of tagSelect.getValue() as string[]) {
+                                const editorInfo = this.templateEditorsInfo.find((editorInfo) => editorInfo.name === tag);
+
+                                if (editorInfo) {
+                                    editorInfo.details.style.display = 'block';
+                                    shownTemplateEditors++;
+                                }
+                            }
+
+                            summaryElement.textContent = `Template parameters (${shownTemplateEditors > 0 ? `for ${shownTemplateEditors} template${shownTemplateEditors > 1 ? 's' : ''}` : 'none to show'})`;
+
+                            noTemplatesMessage.style.display = shownTemplateEditors > 0 ? 'none' : 'block';
+                        });
+
+                        tagSelectLayout = new OO.ui.FieldLayout(tagSelect, { classes: ['afcrc-helper-tag-select-layout'], align: 'inline', label: 'Redirect templates:' });
+                        requestedTitleDiv.append(tagSelectLayout.$element[0]);
+
+                        templateParametersEditor = document.createElement('details');
+                        templateParametersEditor.classList.add('afcrc-helper-template-parameters-container');
+
+                        const summaryElement = document.createElement('summary');
+                        summaryElement.textContent = 'Template parameters (none to show)';
+                        templateParametersEditor.append(summaryElement);
+
+                        for (const [templateName, templateData] of Object.entries(this.redirectTemplates)) {
+                            const parameters = Object.entries(templateData.parameters);
+                            if (parameters.length === 0) continue;
+
+                            const details = document.createElement('details');
+                            details.style.display = 'none';
+
+                            const summary = document.createElement('summary');
+                            summary.textContent = templateName;
+                            details.append(summary);
+
+                            const elementData: TemplateEditorElementInfo = { name: templateName, details, parameters: [] };
+
+                            for (const [parameterName, parameterData] of parameters) {
+                                const input = new OO.ui.TextInputWidget({ placeholder: parameterData.default?.toString(), required: parameterData.required });
+
+                                const inputLayout = new OO.ui.FieldLayout(input, {
+                                    label: new OO.ui.HtmlSnippet(
+                                        `${parameterName}${!parameterData.label || parameterName.toLowerCase() === parameterData.label?.toLowerCase() ? '' : ` (${parameterData.label})`}${parameterData.description ? ` (${parameterData.description})` : ''} (type: ${parameterData.type}) ${parameterData.suggested ? ' (suggested)' : ''}${parameterData.example ? ` (example: "${parameterData.example}")` : ''}`,
+                                    ),
+                                    align: 'inline',
+                                });
+                                details.append(inputLayout.$element[0]);
+
+                                elementData.parameters.push({ name: parameterName, aliases: parameterData.aliases, editor: input });
+                            }
+
+                            templateParametersEditor.append(details);
+
+                            this.templateEditorsInfo.push(elementData);
+                        }
+
+                        const noTemplatesMessage = document.createElement('div');
+                        noTemplatesMessage.id = 'afcrc-helper-no-templates-message';
+                        noTemplatesMessage.textContent = 'No templates with parameters to display!';
+
+                        templateParametersEditor.append(noTemplatesMessage);
+
+                        requestedTitleDiv.append(templateParametersEditor);
+                    }
 
                     if (['comment', 'close'].includes(option)) {
                         commentInputLayout.$element.show();
@@ -604,32 +713,15 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
 
                     this.updateRequestColor(detailsElement, index);
 
-                    const tagSelectElement = requestedTitleDiv.querySelector('.afcrc-helper-tag-select-layout');
-                    if (tagSelectElement) tagSelectElement.remove();
-
+                    tagSelectLayout.$element.hide();
+                    templateParametersEditor.style.display = 'none';
                     denyReasonLayout.$element.hide();
                     closingReasonLayout.$element.hide();
 
                     switch (option) {
                         case 'accept': {
-                            const tagSelect = new OO.ui.MenuTagMultiselectWidget({
-                                allowArbitrary: false,
-                                allowReordering: false,
-                                options: this.redirectTemplateItems,
-                            });
-                            (tagSelect.getMenu() as OO.ui.MenuSelectWidget.ConfigOptions).filterMode = 'substring';
-                            tagSelect.on('change', () => {
-                                const sortedTags = (tagSelect.getValue() as string[]).sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
-
-                                if ((tagSelect.getValue() as string[]).join(';') !== sortedTags.join(';')) tagSelect.setValue(sortedTags);
-
-                                (this.actionsToTake as RedirectActions)[index].requests[requestedTitle].redirectTemplates = sortedTags;
-                            });
-                            tagSelect.setValue((this.actionsToTake as RedirectActions)[index].requests[requestedTitle].redirectTemplates ?? []);
-
-                            const tagSelectLayout = new OO.ui.FieldLayout(tagSelect, { classes: ['afcrc-helper-tag-select-layout'], align: 'inline', label: 'Redirect templates:' });
-
-                            requestedTitleDiv.append(tagSelectLayout.$element[0]);
+                            tagSelectLayout.$element.show();
+                            templateParametersEditor.style.display = 'block';
 
                             break;
                         }
@@ -1329,14 +1421,32 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
          * @param target The target of the requested page.
          */
         private handleAcceptedRedirect(page: string, data: RedirectAction, target: string) {
-            const mappedTags = data.redirectTemplates && data.redirectTemplates.length > 0 ? data.redirectTemplates?.map((tag) => `{{${tag}}}`).join('\n') : null;
+            const tagsWithArguments =
+                data.redirectTemplates && data.redirectTemplates.length > 0
+                    ? data.redirectTemplates.map((tag) => {
+                          const foundArgumentEditor = this.templateEditorsInfo.find((editorInfo) => editorInfo.name === tag);
+                          if (!foundArgumentEditor) return `{{${tag}}}`;
+
+                          const mappedArguments = foundArgumentEditor.parameters
+                              .map((parameter, index) => {
+                                  const value = parameter.editor.getValue().trim();
+                                  if (!value) return null;
+
+                                  return `|${parameter.name === (index + 1).toString() ? '' : `${parameter.name}=`}${value}`;
+                              })
+                              .filter(Boolean)
+                              .join('');
+
+                          return `{{${tag}${mappedArguments}}}`;
+                      })
+                    : null;
 
             this.editsCreationsToMake.push(
                 {
                     type: 'create',
                     isRedirect: true,
                     title: page,
-                    text: `#REDIRECT [[${target}]]${mappedTags ? `\n\n{{Redirect category shell|\n${mappedTags}\n}}` : ''}`,
+                    text: `#REDIRECT [[${target}]]${tagsWithArguments ? `\n\n{{Redirect category shell|\n${tagsWithArguments.join('\n')}\n}}` : ''}`,
                     summary: `Creating redirect to [[${target}]] as requested at [[WP:AFC/R]]${this.scriptMessage}`,
                 },
                 {

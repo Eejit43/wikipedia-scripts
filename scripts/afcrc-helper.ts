@@ -393,7 +393,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
         private parseRequests() {
             this.beforeText = this.pageContent.match(/^(.*?)==/s)![1];
 
-            this.pageContent = this.pageContent.replace(/^.*?==/s, '==').replaceAll(new RegExp(`\\[https?:${mw.config.get('wgServer')}/(.*?)]`, 'g'), '[[$1]]');
+            this.pageContent = this.pageContent.replace(/^.*?==/s, '==');
 
             const sections = [...this.pageContent.matchAll(/^==.*?==$(\s*(?!==[^=]).*)*/gim)].map((match) => match[0]);
 

@@ -207,14 +207,14 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
         target: string;
         reason: string;
         source: string;
-        requester: { type: 'user' | 'ip'; name: string };
+        requester: { type: 'user' | 'ip'; name: string } | null;
     }
 
     interface CategoryRequestData {
         category: string;
         examples: string[];
         parents: string[];
-        requester: { type: 'user' | 'ip'; name: string };
+        requester: { type: 'user' | 'ip'; name: string } | null;
     }
 
     type ActionType = 'accept' | 'deny' | 'comment' | 'close' | 'none';
@@ -431,9 +431,10 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                                 : new RegExp(`(?:<references \\/>${parsedData.source ? `|${parsedData.source.replaceAll(/[\s#$()*+,.?[\\\]^{|}-]/g, '\\$&')}` : ''})\n+(.*)`),
                         )?.[1]
                         .trim();
-                    if (!requester) continue;
 
-                    parsedData.requester = { type: /\[\[User( talk)?:/.test(requester) ? 'user' : 'ip', name: requester.match(/(?:Special:Contributions\/|User(?: talk)?:)(.*?)\|/)![1].trim() };
+                    parsedData.requester = requester
+                        ? { type: /\[\[User( talk)?:/.test(requester) ? 'user' : 'ip', name: requester.match(/(?:Special:Contributions\/|User(?: talk)?:)(.*?)\|/)![1].trim() }
+                        : null;
 
                     (this.parsedRequests as RedirectRequestData[]).push(parsedData);
 
@@ -466,13 +467,14 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                     const firstIpIndex = sectionText.indexOf('[[Special:Contributions/');
 
                     const firstIndex = Math.min(...[firstUserIndex, firstUserTalkIndex, firstIpIndex].filter((index) => index !== -1));
-                    if (firstIndex === Number.POSITIVE_INFINITY) continue;
 
                     parsedData.requester =
-                        firstIndex === firstIpIndex
-                            ? { type: 'ip', name: sectionText.match(/\[\[Special:Contributions\/(.*?)(\||]])/)![1].trim() }
-                            : { type: 'user', name: sectionText.match(/\[\[User(?: talk)?:(.*?)(\||]])/)![1].trim() };
-                    if (!parsedData.requester.name) continue;
+                        firstIndex === Number.POSITIVE_INFINITY
+                            ? null
+                            : firstIndex === firstIpIndex
+                              ? { type: 'ip', name: sectionText.match(/\[\[Special:Contributions\/(.*?)(\||]])/)![1].trim() }
+                              : { type: 'user', name: sectionText.match(/\[\[User(?: talk)?:(.*?)(\||]])/)![1].trim() };
+                    if (!parsedData.requester?.name) parsedData.requester = null;
 
                     (this.parsedRequests as CategoryRequestData[]).push(parsedData);
 
@@ -552,6 +554,10 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
             noneElement.style.color = 'dimgray';
             noneElement.textContent = 'None';
 
+            const unknownElement = document.createElement('span');
+            unknownElement.style.color = 'dimgray';
+            unknownElement.textContent = 'Unknown';
+
             const reasonDiv = document.createElement('div');
 
             const reasonLabel = document.createElement('b');
@@ -580,11 +586,13 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
             requesterLabel.textContent = 'Requester: ';
             requesterDiv.append(requesterLabel);
 
-            const requesterLink = document.createElement('a');
-            requesterLink.target = '_blank';
-            requesterLink.href = request.requester.type === 'user' ? mw.util.getUrl(`User:${request.requester.name}`) : mw.util.getUrl(`Special:Contributions/${request.requester.name}`);
-            requesterLink.textContent = request.requester.name;
-            requesterDiv.append(requesterLink);
+            if (request.requester) {
+                const requesterLink = document.createElement('a');
+                requesterLink.target = '_blank';
+                requesterLink.href = request.requester.type === 'user' ? mw.util.getUrl(`User:${request.requester.name}`) : mw.util.getUrl(`Special:Contributions/${request.requester.name}`);
+                requesterLink.textContent = request.requester.name;
+                requesterDiv.append(requesterLink);
+            } else requesterDiv.append(unknownElement.cloneNode(true));
 
             requestInfoElement.append(requesterDiv);
 
@@ -833,6 +841,10 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
             noneElement.style.color = 'dimgray';
             noneElement.textContent = 'None';
 
+            const unknownElement = document.createElement('span');
+            unknownElement.style.color = 'dimgray';
+            unknownElement.textContent = 'Unknown';
+
             const examplesDiv = document.createElement('div');
 
             const examplesLabel = document.createElement('b');
@@ -881,11 +893,13 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
             requesterLabel.textContent = 'Requester: ';
             requesterDiv.append(requesterLabel);
 
-            const requesterLink = document.createElement('a');
-            requesterLink.target = '_blank';
-            requesterLink.href = request.requester.type === 'user' ? mw.util.getUrl(`User:${request.requester.name}`) : mw.util.getUrl(`Special:Contributions/${request.requester.name}`);
-            requesterLink.textContent = request.requester.name;
-            requesterDiv.append(requesterLink);
+            if (request.requester) {
+                const requesterLink = document.createElement('a');
+                requesterLink.target = '_blank';
+                requesterLink.href = request.requester.type === 'user' ? mw.util.getUrl(`User:${request.requester.name}`) : mw.util.getUrl(`Special:Contributions/${request.requester.name}`);
+                requesterLink.textContent = request.requester.name;
+                requesterDiv.append(requesterLink);
+            } else requesterDiv.append(unknownElement.cloneNode(true));
 
             requestInfoElement.append(requesterDiv);
 

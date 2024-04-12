@@ -949,23 +949,43 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
             if (!redirectValue) (this.summaryInput.$tabIndexed[0] as HTMLInputElement).placeholder = '';
             else if (this.exists) {
                 const targetChanged = redirectValue !== this.oldRedirectTarget?.replaceAll('_', ' ');
+
                 const tagsChanged =
                     this.tagSelect.getValue().some((tag) => !this.oldRedirectTags!.includes(tag as string)) || this.oldRedirectTags!.some((tag) => !this.tagSelect.getValue().includes(tag));
-                const tagArgumentsChanged = this.oldRedirectTagData
-                    ? this.tagSelect.getValue().some((tag) =>
-                          this.templateEditorsInfo
-                              .find((template) => template.name === tag)
-                              ?.parameters.some((parameter) => {
-                                  const oldTagData = this.oldRedirectTagData![tag as string];
-                                  if (!oldTagData) return false;
 
-                                  const foundOldArgument = oldTagData.find((argument) => argument[0] === parameter.name)?.[1];
+                let tagArgumentsChanged = false;
+                if (this.oldRedirectTagData) {
+                    const tagsWithParameters = Object.entries(this.redirectTemplates).filter(([, data]) => Object.entries(data.parameters).length > 0);
 
-                                  return (foundOldArgument ?? '') !== parameter.editor.getValue().trim();
-                              }),
-                      )
-                    : false;
+                    for (const [tag, data] of tagsWithParameters) {
+                        const tagWasSelected = this.oldRedirectTags!.includes(tag);
+                        if (!tagWasSelected) continue;
+
+                        if (!this.tagSelect.getValue().includes(tag)) continue;
+
+                        const oldTagData = this.oldRedirectTagData[tag as string] ?? Object.entries(data.parameters).map(([name]) => [name, '']);
+
+                        const foundTagEditorData = this.templateEditorsInfo.find((template) => template.name === tag)!;
+
+                        for (const parameter of foundTagEditorData.parameters) {
+                            const oldArgument = oldTagData.find((argument) => argument[0] === parameter.name)?.[1] ?? '';
+
+                            const newArgument = parameter.editor.getValue().trim();
+
+                            console.log(oldArgument, newArgument, oldArgument !== newArgument);
+
+                            if (oldArgument !== newArgument) {
+                                tagArgumentsChanged = true;
+                                break;
+                            }
+                        }
+
+                        if (tagArgumentsChanged) break;
+                    }
+                }
+
                 const defaultSortChanged = this.defaultSortInput.getValue().trim() !== this.oldDefaultSort!.replaceAll('_', ' ');
+
                 const categoriesChanged =
                     this.categorySelect.getValue().some((category) => !this.oldCategories!.includes(category as string)) ||
                     this.oldCategories!.some((category) => !this.categorySelect.getValue().includes(category));

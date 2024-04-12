@@ -959,9 +959,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
 
                     for (const [tag, data] of tagsWithParameters) {
                         const tagWasSelected = this.oldRedirectTags!.includes(tag);
-                        if (!tagWasSelected) continue;
-
-                        if (!this.tagSelect.getValue().includes(tag)) continue;
+                        if (!tagWasSelected || !this.tagSelect.getValue().includes(tag)) continue;
 
                         const oldTagData = this.oldRedirectTagData[tag as string] ?? Object.entries(data.parameters).map(([name]) => [name, '']);
 
@@ -969,10 +967,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
 
                         for (const parameter of foundTagEditorData.parameters) {
                             const oldArgument = oldTagData.find((argument) => argument[0] === parameter.name)?.[1] ?? '';
-
                             const newArgument = parameter.editor.getValue().trim();
-
-                            console.log(oldArgument, newArgument, oldArgument !== newArgument);
 
                             if (oldArgument !== newArgument) {
                                 tagArgumentsChanged = true;

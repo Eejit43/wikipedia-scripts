@@ -19,6 +19,8 @@ import {
     UserPermissionsResponse,
 } from '../global-types';
 
+export type RedirectTemplateData = Record<string, { redirect?: true; parameters: RedirectTemplateParameters; aliases: string[] }>;
+
 type RedirectTemplateParameters = Record<
     string,
     {
@@ -32,8 +34,6 @@ type RedirectTemplateParameters = Record<
         example: string | number | boolean | null;
     }
 >;
-
-export type RedirectTemplateData = Record<string, { parameters: RedirectTemplateParameters; aliases: string[] }>;
 
 export interface TemplateEditorElementInfo {
     name: string;
@@ -667,7 +667,13 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
             this.tagSelect = new OO.ui.MenuTagMultiselectWidget({
                 allowArbitrary: false,
                 allowReordering: false,
-                options: Object.keys(this.redirectTemplates).map((tag) => ({ data: tag, label: tag })),
+                options: Object.entries(this.redirectTemplates).map(([tag, { redirect }]) => {
+                    if (!redirect) return { data: tag, label: tag };
+
+                    const label = new OO.ui.HtmlSnippet(`${tag} <i>(redirect with possibilities)</i>`);
+
+                    return { data: tag, label };
+                }),
             });
             (this.tagSelect.getMenu() as OO.ui.MenuSelectWidget.ConfigOptions).filterMode = 'substring';
             this.tagSelect.on('change', () => {

@@ -630,7 +630,13 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                         const tagSelect = new OO.ui.MenuTagMultiselectWidget({
                             allowArbitrary: false,
                             allowReordering: false,
-                            options: Object.keys(this.redirectTemplates).map((tag) => ({ data: tag, label: tag })),
+                            options: Object.entries(this.redirectTemplates).map(([tag, { redirect }]) => {
+                                if (!redirect) return { data: tag, label: tag };
+
+                                const label = new OO.ui.HtmlSnippet(`${tag} <i>(redirect with possibilities)</i>`);
+
+                                return { data: tag, label };
+                            }),
                         });
                         (tagSelect.getMenu() as OO.ui.MenuSelectWidget.ConfigOptions).filterMode = 'substring';
                         tagSelect.on('change', () => {

@@ -563,6 +563,16 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
 
 .redirect-helper-warning {
     margin-top: 8px;
+}
+
+.redirect-helper-autofix-button {
+    margin-left: 5px;
+    font-size: 12px;
+}
+
+.redirect-helper-autofix-button a {
+    padding: 3px 4px !important;
+    min-height: unset !important;
 }`);
 
             mw.loader.addLinkTag('https://www.mediawiki.org/w/load.php?modules=mediawiki.diff.styles&only=styles');
@@ -1096,10 +1106,10 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
          * Runs checks on the provided data and returns the errors (if any).
          */
         private async validateSubmission() {
-            const errors = [];
+            const errors: { title?: string; message: string; autoFixes?: ({ type: 'add' | 'remove'; tag: string } | { type: 'change-target'; target: string })[] }[] = [];
 
             const destination = this.redirectInput.getValue().trim();
-            const tags = this.tagSelect.getValue();
+            const tags = this.tagSelect.getValue() as string[];
 
             /* Invalid characters */
             if (!/^\s*[^[\]{|}]+\s*$/.test(destination)) errors.push({ title: destination, message: 'is not a valid page title!' });
@@ -1133,6 +1143,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                     message: `is a redirect to <a href="${mw.util.getUrl(
                         destinationRedirect,
                     )}" target="_blank">${destinationRedirect}</a>. Retarget to that page instead, as double redirects aren't allowed.`,
+                    autoFixes: [{ type: 'change-target', target: destinationRedirect }],
                 });
             }
 
@@ -1140,8 +1151,16 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
             if (destination.split('#').length > 1) {
                 const validSection = destinationParseResult.parse.sections.find((section) => section.line.replaceAll(/<\/?i>/g, '') === destination.split('#')[1]);
                 if (validSection) {
-                    if (tags.includes('R to anchor')) errors.push({ message: 'is tagged as a redirect to an anchor, but it is actually a redirect to a section!' });
-                    if (!tags.includes('R to section')) errors.push({ message: 'is a redirect to a section, but it is not tagged with <code>{{R to section}}</code>!' });
+                    if (tags.includes('R to anchor'))
+                        errors.push({
+                            message: 'is tagged as a redirect to an anchor, but it is actually a redirect to a section!',
+                            autoFixes: [
+                                { type: 'add', tag: 'R to section' },
+                                { type: 'remove', tag: 'R to anchor' },
+                            ],
+                        });
+                    if (!tags.includes('R to section'))
+                        errors.push({ message: 'is a redirect to a section, but it is not tagged with <code>{{R to section}}</code>!', autoFixes: [{ type: 'add', tag: 'R to section' }] });
                 } else {
                     const destinationContent = (
                         (await this.api.get({
@@ -1171,15 +1190,28 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                         ...(destinationContent.match(/(?<=id=)"?.+?(?="|>|\|)/g)?.map((anchor: string) => anchor.trim()) ?? []),
                     ];
                     if (anchors.includes(destination.split('#')[1])) {
-                        if (tags.includes('R to section')) errors.push({ message: 'is tagged as a redirect to a section, but it is actually a redirect to an anchor!' });
-                        if (!tags.includes('R to anchor')) errors.push({ message: 'is a redirect to an anchor, but it is not tagged with <code>{{R from anchor}}</code>!' });
-                    } else errors.push({ message: `is a redirect to <a href="${mw.util.getUrl(destination)}" target="_blank">${destination}</a>, but that section or anchor does not exist!` });
+                        if (tags.includes('R to section'))
+                            errors.push({
+                                message: 'is tagged as a redirect to a section, but it is actually a redirect to an anchor!',
+                                autoFixes: [
+                                    { type: 'add', tag: 'R to anchor' },
+                                    { type: 'remove', tag: 'R to section' },
+                                ],
+                            });
+                        if (!tags.includes('R to anchor'))
+                            errors.push({ message: 'is a redirect to an anchor, but it is not tagged with <code>{{R from anchor}}</code>!', autoFixes: [{ type: 'add', tag: 'R to anchor' }] });
+                    } else
+                        errors.push({
+                            message: `is a redirect to <a href="${mw.util.getUrl(destination)}" target="_blank">${destination}</a>, but that section or anchor does not exist!`,
+                            autoFixes: [{ type: 'change-target', target: destination.split('#')[0] }],
+                        });
                 }
             }
 
             /* Improperly tagged as redirect to section/anchor */
-            if (destination.split('#').length === 1 && (tags.includes('R to section') || tags.includes('R to anchor')))
-                errors.push({ message: 'is not a redirect to a section/anchor, but it is tagged with <code>{{R from section}}</code> or <code>{{R from anchor}}</code>!' });
+            if (destination.split('#').length === 1)
+                for (const tag of ['R to section', 'R to anchor'])
+                    if (tags.includes(tag)) errors.push({ message: `is not a redirect to a section/anchor, but it is tagged with <code>{{${tag}}}</code>!`, autoFixes: [{ type: 'remove', tag }] });
 
             const targetIsDisambiguationPage = !!(destinationData!.query.pages[0].pageprops && 'disambiguation' in destinationData!.query.pages[0].pageprops);
             const targetIsSurnameList = !!destinationData!.query.pages[0].categories?.some((category) => category.title === 'Category:Surnames');
@@ -1196,7 +1228,11 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
 
             if (destinationData!.query.pages[0].pageprops && !targetIsDisambiguationPage) {
                 /* Improperly tagged as redirect to disambiguation page */
-                if (taggedAsRedirectToDisambiguationPage) errors.push({ message: 'is not a redirect to a disambiguation page, but it is tagged with a disambiguation categorization template!' });
+                if ((!targetIsSurnameList && (taggedAsRedirectToDisambiguationPage || taggedAsRedirectToSurnameList)) || (targetIsSurnameList && taggedAsRedirectToDisambiguationPage))
+                    errors.push({
+                        message: 'is not a redirect to a disambiguation page, but it is tagged with a disambiguation categorization template!',
+                        autoFixes: [...toDisambiguationPageTags, ...toSurnameListTags].map((tag) => ({ type: 'remove', tag })),
+                    });
 
                 /* Redirect to surname list without template */
                 if (targetIsSurnameList && !taggedAsRedirectToSurnameList)
@@ -1208,19 +1244,27 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                 errors.push({
                     message:
                         'is tagged with <code>{{R to disambiguation page}}</code>, but this title does not end with " (disambiguation)". Use <code>{{R from ambiguous term}}</code> or a similar categorization template instead!',
+                    autoFixes: [{ type: 'remove', tag: 'R to disambiguation page' }],
                 });
 
             /* Tagged with a protection template */
             for (const template of ['R semi-protected', 'R extended-protected', 'R template-protected', 'R fully protected'])
-                if (tags.includes(template)) errors.push({ message: `is tagged with unnecessarily tagged with <code>{{${template}}}</code> which will be duplicated by the redirect category shell!` });
+                if (tags.includes(template))
+                    errors.push({
+                        message: `is tagged with unnecessarily tagged with <code>{{${template}}}</code> which will be duplicated by the redirect category shell!`,
+                        autoFixes: [{ type: 'remove', tag: template }],
+                    });
 
             /* Linked to a Wikidata item without being tagged with {{R with Wikidata item}} */
             if (mw.config.get('wgWikibaseItemId') && !tags.includes('R with Wikidata item'))
-                errors.push({ message: "is linked to a Wikidata item but it isn't tagged with <code>{{R with Wikidata item}}</code>!" });
+                errors.push({ message: "is linked to a Wikidata item but it isn't tagged with <code>{{R with Wikidata item}}</code>!", autoFixes: [{ type: 'add', tag: 'R with Wikidata item' }] });
 
             /* Tagged with {{R with Wikidata item}} without being linked to an item */
             if (tags.includes('R with Wikidata item') && !mw.config.get('wgWikibaseItemId'))
-                errors.push({ message: 'is tagged with <code>{{R with Wikidata item}}</code> but it is not actually linked to a Wikidata item!' });
+                errors.push({
+                    message: 'is tagged with <code>{{R with Wikidata item}}</code> but it is not actually linked to a Wikidata item!',
+                    autoFixes: [{ type: 'remove', tag: 'R with Wikidata item' }],
+                });
 
             /* Missing tag required parameter */
             for (const tag of tags as string[]) {
@@ -1275,11 +1319,31 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
 
             if (errors.length > 0) {
                 for (const element of document.querySelectorAll('.redirect-helper-warning')) element.remove();
-                for (const { title, message } of errors) {
+                for (const { title, message, autoFixes } of errors) {
                     const label = new OO.ui.HtmlSnippet(
                         `${title ? `<a href="${mw.util.getUrl(title)}" target="_blank">${title}</a>` : 'This page'} ${message} Click again without making changes to submit anyway.`,
                     );
                     const warningMessage = new OO.ui.MessageWidget({ type: 'error', classes: ['redirect-helper-warning'], inline: true, label });
+
+                    if (autoFixes) {
+                        const autoFixButton = new OO.ui.ButtonWidget({ label: 'Perform auto-fix', flags: ['progressive'], classes: ['redirect-helper-autofix-button'] });
+                        autoFixButton.on('click', () => {
+                            const tags = this.tagSelect.getValue() as string[];
+
+                            for (const autoFix of autoFixes) {
+                                if (autoFix.type === 'add' && !tags.includes(autoFix.tag)) this.tagSelect.addTag(autoFix.tag, autoFix.tag);
+
+                                if (autoFix.type === 'remove' && tags.includes(autoFix.tag)) this.tagSelect.removeTagByData(autoFix.tag);
+
+                                if (autoFix.type === 'change-target') this.redirectInput.setValue(autoFix.target);
+                            }
+
+                            warningMessage.$element[0].style.textDecoration = 'line-through 2px black';
+                            autoFixButton.$element[0].remove();
+                        });
+
+                        warningMessage.$element[0].querySelector('.oo-ui-labelElement-label')!.append(autoFixButton.$element[0]);
+                    }
 
                     this.editorBox.$element[0].append(warningMessage.$element[0]);
                 }

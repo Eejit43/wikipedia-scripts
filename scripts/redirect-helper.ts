@@ -1194,6 +1194,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                             )
                             ?.flat() ?? []),
                         ...(destinationContent.match(/(?<=id=)"?.+?(?="|>|\|)/g)?.map((anchor: string) => anchor.trim()) ?? []),
+                        ...(destinationContent.match(/EpisodeNumber += +\d+/g)?.map((anchor: string) => `ep${anchor.split('=')[1].trim()}`) ?? []),
                     ];
                     if (anchors.includes(destination.split('#')[1])) {
                         if (tags.includes('R to section'))

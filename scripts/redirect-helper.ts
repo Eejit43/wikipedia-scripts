@@ -1004,10 +1004,17 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                 const changes = [];
 
                 if (targetChanged) changes.push(`retarget to [[${redirectValue}]]`);
-                if (tagsChanged) changes.push('change categorization templates');
+                if (tagsChanged)
+                    changes.push(
+                        `${this.tagSelect.getValue().length > 0 && this.oldRedirectTags!.length > 0 ? 'change' : this.tagSelect.getValue().length > 0 ? 'add' : 'remove'} categorization templates`,
+                    );
                 if (tagArgumentsChanged) changes.push('change categorization template arguments');
-                if (defaultSortChanged) changes.push('change default sort key');
-                if (categoriesChanged) changes.push('change categories');
+                if (defaultSortChanged)
+                    changes.push(
+                        `${this.defaultSortInput.getValue().trim().length > 0 && this.oldDefaultSort!.replaceAll('_', ' ').length > 0 ? 'change' : this.defaultSortInput.getValue().trim().length > 0 ? 'add' : 'remove'} default sort key`,
+                    );
+                if (categoriesChanged)
+                    changes.push(`${this.categorySelect.getValue().length > 0 && this.oldCategories!.length > 0 ? 'change' : this.categorySelect.getValue().length > 0 ? 'add' : 'remove'} categories`);
 
                 if (changes.length === 0) changes.push('perform redirect cleanup');
 

@@ -1,8 +1,0 @@
-{
-    "extends": ["@eejit/eslint-config-typescript"],
-    "env": { "browser": true },
-    "parserOptions": { "project": ["./tsconfig.json", "./scripts/tsconfig.json"] },
-    "rules": {
-        "unicorn/catch-error-name": ["error", { "ignore": ["errorCode"] }]
-    }
-}

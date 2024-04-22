@@ -2,7 +2,9 @@ import { build } from 'esbuild';
 import postcss from 'esbuild-postcss';
 import { readdirSync } from 'node:fs';
 
-const scripts = readdirSync('scripts').map((file) => `scripts/${file}`);
+const scripts = readdirSync('scripts')
+    .filter((file) => file.endsWith('.ts'))
+    .map((file) => `scripts/${file}`);
 for (const script of scripts)
     build({
         entryPoints: [script],

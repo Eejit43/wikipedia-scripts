@@ -612,7 +612,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
 
                 let tagSelectLayout: OO.ui.FieldLayout, templateParametersEditor: HTMLDetailsElement;
 
-                let templateEditorsInfo: TemplateEditorElementInfo[] = [];
+                const templateEditorsInfo: TemplateEditorElementInfo[] = [];
 
                 const actionRadioInput = new OO.ui.RadioSelectWidget({
                     classes: ['afcrc-helper-action-radio'],
@@ -1536,7 +1536,6 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
 
                         showActionsDialog.addLogEntry('Continuing...', 'success');
 
-                        // eslint-disable-next-line no-await-in-loop
                         await apiFunction.catch((errorCode: string, errorInfo: MediaWikiDataError) => {
                             showActionsDialog.addLogEntry(
                                 `Error ${action.type === 'edit' ? 'editing' : 'creating'} ${linkElement.outerHTML}: ${errorInfo?.error.info ?? 'Unknown error'} (${errorCode}).`,

@@ -1,7 +1,8 @@
 {
     "extends": "@tsconfig/recommended/tsconfig.json",
     "compilerOptions": {
-        "lib": ["DOM", "DOM.Iterable", "ESNext"]
+        "lib": ["DOM", "DOM.Iterable", "ESNext"],
+        "types": ["types-mediawiki"]
     },
-    "include": ["*.ts", "../global-types.ts", "../node_modules/types-mediawiki"]
+    "include": ["*.ts", "../global-types.ts"]
 }

@@ -711,7 +711,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                         });
 
                         tagSelectLayout = new OO.ui.FieldLayout(tagSelect, { classes: ['afcrc-helper-tag-select-layout'], align: 'inline', label: 'Redirect templates:' });
-                        requestedTitleDiv.append(tagSelectLayout.$element[0]);
+                        commentInputLayout.$element[0].before(tagSelectLayout.$element[0]);
 
                         templateParametersEditor = document.createElement('details');
                         templateParametersEditor.classList.add('afcrc-helper-template-parameters-container');
@@ -760,10 +760,10 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
 
                         templateParametersEditor.append(noTemplatesMessage);
 
-                        requestedTitleDiv.append(templateParametersEditor);
+                        commentInputLayout.$element[0].before(templateParametersEditor);
                     }
 
-                    if (['comment', 'close'].includes(option)) {
+                    if (['accept', 'comment', 'close'].includes(option)) {
                         commentInputLayout.$element.show();
 
                         const comment = commentInput.getValue().trim();
@@ -1238,6 +1238,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                                         showActionsDialog.addLogEntry(`Not all requests to "${target}" were accepted or denied, the handling of "${requestedTitle}" will be ignored.`, 'warning');
                                     else {
                                         acceptedPages.push(requestedTitle);
+                                        if (action.comment) comments.push([requestedTitle, action.comment]);
                                         counts.accepted++;
                                     }
 

@@ -283,6 +283,23 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
     cursor: pointer;
 }
 
+.afcrc-helper-target-editor {
+    font-family: monospace;
+    min-width: 1ch;
+    max-width: calc(100% - 4ch);
+}
+
+.afcrc-helper-external-link {
+    text-decoration: none !important;
+}
+
+.afcrc-helper-external-link svg {
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    fill: currentColor;
+}
+
 .afcrc-helper-request-info, .afcrc-helper-request-responder {
     margin: 5px;
 }
@@ -537,11 +554,41 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
 
             const summaryElement = document.createElement('summary');
             summaryElement.innerHTML = request.pages.map((page) => `<b>${page}</b>`).join(', ') + ' → ';
+            summaryElement.addEventListener('keyup', (event) => {
+                if (document.activeElement?.tagName === 'INPUT' && event.key === ' ') event.preventDefault();
+            });
+
+            const targetEditorElement = document.createElement('input');
+            targetEditorElement.classList.add('afcrc-helper-target-editor');
+            targetEditorElement.style.width = `${request.target.length}ch`;
+            targetEditorElement.value = request.target;
+            targetEditorElement.addEventListener('input', () => {
+                targetEditorElement.value = targetEditorElement.value.replaceAll('_', ' ');
+
+                targetEditorElement.style.width = `${targetEditorElement.value.length}ch`;
+
+                (this.actionsToTake as RedirectActions)[index].target = targetEditorElement.value;
+
+                linkElement.href = mw.util.getUrl(targetEditorElement.value);
+            });
+
+            summaryElement.append(targetEditorElement);
 
             const linkElement = document.createElement('a');
+            linkElement.classList.add('afcrc-helper-external-link');
             linkElement.target = '_blank';
             linkElement.href = mw.util.getUrl(request.target);
-            linkElement.textContent = request.target;
+            linkElement.innerHTML = `
+<svg viewbox="0 0 48 48">
+    <path d="M36 24c-1.2 0-2 0.8-2 2v12c0 1.2-0.8 2-2 2h-22c-1.2
+        0-2-0.8-2-2v-22c0-1.2 0.8-2 2-2h12c1.2 0 2-0.8 2-2s-0.8-2-2-2h-12c-3.4
+        0-6 2.6-6 6v22c0 3.4 2.6 6 6 6h22c3.4 0 6-2.6
+        6-6v-12c0-1.2-0.8-2-2-2z"></path>
+    <path d="M43.8 5.2c-0.2-0.4-0.6-0.8-1-1-0.2-0.2-0.6-0.2-0.8-0.2h-12c-1.2
+        0-2 0.8-2 2s0.8 2 2 2h7.2l-18.6 18.6c-0.8 0.8-0.8 2 0 2.8 0.4 0.4 0.8
+        0.6 1.4 0.6s1-0.2 1.4-0.6l18.6-18.6v7.2c0 1.2 0.8 2 2 2s2-0.8
+        2-2v-12c0-0.2 0-0.6-0.2-0.8z"></path>
+</svg>`;
 
             summaryElement.append(linkElement);
 
@@ -607,7 +654,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                 const requestedTitleDiv = document.createElement('div');
 
                 const label = document.createElement('b');
-                label.textContent = requestedTitle + ' → ' + request.target;
+                label.textContent = requestedTitle;
                 requestedTitleDiv.append(label);
 
                 let tagSelectLayout: OO.ui.FieldLayout, templateParametersEditor: HTMLDetailsElement;

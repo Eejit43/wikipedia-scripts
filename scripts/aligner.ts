@@ -122,7 +122,7 @@
                 }
             }
 
-            mw.notify(`Successfully aligned ${count} templates!`, { type: 'success', autoHideSeconds: 'short' });
+            mw.notify(`Successfully aligned ${count} template${count > 1 ? 's' : ''}!`, { type: 'success', autoHideSeconds: 'short' });
         });
     });
 })();

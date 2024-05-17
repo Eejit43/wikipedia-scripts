@@ -526,6 +526,11 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
     font-weight: bold;
 }
 
+.redirect-helper-redirect-possibilities::after {
+    content: " (redirect with possibilities)";
+    font-style: italic;
+}
+
 .redirect-helper-template-parameters-container, .redirect-helper-template-parameters-container details {
     background-color: #e2e2e2;
     border-radius: 5px;
@@ -670,7 +675,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                 options: Object.entries(this.redirectTemplates).map(([tag, { redirect }]) => {
                     if (!redirect) return { data: tag, label: tag };
 
-                    const label = new OO.ui.HtmlSnippet(`${tag} <i>(redirect with possibilities)</i>`);
+                    const label = new OO.ui.HtmlSnippet(`<span class="redirect-helper-redirect-possibilities">${tag}</span>`);
 
                     return { data: tag, label };
                 }),

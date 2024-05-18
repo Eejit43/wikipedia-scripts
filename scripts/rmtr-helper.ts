@@ -72,8 +72,8 @@ mw.loader.using(['mediawiki.util'], () => {
 
                     finalParameters.full = full;
 
-                    finalParameters.original = finalParameters[1];
-                    finalParameters.destination = finalParameters[2];
+                    finalParameters.original = finalParameters[1].replace(/^\[+/, '').replace(/]+$/, '');
+                    finalParameters.destination = finalParameters[2].replace(/^\[+/, '').replace(/]+$/, '');
 
                     delete finalParameters[1];
                     delete finalParameters[2];

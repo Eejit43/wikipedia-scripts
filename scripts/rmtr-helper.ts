@@ -65,15 +65,15 @@ mw.loader.using(['mediawiki.util'], () => {
                     const full = request;
                     const parameters = request
                         .replaceAll(/(?:\* ?\n)?[ *:]*{{rmassist\/core \||}}.*/gis, '')
-                        .split(' | ')
+                        .split(/\s*\|\s*/)
                         .map((parameter) => parameter.trim());
 
                     const finalParameters = Object.fromEntries(parameters.map((parameter) => parameter.split(' = ').map((value) => value.trim()))) as Record<string, string>;
 
                     finalParameters.full = full;
 
-                    finalParameters.original = finalParameters[1].replace(/^\[+/, '').replace(/]+$/, '');
-                    finalParameters.destination = finalParameters[2].replace(/^\[+/, '').replace(/]+$/, '');
+                    finalParameters.original = finalParameters[1]?.replace(/^\[+/, '').replace(/]+$/, '') ?? 'UNKNOWN';
+                    finalParameters.destination = finalParameters[2]?.replace(/^\[+/, '').replace(/]+$/, '') ?? 'UNKNOWN';
 
                     delete finalParameters[1];
                     delete finalParameters[2];

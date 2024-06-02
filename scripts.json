@@ -4,6 +4,7 @@
         "short-description": "User script to help handle requests at [[WP:AFC/R]] and [[WP:AFC/C]]",
         "description": "This user script was inspired by [[User:Enterprisey/AFCRHS|Enterprisey's \"AFCRHS\" script]], and helps to handle requests at [[WP:AFC/R]] and [[WP:AFC/C]] (redirects and categories creation requests). This script features an easier to use interface with improved functionality and new features. It can be run using the link in the \"More\"/\"Tools\" menu.",
         "changelog": {
+            "2024|06|02": "Support adding additional reasoning to denied requests by appending content following a comma.",
             "2024|04|29": ["Support commenting on accepted requests.", "Support the editing of redirect targets."],
             "2024|04|17": "Support the addition of rcat redirects with possibilities.",
             "2024|04|07": "Support adding template parmaters to accepted redirects.",
@@ -26,7 +27,7 @@
             "cologne-blue": "yes"
         },
         "released": "2024|02|15",
-        "updated": "2024|04|29"
+        "updated": "2024|06|02"
     },
     {
         "name": "AFCRHS",

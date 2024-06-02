@@ -1414,9 +1414,11 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
          * @param reason The reason to format.
          */
         private formatDeniedReason(reason: string) {
-            const templateParameters = reason.startsWith('autofill:') ? reason.replace('autofill:', '') : `decline|2=${reason}`;
+            const templateParameters = reason.startsWith('autofill:') ? reason.match(/autofill:(\w+)/)![1] : `decline|2=${reason}`;
 
-            return `{{subst:AfC ${this.requestPageType}|${templateParameters}}}`;
+            const additionalReasoning = reason.includes(',') ? ' ' + reason.slice(reason.indexOf(',') + 1).trim() : '';
+
+            return `{{subst:AfC ${this.requestPageType}|${templateParameters}}}${additionalReasoning}`;
         }
 
         /**

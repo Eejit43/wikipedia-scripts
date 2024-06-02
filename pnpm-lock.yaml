@@ -21,8 +21,8 @@ importers:
         specifier: ^1.0.6
         version: 1.0.6
       '@types/node':
-        specifier: ^20.12.12
-        version: 20.12.12
+        specifier: ^20.14.0
+        version: 20.14.0
       '@types/oojs':
         specifier: ^7.0.6
         version: 7.0.6
@@ -39,8 +39,8 @@ importers:
         specifier: ^9.5.14
         version: 9.5.14(postcss@8.4.32)
       types-mediawiki:
-        specifier: ^1.7.1
-        version: 1.7.1(typescript@5.4.5)
+        specifier: ^1.8.0
+        version: 1.8.0(typescript@5.4.5)
       typescript:
         specifier: ^5.4.5
         version: 5.4.5
@@ -552,8 +552,8 @@ packages:
   '@types/json-schema@7.0.15':
     resolution: {integrity: sha512-5+fP8P8MFNC+AyZCDxrB2pkZFPGzqQWUzpSeuuVLvm8VMcorNYavBqoFcxK8bQz4Qsbn4oUEEem4wDLfcysGHA==}
 
-  '@types/node@20.12.12':
-    resolution: {integrity: sha512-eWLDGF/FOSPtAvEqeRAQ4C8LSA7M1I7i0ky1I8U7kD1J5ITyW3AsRhQrKVoWf5pFKZ2kILsEGJhsI9r93PYnOw==}
+  '@types/node@20.14.0':
+    resolution: {integrity: sha512-5cHBxFGJx6L4s56Bubp4fglrEpmyJypsqI6RgzMfBHWUJQGWAAi8cWcgetEbZXHYXo9C2Fa4EEds/uSyS4cxmA==}
 
   '@types/normalize-package-data@2.4.4':
     resolution: {integrity: sha512-37i+OaWTh9qeK4LSHPsyRC7NahnGotNuZvjLSgcPzblpHB3rrCJxAOgI5gCdKm7coonsaX1Of0ILiTcnZjbfxA==}
@@ -1828,8 +1828,8 @@ packages:
     resolution: {integrity: sha512-4dbzIzqvjtgiM5rw1k5rEHtBANKmdudhGyBEajN01fEyhaAIhsoKNy6y7+IN93IfpFtwY9iqi7kD+xwKhQsNJA==}
     engines: {node: '>=8'}
 
-  types-mediawiki@1.7.1:
-    resolution: {integrity: sha512-fiXPf7u0jO6yOdue3ONoPxPz0sPICrB3usridgESY9S6znAWFiVslMOinhDiOLvMTkEkTnLfiy5xiOtNue5vNg==}
+  types-mediawiki@1.8.0:
+    resolution: {integrity: sha512-jmumTDXqrziFVh0k4szGInw7XT8rLHtP5vcjLCflXf0Vf2T9fqZwuewxCCeNVwerM8Nu435/AxrbU2qL3ZV2sA==}
 
   typescript-eslint@7.9.0:
     resolution: {integrity: sha512-7iTn9c10teHHCys5Ud/yaJntXZrjt3h2mrx3feJGBOLgQkF3TB1X89Xs3aVQ/GgdXRAXpk2bPTdpRwHP4YkUow==}
@@ -2384,7 +2384,7 @@ snapshots:
 
   '@types/json-schema@7.0.15': {}
 
-  '@types/node@20.12.12':
+  '@types/node@20.14.0':
     dependencies:
       undici-types: 5.26.5
 
@@ -3673,7 +3673,7 @@ snapshots:
       '@csstools/css-parser-algorithms': 2.6.3(@csstools/css-tokenizer@2.3.1)
       '@csstools/css-tokenizer': 2.3.1
       '@csstools/media-query-list-parser': 2.1.11(@csstools/css-parser-algorithms@2.6.3(@csstools/css-tokenizer@2.3.1))(@csstools/css-tokenizer@2.3.1)
-      '@csstools/selector-specificity': 3.1.1(postcss-selector-parser@6.0.13)
+      '@csstools/selector-specificity': 3.1.1(postcss-selector-parser@6.1.0)
       balanced-match: 2.0.0
       colord: 2.9.3
       cosmiconfig: 9.0.0(typescript@5.4.5)
@@ -3699,7 +3699,7 @@ snapshots:
       postcss: 8.4.32
       postcss-resolve-nested-selector: 0.1.1
       postcss-safe-parser: 7.0.0(postcss@8.4.32)
-      postcss-selector-parser: 6.0.13
+      postcss-selector-parser: 6.1.0
       postcss-value-parser: 4.2.0
       resolve-from: 5.0.0
       string-width: 4.2.3
@@ -3764,7 +3764,7 @@ snapshots:
 
   type-fest@0.8.1: {}
 
-  types-mediawiki@1.7.1(typescript@5.4.5):
+  types-mediawiki@1.8.0(typescript@5.4.5):
     dependencies:
       '@types/jquery': 3.5.16
       '@types/oojs-ui': 0.46.4

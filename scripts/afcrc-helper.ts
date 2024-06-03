@@ -316,6 +316,10 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
     margin-left: 8px;
 }
 
+.afcrc-helper-request-responder .oo-ui-fieldLayout-header {
+    width: max-content;
+}
+
 .afcrc-helper-action-radio {
     margin-top: 8px;
 }
@@ -823,7 +827,11 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                 denyReason.setValue('autofill:unlikely');
                 denyReason.getMenu().selectItemByData('autofill:unlikely');
 
-                const denyReasonLayout = new OO.ui.FieldLayout(denyReason, { align: 'inline', label: 'Deny reason:' });
+                const denyReasonLayout = new OO.ui.FieldLayout(denyReason, {
+                    align: 'inline',
+                    label: 'Deny reason:',
+                    help: 'Supports automatic reasoning, custom reasoning, or a combination of the two with "autofill:REASON, CUSTOM" format',
+                });
                 denyReasonLayout.$element.hide();
 
                 const closingReason = new OO.ui.DropdownWidget({
@@ -1089,7 +1097,11 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
             denyReason.setValue('autofill:unlikely');
             denyReason.getMenu().selectItemByData('autofill:unlikely');
 
-            const denyReasonLayout = new OO.ui.FieldLayout(denyReason, { align: 'inline', label: 'Deny reason:' });
+            const denyReasonLayout = new OO.ui.FieldLayout(denyReason, {
+                align: 'inline',
+                label: 'Deny reason:',
+                help: 'Supports automatic reasoning, custom reasoning, or a combination of the two with "autofill:REASON, CUSTOM" format',
+            });
             denyReasonLayout.$element.hide();
 
             const closingReason = new OO.ui.DropdownWidget({

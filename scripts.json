@@ -238,6 +238,7 @@
         "short-description": "User script to help handle requests at [[WP:RM/TR]]",
         "description": "This user script helps handle requests at [[WP:RM/TR]] (technical move requests). A link is added to the \"More\"/\"Tools\" dropdown menu (or sidebar), which creates a UI at the top of the page, allowing requests to be removed and moved between sections with comments.\n\n'''The script does not currently actually move pages!'''",
         "changelog": {
+            "2024|06|02": "Automatically ping requester when moving requests.",
             "2024|05|27": "Account for lack of whitespace around pipe characters.",
             "2024|05|17": "Handle wikilinked title parameters.",
             "2024|01|29": "Accounted for some edge cases in the way requests are added.",
@@ -253,7 +254,7 @@
             "cologne-blue": "yes"
         },
         "released": "2023|02|14",
-        "updated": "2024|05|27",
+        "updated": "2024|06|02",
         "css": true
     },
     {

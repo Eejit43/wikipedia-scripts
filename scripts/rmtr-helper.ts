@@ -271,7 +271,7 @@ mw.loader.using(['mediawiki.util'], () => {
 
                     switchSectionExtraInputs.append(switchSectionReasoning);
 
-                    switchSectionExtraInputs.append(document.createTextNode(' (optional, automatically signed)'));
+                    switchSectionExtraInputs.append(document.createTextNode(' (optional, automatically pings requestor and signs)'));
 
                     requestElement.append(switchSectionExtraInputs);
 
@@ -320,7 +320,7 @@ mw.loader.using(['mediawiki.util'], () => {
                         endResult = endResult.replace(request.full + '\n', '').replace(request.full, '');
                         endResult = endResult.replace(
                             new RegExp(`(\n?\n?(?:={3,} ?${sectionTitleAfter} ?={3,}|$))`),
-                            `\n${request.full}${request.result.reason ? `\n:: ${request.result.reason} ~~~~` : ''}$1`,
+                            `\n${request.full}${request.result.reason ? `\n:: ${request.requester && request.requester.length > 0 ? (mw.util.isIPAddress(request.requester) ? '' : `@[[User:${request.requester}|${request.requester}]] `) : ''} ${request.result.reason} ~~~~` : ''}$1`,
                         );
                         if (!changes.move[request.result.section]) changes.move[request.result.section] = [];
 

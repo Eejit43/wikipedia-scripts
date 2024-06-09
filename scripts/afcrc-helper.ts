@@ -453,9 +453,9 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                         )?.[1]
                         .trim();
 
-                    parsedData.requester = requester
-                        ? { type: /\[\[User( talk)?:/.test(requester) ? 'user' : 'ip', name: requester.match(/(?:Special:Contributions\/|User(?: talk)?:)(.*?)\|/)![1].trim() }
-                        : null;
+                    const name = requester ? requester.match(/(?:Special:Contributions\/|User(?: talk)?:)(.*?)\|/)?.[1].trim() : null;
+
+                    parsedData.requester = requester && name ? { type: /\[\[User( talk)?:/.test(requester) ? 'user' : 'ip', name } : null;
 
                     (this.parsedRequests as RedirectRequestData[]).push(parsedData);
 

@@ -474,12 +474,16 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                     parsedData.category = foundCategory.replaceAll('_', ' ');
 
                     parsedData.examples =
-                        [...sectionText.match(/example pages which belong to this category:(.*?)parent category\/categories:/is)![1].matchAll(/\*\s*(?:\[\[)?(.*?)(\||]]|\s*?\n)/g)]
+                        [
+                            ...(sectionText.match(/example pages which belong to this category:(.*?)(parent category\/categories:|\n\[\[(special:contributions\/|user:))/is)?.[1] ?? '').matchAll(
+                                /\*\s*(?:\[\[)?(.*?)(\||]]|\s*?\n)/g,
+                            ),
+                        ]
                             .map((match) => match[1].trim().replace(/^:/, '').replaceAll('_', ' '))
                             .filter(Boolean) ?? [];
 
                     parsedData.parents =
-                        [...sectionText.match(/parent category\/categories:(.*?)(\n\n|\n\[\[(special:contributions\/|user:))/is)![1].matchAll(/(?<!\|)#?:?Category:(.*?)(\||]]|\s*?\n)/g)]
+                        [...(sectionText.match(/parent category\/categories:(.*?)(\n\n|\n\[\[(special:contributions\/|user:))/is)?.[1] ?? '').matchAll(/(?<!\|)#?:?Category:(.*?)(\||]]|\s*?\n)/g)]
                             ?.map((match) => match[1].trim().replace(/^:/, '').replaceAll('_', ' '))
                             .filter(Boolean) ?? [];
 

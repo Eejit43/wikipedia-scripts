@@ -1,8 +1,4 @@
 {
-    "extends": "@tsconfig/recommended/tsconfig.json",
-    "compilerOptions": {
-        "target": "ESNext",
-        "module": "NodeNext"
-    },
+    "extends": "@eejit/eslint-config-typescript/tsconfig.json",
     "include": ["compile.ts"]
 }

@@ -4,6 +4,7 @@
         "short-description": "User script to help handle requests at [[WP:AFC/R]] and [[WP:AFC/C]]",
         "description": "This user script was inspired by [[User:Enterprisey/AFCRHS|Enterprisey's \"AFCRHS\" script]], and helps to handle requests at [[WP:AFC/R]] and [[WP:AFC/C]] (redirects and categories creation requests). This script features an easier to use interface with improved functionality and new features. It can be run using the link in the \"More\"/\"Tools\" menu.",
         "changelog": {
+            "2024|08|15": "Add very basic dark mode support.",
             "2024|06|02": "Support adding additional reasoning to denied requests by appending content following a comma.",
             "2024|04|29": ["Support commenting on accepted requests.", "Support the editing of redirect targets."],
             "2024|04|17": "Support the addition of rcat redirects with possibilities.",
@@ -27,7 +28,7 @@
             "cologne-blue": "yes"
         },
         "released": "2024|02|15",
-        "updated": "2024|06|17"
+        "updated": "2024|08|15"
     },
     {
         "name": "AFCRHS",
@@ -194,6 +195,7 @@
         "description": "This user script enables convenient editing and creation of redirects. Although it serves a similar purpose to [[User:Wugapodes/Capricorn|Wugapodes' \"Capricorn\"]] and its earlier versions, this script is completely different. It has been redesigned with enhanced user-friendliness and incorporates new features.",
         "usage": "This script's editor can be accessed in the following ways:\n\n* Using the automatically set up dialog on redirect pages\n* Can be started when clicking \"Create redirect\" on a nonexistent page\n* Can be started by clicking \"Redirect page\" in the \"More\"/\"Tools\" menu on an existing article",
         "changelog": {
+            "2024|08|15": "Add very basic dark mode support.",
             "2024|05|16": "Prevent all redirect rcat templates from showing up when searching \"with possibilities\".",
             "2024|04|19": "Add more informative (\"add\"/\"removed\" alongside \"changed\") edit summaries.",
             "2024|04|18": "Support redirects to television episode anchors.",
@@ -231,13 +233,14 @@
             "cologne-blue": "yes"
         },
         "released": "2023|05|17",
-        "updated": "2024|05|16"
+        "updated": "2024|08|15"
     },
     {
         "name": "rmtr-helper",
         "short-description": "User script to help handle requests at [[WP:RM/TR]]",
         "description": "This user script helps handle requests at [[WP:RM/TR]] (technical move requests). A link is added to the \"More\"/\"Tools\" dropdown menu (or sidebar), which creates a UI at the top of the page, allowing requests to be removed and moved between sections with comments.\n\n'''The script does not currently actually move pages!'''",
         "changelog": {
+            "2024|08|15": "Add very basic dark mode support.",
             "2024|06|02": "Automatically ping requester when moving requests.",
             "2024|05|27": "Account for lack of whitespace around pipe characters.",
             "2024|05|17": "Handle wikilinked title parameters.",
@@ -254,7 +257,7 @@
             "cologne-blue": "yes"
         },
         "released": "2023|02|14",
-        "updated": "2024|06|02",
+        "updated": "2024|08|15",
         "css": true
     },
     {

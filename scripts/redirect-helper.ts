@@ -514,6 +514,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
 }
 
 #redirect-helper-box {
+    color: #202122;
     background-color: whitesmoke;
     width: 700px;
     max-width: calc(100% - 50px);

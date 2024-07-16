@@ -1,8 +1,10 @@
 #rmtr-review-result {
     margin: 1em;
-    border: solid 1px #ddd;
-    background-color: #b4d3ff;
+    border: 1px solid #a2a9b1;
+    border-radius: 2px;
+    background-color: whitesmoke;
     padding: 2.5%;
+    color: #202122;
     font-size: 0.8em;
 }
 

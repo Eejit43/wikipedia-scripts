@@ -273,6 +273,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
 
             mw.util.addCSS(`
 .afcrc-helper-request {
+    color: #202122;
     background-color: #eee;
     border-radius: 5px;
     margin: 10px;

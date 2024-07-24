@@ -42,7 +42,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
 
     fullLinkElement.querySelector('a')!.replaceWith(link);
 
-    document.querySelector('#My_user_scripts.mw-headline')!.after(fullLinkElement);
+    document.querySelector('h2#My_user_scripts + .mw-editsection')!.after(fullLinkElement);
 
     /**
      * An instance of this class is a dialog that manages updating scripts.

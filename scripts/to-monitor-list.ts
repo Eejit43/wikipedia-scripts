@@ -122,7 +122,7 @@ class MonitoringListManager {
 
         fullLinkElement.querySelector('a')!.replaceWith(this.link);
 
-        document.querySelector('#Stuff_to_monitor.mw-headline')!.after(fullLinkElement);
+        document.querySelector('h2#Stuff_to_monitor + .mw-editsection')!.after(fullLinkElement);
     }
 
     /**

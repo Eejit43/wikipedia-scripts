@@ -1268,7 +1268,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                 });
 
             /* Tagged with a protection template */
-            for (const template of ['R semi-protected', 'R extended-protected', 'R template-protected', 'R fully protected'])
+            for (const template of ['R protected', 'R semi-protected', 'R extended-protected', 'R template-protected', 'R fully protected'])
                 if (tags.includes(template))
                     errors.push({
                         message: `is tagged with unnecessarily tagged with <code>{{${template}}}</code> which will be duplicated by the redirect category shell!`,

@@ -122,7 +122,8 @@
                 }
             }
 
-            mw.notify(`Successfully aligned ${count} template${count > 1 ? 's' : ''}!`, { type: 'success', autoHideSeconds: 'short' });
+            if (count === 0) mw.notify('No templates found to align!', { type: 'warn', autoHideSeconds: 'short' });
+            else mw.notify(`Successfully aligned ${count} template${count > 1 ? 's' : ''}!`, { type: 'success', autoHideSeconds: 'short' });
         });
     });
 })();

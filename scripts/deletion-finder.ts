@@ -1,4 +1,4 @@
-import { ApiQueryLogEventsParams, ApiQueryParams } from 'types-mediawiki/api_params';
+import { ApiQueryLogEventsParams, ApiQueryParams } from '../node_modules/types-mediawiki/api_params/index';
 
 mw.loader.using(['mediawiki.util'], async () => {
     if (mw.config.get('wgNamespaceNumber') !== 0) return;

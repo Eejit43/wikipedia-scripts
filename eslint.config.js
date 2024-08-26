@@ -2,7 +2,7 @@
 
 import sharedConfig from '@eejit/eslint-config-typescript';
 
-/** @type {import('eslint').Linter.FlatConfig[]} */
+/** @type {import('eslint').Linter.Config[]} */
 export default [
     ...sharedConfig,
     {

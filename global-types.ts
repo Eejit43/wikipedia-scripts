@@ -1,4 +1,6 @@
-import { ApiQueryParams, OneOrMore, limit, namespace } from 'types-mediawiki/api_params';
+import { ApiQueryParams } from './node_modules/types-mediawiki/api_params/index';
+
+type OneOrMore<T> = T | T[];
 
 // Page searches
 export interface BacklinksResult {
@@ -21,14 +23,14 @@ export interface ApiQueryAllPagesGeneratorParams extends ApiQueryParams {
     gapcontinue?: string;
     gapto?: string;
     gapprefix?: string;
-    gapnamespace?: namespace;
+    gapnamespace?: number;
     gapfilterredir?: 'all' | 'nonredirects' | 'redirects';
     gapminsize?: number;
     gapmaxsize?: number;
     gapprtype?: OneOrMore<'edit' | 'move' | 'upload'>;
     gapprlevel?: OneOrMore<'' | 'autoconfirmed' | 'extendedconfirmed' | 'sysop' | 'templateeditor'>;
     gapprfiltercascade?: 'all' | 'cascading' | 'noncascading';
-    gaplimit?: limit;
+    gaplimit?: number | 'max';
     gapdir?: 'ascending' | 'descending';
     gapfilterlanglinks?: 'all' | 'withlanglinks' | 'withoutlanglinks';
     gapprexpiry?: 'all' | 'definite' | 'indefinite';

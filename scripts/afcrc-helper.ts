@@ -1,5 +1,5 @@
-import { ApiEditPageParams, ApiQueryRevisionsParams } from 'types-mediawiki/api_params';
 import { ApiQueryAllPagesGeneratorParams, MediaWikiDataError, PageRevisionsResult } from '../global-types'; // eslint-disable-line unicorn/prevent-abbreviations
+import { ApiEditPageParams, ApiQueryRevisionsParams } from '../node_modules/types-mediawiki/api_params/index';
 import { RedirectTemplateData, TemplateEditorElementInfo } from './redirect-helper';
 
 mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-windows'], () => {
@@ -413,7 +413,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
          * Parses requests from the page content.
          */
         private parseRequests() {
-            this.beforeText = this.pageContent.match(/^(.*?)==/s)![1];
+            this.beforeText = /^(.*?)==/s.exec(this.pageContent)![1];
 
             this.pageContent = this.pageContent.replace(/^.*?==/s, '==');
 
@@ -423,7 +423,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                 const isClosed = /{{afc-c\|/i.test(sectionText);
                 if (isClosed) continue;
 
-                const sectionHeader = sectionText.match(/^==(.*?)==$/m)![1].trim();
+                const sectionHeader = /^==(.*?)==$/m.exec(sectionText)![1].trim();
 
                 if (requestPageType === 'redirect') {
                     const parsedData = {} as RedirectRequestData;
@@ -433,18 +433,14 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
 
                     parsedData.pages = requestedPages;
 
-                    const parsedTarget = sectionText
-                        .match(/Target of redirect: ?\[\[(.*?)]]/)?.[1]
-                        .trim()
-                        .replace(/^:/, '')
-                        .replaceAll('_', ' ');
+                    const parsedTarget = /Target of redirect: ?\[\[(.*?)]]/.exec(sectionText)?.[1].trim().replace(/^:/, '').replaceAll('_', ' ');
                     if (!parsedTarget) continue;
 
                     parsedData.target = parsedTarget;
 
-                    parsedData.reason = sectionText.match(/reason: ?(.*?)\*source(?: \(if applicable\))?:/is)?.[1].trim() ?? '';
+                    parsedData.reason = /reason: ?(.*?)\*source(?: \(if applicable\))?:/is.exec(sectionText)?.[1].trim() ?? '';
 
-                    parsedData.source = sectionText.match(/source(?: \(if applicable\))?: ?(.*?)(?:<references \/>|\n\n)/is)?.[1].trim() ?? '';
+                    parsedData.source = /source(?: \(if applicable\))?: ?(.*?)(?:<references \/>|\n\n)/is.exec(sectionText)?.[1].trim() ?? '';
 
                     const requester = sectionText
                         .match(
@@ -454,7 +450,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                         )?.[1]
                         .trim();
 
-                    const name = requester ? requester.match(/(?:Special:Contributions\/|User(?: talk)?:)(.*?)\|/)?.[1].trim() : null;
+                    const name = requester ? /(?:Special:Contributions\/|User(?: talk)?:)(.*?)\|/.exec(requester)?.[1].trim() : null;
 
                     parsedData.requester = requester && name ? { type: /\[\[User( talk)?:/.test(requester) ? 'user' : 'ip', name } : null;
 
@@ -469,14 +465,14 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                 } else {
                     const parsedData = {} as CategoryRequestData;
 
-                    const foundCategory = sectionHeader.match(/:?Category:(.*?)(]]|$)/)?.[1].trim();
+                    const foundCategory = /:?Category:(.*?)(]]|$)/.exec(sectionHeader)?.[1].trim();
                     if (!foundCategory) continue;
 
                     parsedData.category = foundCategory.replaceAll('_', ' ');
 
                     parsedData.examples =
                         [
-                            ...(sectionText.match(/example pages which belong to this category:(.*?)(parent category\/categories:|\n\[\[(special:contributions\/|user:))/is)?.[1] ?? '').matchAll(
+                            ...(/example pages which belong to this category:(.*?)(parent category\/categories:|\n\[\[(special:contributions\/|user:))/is.exec(sectionText)?.[1] ?? '').matchAll(
                                 /\*\s*(?:\[\[)?(.*?)(\||]]|\s*?\n)/g,
                             ),
                         ]
@@ -484,7 +480,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                             .filter(Boolean) ?? [];
 
                     parsedData.parents =
-                        [...(sectionText.match(/parent category\/categories:(.*?)(\n\n|\n\[\[(special:contributions\/|user:))/is)?.[1] ?? '').matchAll(/(?<!\|)#?:?Category:(.*?)(\||]]|\s*?\n)/g)]
+                        [...(/parent category\/categories:(.*?)(\n\n|\n\[\[(special:contributions\/|user:))/is.exec(sectionText)?.[1] ?? '').matchAll(/(?<!\|)#?:?Category:(.*?)(\||]]|\s*?\n)/g)]
                             ?.map((match) => match[1].trim().replace(/^:/, '').replaceAll('_', ' '))
                             .filter(Boolean) ?? [];
 
@@ -498,8 +494,8 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                         firstIndex === Number.POSITIVE_INFINITY
                             ? null
                             : firstIndex === firstIpIndex
-                              ? { type: 'ip', name: sectionText.match(/\[\[Special:Contributions\/(.*?)(\||]])/)![1].trim() }
-                              : { type: 'user', name: sectionText.match(/\[\[User(?: talk)?:(.*?)(\||]])/)![1].trim() };
+                              ? { type: 'ip', name: /\[\[Special:Contributions\/(.*?)(\||]])/.exec(sectionText)![1].trim() }
+                              : { type: 'user', name: /\[\[User(?: talk)?:(.*?)(\||]])/.exec(sectionText)![1].trim() };
                     if (!parsedData.requester?.name) parsedData.requester = null;
 
                     (this.parsedRequests as CategoryRequestData[]).push(parsedData);
@@ -1431,7 +1427,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
          * @param reason The reason to format.
          */
         private formatDeniedReason(reason: string) {
-            const templateParameters = reason.startsWith('autofill:') ? reason.match(/autofill:(\w+)/)![1] : `decline|2=${reason}`;
+            const templateParameters = reason.startsWith('autofill:') ? /autofill:(\w+)/.exec(reason)![1] : `decline|2=${reason}`;
 
             const additionalReasoning = reason.includes(',') ? ' ' + reason.slice(reason.indexOf(',') + 1).trim() : '';
 

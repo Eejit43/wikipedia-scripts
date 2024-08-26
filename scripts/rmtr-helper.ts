@@ -1,5 +1,5 @@
-import { ApiQueryRevisionsParams } from 'types-mediawiki/api_params';
 import { PageRevisionsResult } from '../global-types';
+import { ApiQueryRevisionsParams } from '../node_modules/types-mediawiki/api_params/index';
 
 mw.loader.using(['mediawiki.util'], () => {
     const developmentMode = false;
@@ -114,7 +114,7 @@ mw.loader.using(['mediawiki.util'], () => {
                                     ? mw.util.isIPAddress(request.requester)
                                         ? `[[Special:Contributions/${request.requester}|${request.requester}]]`
                                         : `[[User:${request.requester}|${request.requester}]]`
-                                    : (request.sig?.match(/(\[{2}Special:Contributions\/(.*?)\|\2]{2})/)?.[1] ?? '(unknown)')
+                                    : (/(\[{2}Special:Contributions\/(.*?)\|\2]{2})/.exec(request.sig)?.[1] ?? '(unknown)')
                             } with reasoning "${request.reason}"`,
                         );
                         const parsedHtml = new DOMParser().parseFromString(parsedWikitext, 'text/html');

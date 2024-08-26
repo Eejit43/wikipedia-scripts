@@ -28,7 +28,7 @@
             "cologne-blue": "yes"
         },
         "released": "2024|02|15",
-        "updated": "2024|07|15"
+        "updated": "2024|08|26"
     },
     {
         "name": "AFCRHS",
@@ -48,7 +48,7 @@
             "cologne-blue": "yes"
         },
         "released": "2023|02|27",
-        "updated": "2024|02|12"
+        "updated": "2024|08|26"
     },
     {
         "name": "ajax-undo",
@@ -233,7 +233,7 @@
             "cologne-blue": "yes"
         },
         "released": "2023|05|17",
-        "updated": "2024|08|07"
+        "updated": "2024|08|26"
     },
     {
         "name": "rmtr-helper",
@@ -257,7 +257,7 @@
             "cologne-blue": "yes"
         },
         "released": "2023|02|14",
-        "updated": "2024|07|15",
+        "updated": "2024|08|26",
         "css": true
     },
     {

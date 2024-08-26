@@ -1,13 +1,4 @@
 import {
-    ApiComparePagesParams,
-    ApiParseParams,
-    ApiQueryInfoParams,
-    ApiQueryPagePropsParams,
-    ApiQueryRevisionsParams,
-    ApiQueryUserInfoParams,
-    PageTriageApiPageTriageListParams,
-} from 'types-mediawiki/api_params';
-import {
     ApiQueryAllPagesGeneratorParams, // eslint-disable-line unicorn/prevent-abbreviations
     CategoriesResult,
     MediaWikiDataError,
@@ -18,6 +9,15 @@ import {
     PagepropsResult,
     UserPermissionsResponse,
 } from '../global-types';
+import type {
+    ApiComparePagesParams,
+    ApiParseParams,
+    ApiQueryInfoParams,
+    ApiQueryPagePropsParams,
+    ApiQueryRevisionsParams,
+    ApiQueryUserInfoParams,
+    PageTriageApiPageTriageListParams,
+} from '../node_modules/types-mediawiki/api_params/index';
 
 export type RedirectTemplateData = Record<string, { redirect?: true; parameters: RedirectTemplateParameters; aliases: string[] }>;
 
@@ -1089,10 +1089,10 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
             this.oldCategories = this.pageContent.match(/\[\[[Cc]ategory:.+?]]/g)?.map((category) => category.slice(11, -2)) ?? [];
 
             this.oldStrayText = [
-                this.pageContent.match(/{{short description\|.*?}}/i)?.[0],
-                this.pageContent.match(/{{DISPLAYTITLE:.*?}}/)?.[0],
-                this.pageContent.match(/{{italic title\|?.*?}}/i)?.[0],
-                this.pageContent.match(/{{title language\|.*?}}/)?.[0],
+                /{{short description\|.*?}}/i.exec(this.pageContent)?.[0],
+                /{{DISPLAYTITLE:.*?}}/.exec(this.pageContent)?.[0],
+                /{{italic title\|?.*?}}/i.exec(this.pageContent)?.[0],
+                /{{title language\|.*?}}/.exec(this.pageContent)?.[0],
             ]
                 .filter(Boolean)
                 .join('\n');

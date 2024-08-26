@@ -1,5 +1,5 @@
-import { ApiQueryBacklinksParams, ApiQueryRevisionsParams, ApiQuerySearchParams } from 'types-mediawiki/api_params';
 import { BacklinksResult, EmbeddedinResult, MediaWikiDataError, PageRevisionsResult, SearchResult } from '../global-types';
+import { ApiQueryBacklinksParams, ApiQueryRevisionsParams, ApiQuerySearchParams } from '../node_modules/types-mediawiki/api_params/index';
 
 interface SearchData {
     categories: { id: string; category: string; namespace?: string; notNamespace?: string }[];

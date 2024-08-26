@@ -1093,6 +1093,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                 /{{DISPLAYTITLE:.*?}}/.exec(this.pageContent)?.[0],
                 /{{italic title\|?.*?}}/i.exec(this.pageContent)?.[0],
                 /{{title language\|.*?}}/.exec(this.pageContent)?.[0],
+                /{{authority control(\|.*?)?}}/i.exec(this.pageContent)?.[0],
             ]
                 .filter(Boolean)
                 .join('\n');

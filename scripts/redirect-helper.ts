@@ -1462,10 +1462,12 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                 const foundArgumentEditor = this.templateEditorsInfo.find((editorInfo) => editorInfo.name === tag);
                 if (!foundArgumentEditor) return `{{${tag}}}`;
 
+                const lastNumberParameterIndex = foundArgumentEditor.parameters.findLastIndex((parameter, index) => parameter.name === (index + 1).toString() && parameter.editor.getValue().trim());
+
                 const mappedArguments = foundArgumentEditor.parameters
                     .map((parameter, index) => {
                         const value = parameter.editor.getValue().trim();
-                        if (!value) return null;
+                        if (!value && index > lastNumberParameterIndex) return null;
 
                         return `|${parameter.name === (index + 1).toString() ? '' : `${parameter.name}=`}${value}`;
                     })

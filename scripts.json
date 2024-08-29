@@ -4,6 +4,7 @@
         "short-description": "User script to help handle requests at [[WP:AFC/R]] and [[WP:AFC/C]]",
         "description": "This user script was inspired by [[User:Enterprisey/AFCRHS|Enterprisey's \"AFCRHS\" script]], and helps to handle requests at [[WP:AFC/R]] and [[WP:AFC/C]] (redirects and categories creation requests). This script features an easier to use interface with improved functionality and new features. It can be run using the link in the \"More\"/\"Tools\" menu.",
         "changelog": {
+            "2024|08|29": "Correctly handle unnamed template parameters without preceding parameters.",
             "2024|07|15": "Add very basic dark mode support.",
             "2024|06|02": "Support adding additional reasoning to denied requests by appending content following a comma.",
             "2024|04|29": ["Support commenting on accepted requests.", "Support the editing of redirect targets."],
@@ -28,7 +29,7 @@
             "cologne-blue": "yes"
         },
         "released": "2024|02|15",
-        "updated": "2024|08|26"
+        "updated": "2024|08|29"
     },
     {
         "name": "AFCRHS",
@@ -195,6 +196,7 @@
         "description": "This user script enables convenient editing and creation of redirects. Although it serves a similar purpose to [[User:Wugapodes/Capricorn|Wugapodes' \"Capricorn\"]] and its earlier versions, this script is completely different. It has been redesigned with enhanced user-friendliness and incorporates new features.",
         "usage": "This script's editor can be accessed in the following ways:\n\n* Using the automatically set up dialog on redirect pages\n* Can be started when clicking \"Create redirect\" on a nonexistent page\n* Can be started by clicking \"Redirect page\" in the \"More\"/\"Tools\" menu on an existing article",
         "changelog": {
+            "2024|08|29": "Correctly handle unnamed template parameters without preceding parameters.",
             "2024|08|26": "Preserve usage of {{tl|Authority control}}.",
             "2024|07|15": "Add very basic dark mode support.",
             "2024|05|16": "Prevent all redirect rcat templates from showing up when searching \"with possibilities\".",
@@ -234,7 +236,7 @@
             "cologne-blue": "yes"
         },
         "released": "2023|05|17",
-        "updated": "2024|08|26"
+        "updated": "2024|08|29"
     },
     {
         "name": "rmtr-helper",

@@ -781,10 +781,14 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
             this.defaultSortSuggestButton.on('click', () => {
                 let name = this.pageTitleParsed.getMainText().replace(/ \(.*\)$/, ''); // Remove disambiguation
 
-                if (['R from person', 'R from birth name', 'R from fictional character'].some((tag) => this.tagSelect.getValue().includes(tag))) {
+                if (
+                    ['R from birth name', 'R from fictional character', 'R from member', 'R from person', 'R from personal name', 'R from relative', 'R from spouse'].some((tag) =>
+                        this.tagSelect.getValue().includes(tag),
+                    )
+                ) {
                     // Handling is modified from evad37's "Rater"
 
-                    if (!name.includes(' ')) return;
+                    if (!name.includes(' ')) return mw.notify("redirect-helper wasn't able to determine a sort key different from the current page title!", { type: 'warn' });
 
                     let generationalSuffix = '';
                     if (/ (?:[JS]r.?|[IVX]+)$/.test(name)) {

@@ -196,6 +196,7 @@
         "description": "This user script enables convenient editing and creation of redirects. Although it serves a similar purpose to [[User:Wugapodes/Capricorn|Wugapodes' \"Capricorn\"]] and its earlier versions, this script is completely different. It has been redesigned with enhanced user-friendliness and incorporates new features.",
         "usage": "This script's editor can be accessed in the following ways:\n\n* Using the automatically set up dialog on redirect pages\n* Can be started when clicking \"Create redirect\" on a nonexistent page\n* Can be started by clicking \"Redirect page\" in the \"More\"/\"Tools\" menu on an existing article",
         "changelog": {
+            "2024|09|04": "Suggest DEFAULTSORTs for redirects tagged with {{tl|R from band member}}.",
             "2024|09|03": "Suggest DEFAULTSORTs for more redirects.",
             "2024|08|29": "Correctly handle unnamed template parameters without preceding parameters.",
             "2024|08|26": "Preserve usage of {{tl|Authority control}}.",
@@ -237,7 +238,7 @@
             "cologne-blue": "yes"
         },
         "released": "2023|05|17",
-        "updated": "2024|09|03"
+        "updated": "2024|09|04"
     },
     {
         "name": "rmtr-helper",

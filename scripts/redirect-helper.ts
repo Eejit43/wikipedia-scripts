@@ -782,8 +782,8 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                 let name = this.pageTitleParsed.getMainText().replace(/ \(.*\)$/, ''); // Remove disambiguation
 
                 if (
-                    ['R from birth name', 'R from fictional character', 'R from member', 'R from person', 'R from personal name', 'R from relative', 'R from spouse'].some((tag) =>
-                        this.tagSelect.getValue().includes(tag),
+                    ['R from birth name', 'R from fictional character', 'R from band member', 'R from member', 'R from person', 'R from personal name', 'R from relative', 'R from spouse'].some(
+                        (tag) => this.tagSelect.getValue().includes(tag),
                     )
                 ) {
                     // Handling is modified from evad37's "Rater"

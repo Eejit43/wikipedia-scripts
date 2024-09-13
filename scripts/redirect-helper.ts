@@ -974,7 +974,10 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
 
             if (!redirectValue) (this.summaryInput.$tabIndexed[0] as HTMLInputElement).placeholder = '';
             else if (this.exists) {
-                const targetChanged = redirectValue !== this.oldRedirectTarget?.replaceAll('_', ' ');
+                let oldTarget = this.oldRedirectTarget?.replaceAll('_', ' ');
+                if (oldTarget) oldTarget = oldTarget[0].toUpperCase() + oldTarget.slice(1);
+
+                const targetChanged = redirectValue !== oldTarget;
 
                 const tagsChanged =
                     this.tagSelect.getValue().some((tag) => !this.oldRedirectTags!.includes(tag as string)) || this.oldRedirectTags!.some((tag) => !this.tagSelect.getValue().includes(tag));

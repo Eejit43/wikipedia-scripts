@@ -1531,18 +1531,20 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                       })
                     : null;
 
+            const title = mw.Title.newFromText(page)!;
+
             this.editsCreationsToMake.push(
                 {
                     type: 'create',
                     isRedirect: true,
-                    title: page,
+                    title: title.getPrefixedText(),
                     text: `#REDIRECT [[${target}]]${tagsWithArguments ? `\n\n{{Redirect category shell|\n${tagsWithArguments.join('\n')}\n}}` : ''}`,
                     summary: `Creating redirect to [[${target}]] as requested at [[WP:AFC/R]]${this.scriptMessage}`,
                 },
                 {
                     type: 'create',
                     isRedirect: false,
-                    title: mw.Title.newFromText(page)!.getTalkPage()!.getPrefixedText(),
+                    title: title.getTalkPage()!.getPrefixedText(),
                     text: `{{WikiProject banner shell|\n{{WikiProject Articles for creation|ts={{subst:LOCALTIMESTAMP}}|reviewer=${mw.config.get('wgUserName')}}}\n}}`,
                     summary: `Adding [[Wikipedia:WikiProject Articles for creation|WikiProject Articles for creation]] banner${this.scriptMessage}`,
                 },

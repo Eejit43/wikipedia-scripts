@@ -175,6 +175,7 @@
     },
     {
         "name": "pageswap",
+        "use-instead": "[[User:Ahecht/Scripts/pageswap|Ahecht's \"pageswap\"]]",
         "short-description": "User script to easily make [[WP:ROUNDROBIN|round-robin]] moves (history swaps)",
         "description": "This user script allows [[WP:Page mover|page movers]] to easily make [[WP:ROUNDROBIN|round-robin]]/history swap moves (swapping one page with another). This script is a majorly modified fork of [[User:Andy M. Wang/pageswap|Andy M. Wang's version]], except with a UI for making moves instead of using browser popups.",
         "other-authors": ["Andy M. Wang"],

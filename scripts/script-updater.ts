@@ -185,7 +185,9 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                 '{{User:Eejit43/script-documentation', //
                 script.image === false ? `| image             = ${script.image}` : null,
                 script['in-development'] ? `| in-development    = ${script['in-development']}` : null,
-                script['use-instead'] ? `| use-instead       = [[User:Eejit43/scripts/${script['use-instead']}|${script['use-instead']}]]` : null,
+                script['use-instead']
+                    ? `| use-instead       = ${script['use-instead'].includes('User:') ? script['use-instead'] : `[[User:Eejit43/scripts/${script['use-instead']}|${script['use-instead']}]]`}`
+                    : null,
                 script['image-caption'] ? `| image-caption     = ${script['image-caption']}` : null,
                 script['other-authors'] ? `| other-authors     = ${script['other-authors'].map((author) => `[[User:${author}|${author}]]`).join(', ')}` : null,
                 `| description-short = ${script['short-description']}`,

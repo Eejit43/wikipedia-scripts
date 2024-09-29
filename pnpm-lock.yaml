@@ -21,8 +21,8 @@ importers:
         specifier: ^1.0.7
         version: 1.0.7
       '@types/node':
-        specifier: ^20.16.5
-        version: 20.16.5
+        specifier: ^20.16.10
+        version: 20.16.10
       '@types/oojs':
         specifier: ^7.0.6
         version: 7.0.6
@@ -36,8 +36,8 @@ importers:
         specifier: ^0.0.4
         version: 0.0.4(esbuild@0.24.0)(postcss@8.4.32)
       postcss-preset-env:
-        specifier: ^10.0.4
-        version: 10.0.4(postcss@8.4.32)
+        specifier: ^10.0.5
+        version: 10.0.5(postcss@8.4.32)
       types-mediawiki:
         specifier: ^1.8.0
         version: 1.8.0(typescript@5.6.2)
@@ -203,8 +203,8 @@ packages:
     peerDependencies:
       postcss: ^8.4
 
-  '@csstools/postcss-light-dark-function@2.0.3':
-    resolution: {integrity: sha512-8+lV5IKySJGtBXOwRVBPzwnTsVGKdsjnszsC/21DdKI+F279HcOfWgwTNpE0+NvX78bTlDD2kMqTaJ4T0VYzvA==}
+  '@csstools/postcss-light-dark-function@2.0.4':
+    resolution: {integrity: sha512-yHUt5DZ61Irvp72notmAl3Zt4Me50EWToWNocazyIFTVYFwwo/EucmV3hWi9zJehu3rOSvMclL7DzvRDfbak/A==}
     engines: {node: '>=18'}
     peerDependencies:
       postcss: ^8.4
@@ -578,8 +578,8 @@ packages:
   '@types/json-schema@7.0.15':
     resolution: {integrity: sha512-5+fP8P8MFNC+AyZCDxrB2pkZFPGzqQWUzpSeuuVLvm8VMcorNYavBqoFcxK8bQz4Qsbn4oUEEem4wDLfcysGHA==}
 
-  '@types/node@20.16.5':
-    resolution: {integrity: sha512-VwYCweNo3ERajwy0IUlqqcyZ8/A7Zwa9ZP3MnENWcB11AejO+tLy3pu850goUW2FC/IJMdZUfKpX/yxL1gymCA==}
+  '@types/node@20.16.10':
+    resolution: {integrity: sha512-vQUKgWTjEIRFCvK6CyriPH3MZYiYlNy0fKiEYHWbcoWLEgs4opurGGKlebrTLqdSMIbXImH6XExNiIyNUv3WpA==}
 
   '@types/normalize-package-data@2.4.4':
     resolution: {integrity: sha512-37i+OaWTh9qeK4LSHPsyRC7NahnGotNuZvjLSgcPzblpHB3rrCJxAOgI5gCdKm7coonsaX1Of0ILiTcnZjbfxA==}
@@ -1547,8 +1547,8 @@ packages:
     peerDependencies:
       postcss: ^8.4
 
-  postcss-preset-env@10.0.4:
-    resolution: {integrity: sha512-FKwHOV7NHxu7PNhAhhOSwbAQrHTcvF/yfrObNMr4iTljmPYzsM7eRr9sYhSFq2if1GahrAv1SmmhFrcNWdFIuA==}
+  postcss-preset-env@10.0.5:
+    resolution: {integrity: sha512-ipPOgr3RY0utgJDbNoCX2dxKoQ4e4WO1pC21QhDlxCAX8+qC8O2Ezkzb54fd+8XtZ1UveA5gLjBsVo6dJDoWIg==}
     engines: {node: '>=18'}
     peerDependencies:
       postcss: ^8.4
@@ -2085,7 +2085,7 @@ snapshots:
       postcss: 8.4.32
       postcss-selector-parser: 6.1.0
 
-  '@csstools/postcss-light-dark-function@2.0.3(postcss@8.4.32)':
+  '@csstools/postcss-light-dark-function@2.0.4(postcss@8.4.32)':
     dependencies:
       '@csstools/css-parser-algorithms': 3.0.1(@csstools/css-tokenizer@3.0.1)
       '@csstools/css-tokenizer': 3.0.1
@@ -2415,7 +2415,7 @@ snapshots:
 
   '@types/json-schema@7.0.15': {}
 
-  '@types/node@20.16.5':
+  '@types/node@20.16.10':
     dependencies:
       undici-types: 6.19.6
 
@@ -3402,7 +3402,7 @@ snapshots:
       postcss: 8.4.32
       postcss-value-parser: 4.2.0
 
-  postcss-preset-env@10.0.4(postcss@8.4.32):
+  postcss-preset-env@10.0.5(postcss@8.4.32):
     dependencies:
       '@csstools/postcss-cascade-layers': 5.0.0(postcss@8.4.32)
       '@csstools/postcss-color-function': 4.0.2(postcss@8.4.32)
@@ -3416,7 +3416,7 @@ snapshots:
       '@csstools/postcss-ic-unit': 4.0.0(postcss@8.4.32)
       '@csstools/postcss-initial': 2.0.0(postcss@8.4.32)
       '@csstools/postcss-is-pseudo-class': 5.0.0(postcss@8.4.32)
-      '@csstools/postcss-light-dark-function': 2.0.3(postcss@8.4.32)
+      '@csstools/postcss-light-dark-function': 2.0.4(postcss@8.4.32)
       '@csstools/postcss-logical-float-and-clear': 3.0.0(postcss@8.4.32)
       '@csstools/postcss-logical-overflow': 2.0.0(postcss@8.4.32)
       '@csstools/postcss-logical-overscroll-behavior': 2.0.0(postcss@8.4.32)

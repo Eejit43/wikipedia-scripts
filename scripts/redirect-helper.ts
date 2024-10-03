@@ -7,7 +7,6 @@ import {
     PageRevisionsResult,
     PageTriageListResponse,
     PagepropsResult,
-    UserPermissionsResponse,
 } from '../global-types';
 import type {
     ApiComparePagesParams,
@@ -15,7 +14,6 @@ import type {
     ApiQueryInfoParams,
     ApiQueryPagePropsParams,
     ApiQueryRevisionsParams,
-    ApiQueryUserInfoParams,
     PageTriageApiPageTriageListParams,
 } from '../node_modules/types-mediawiki/api_params/index';
 
@@ -952,8 +950,8 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
             else if (document.querySelector('#mwe-pt-mark-as-unreviewed-button')) return false;
             else {
                 if (!mw.config.get('wgArticleId')) return false;
-                const userPermissions = (await this.api.get({ action: 'query', meta: 'userinfo', uiprop: 'rights' } satisfies ApiQueryUserInfoParams)) as UserPermissionsResponse;
-                if (!userPermissions.query.userinfo.rights.includes('patrol')) return false;
+                const userPermissions = await mw.user.getRights();
+                if (!userPermissions.includes('patrol')) return false;
 
                 const patrolResponse = (await this.api.get({
                     action: 'pagetriagelist',

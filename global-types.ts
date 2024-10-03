@@ -62,10 +62,6 @@ export interface PageTriageListResponse {
     pagetriagelist: { pages: { user_name: string; patrol_status: string }[]; result: string }; // eslint-disable-line @typescript-eslint/naming-convention
 }
 
-export interface UserPermissionsResponse {
-    query: { userinfo: { rights: string[] } };
-}
-
 export type MediaWikiDataError =
     | {
           error: { code: string; info: string };

@@ -201,7 +201,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                           )
                           .join('\n')}`
                     : null,
-                `| skin-support      = {{User:Eejit43/skin-support|${Object.entries(script['skin-support'])
+                `| skin-support      = {{User:Eejit43/script-documentation/skin-support|${Object.entries(script['skin-support'])
                     .map(([skin, status]) => `${skin}=${status}`)
                     .join('|')}}}`,
                 `| released          = {{start date and age|${script.released}}}`,

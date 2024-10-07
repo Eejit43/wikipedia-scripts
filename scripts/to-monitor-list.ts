@@ -41,6 +41,8 @@ class MonitoringListManager {
             if (this.isRunning) return;
             this.isRunning = true;
 
+            for (const element of document.querySelectorAll('.eejit-to-monitor-list-count')) if (element.id) element.innerHTML = '<span style="color: #ed8e07; font-weight: bold">?</span>';
+
             await this.loadToCheckData();
 
             for (const check of this.toCheck.categories)
@@ -123,6 +125,11 @@ class MonitoringListManager {
         fullLinkElement.querySelector('a')!.replaceWith(this.link);
 
         document.querySelector('h2#Stuff_to_monitor + .mw-editsection')!.after(fullLinkElement);
+
+        for (const element of document.querySelectorAll('.eejit-to-monitor-list-count'))
+            element.addEventListener('click', () => {
+                element.innerHTML = '<span style="color: #00733f">None</span>';
+            });
     }
 
     /**

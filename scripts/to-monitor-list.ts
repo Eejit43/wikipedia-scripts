@@ -29,6 +29,11 @@ class MonitoringListManager {
      * Loads the "Add missing counts" link element.
      */
     public load() {
+        mw.util.addCSS(`
+.to-monitor-list-count {
+    cursor: pointer;
+}`);
+
         const fullLinkElement = document.querySelector('.mw-editsection')!.cloneNode(true) as HTMLSpanElement;
 
         this.link = document.createElement('a');
@@ -41,7 +46,7 @@ class MonitoringListManager {
             if (this.isRunning) return;
             this.isRunning = true;
 
-            for (const element of document.querySelectorAll('.eejit-to-monitor-list-count')) if (element.id) element.innerHTML = '<span style="color: #ed8e07; font-weight: bold">?</span>';
+            for (const element of document.querySelectorAll('.to-monitor-list-count')) if (element.id) element.innerHTML = '<span style="color: #ed8e07; font-weight: bold">?</span>';
 
             await this.loadToCheckData();
 
@@ -126,7 +131,7 @@ class MonitoringListManager {
 
         document.querySelector('h2#Stuff_to_monitor + .mw-editsection')!.after(fullLinkElement);
 
-        for (const element of document.querySelectorAll('.eejit-to-monitor-list-count'))
+        for (const element of document.querySelectorAll('.to-monitor-list-count'))
             element.addEventListener('click', () => {
                 element.innerHTML = '<span style="color: #00733f">None</span>';
             });

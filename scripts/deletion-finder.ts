@@ -57,7 +57,11 @@ mw.loader.using(['mediawiki.util'], async () => {
         titleElement.append(link);
     }
 
-    const afdExists = (await new mw.Api().get({ action: 'query', formatversion: '2', titles: `Wikipedia:Articles_for_deletion/${mw.config.get('wgPageName')}` } satisfies ApiQueryParams)) as {
+    const afdExists = (await new mw.Api().get({
+        action: 'query',
+        formatversion: '2',
+        titles: `Wikipedia:Articles_for_deletion/${mw.config.get('wgPageName')}`,
+    } satisfies ApiQueryParams)) as {
         query: { pages: { missing?: true }[] };
     };
 

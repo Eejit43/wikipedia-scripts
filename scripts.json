@@ -16,7 +16,10 @@
             "2024|03|14": "Improve handling of invalid sections.",
             "2024|03|12": "Improve rate limit handling.",
             "2024|02|22": "Merge identical comments where applicable.",
-            "2024|02|21": ["Merge identical acceptance and denial messages where applicable.", "Improve section editing logic to handle sections with identical content."],
+            "2024|02|21": [
+                "Merge identical acceptance and denial messages where applicable.",
+                "Improve section editing logic to handle sections with identical content."
+            ],
             "2024|02|18": "Use latest page content when finalizing request handling."
         },
         "skin-support": {
@@ -206,7 +209,10 @@
             "2024|05|16": "Prevent all redirect rcat templates from showing up when searching \"with possibilities\".",
             "2024|04|19": "Add more informative (\"add\"/\"removed\" alongside \"changed\") edit summaries.",
             "2024|04|18": "Support redirects to television episode anchors.",
-            "2024|04|17": ["Support the addition of rcat redirects with possibilities.", "Implement auto-fix feature for certain warnings."],
+            "2024|04|17": [
+                "Support the addition of rcat redirects with possibilities.",
+                "Implement auto-fix feature for certain warnings."
+            ],
             "2024|03|20": "Add check for missing required tag parameters.",
             "2024|03|19": [
                 "Move preview button to submit section, preview all information instead of just templates.",

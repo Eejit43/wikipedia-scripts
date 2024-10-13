@@ -12,7 +12,12 @@ mw.loader.using(['mediawiki.util'], () => {
 
     let displayed = false;
 
-    const link = mw.util.addPortletLink(mw.config.get('skin') === 'minerva' ? 'p-tb' : 'p-cactions', '#', `Review move requests${developmentMode ? ' (DEV)' : ''}`, 'review-rmtr-requests')!;
+    const link = mw.util.addPortletLink(
+        mw.config.get('skin') === 'minerva' ? 'p-tb' : 'p-cactions',
+        '#',
+        `Review move requests${developmentMode ? ' (DEV)' : ''}`,
+        'review-rmtr-requests',
+    )!;
 
     link.addEventListener('click', async (event) => {
         event.preventDefault();
@@ -25,7 +30,12 @@ mw.loader.using(['mediawiki.util'], () => {
         const revId = pageRevision.revid;
         const pageContent = pageRevision.slots.main.content;
 
-        const sections = ['Uncontroversial technical requests', 'Requests to revert undiscussed moves', 'Contested technical requests', 'Administrator needed'];
+        const sections = [
+            'Uncontroversial technical requests',
+            'Requests to revert undiscussed moves',
+            'Contested technical requests',
+            'Administrator needed',
+        ];
 
         interface Request {
             sig: string;
@@ -68,7 +78,9 @@ mw.loader.using(['mediawiki.util'], () => {
                         .split(/\s*\|\s*/)
                         .map((parameter) => parameter.trim());
 
-                    const finalParameters = Object.fromEntries(parameters.map((parameter) => parameter.split(' = ').map((value) => value.trim()))) as Record<string, string>;
+                    const finalParameters = Object.fromEntries(
+                        parameters.map((parameter) => parameter.split(' = ').map((value) => value.trim())),
+                    ) as Record<string, string>;
 
                     finalParameters.full = full;
 
@@ -102,7 +114,9 @@ mw.loader.using(['mediawiki.util'], () => {
                         invalidTitleWarning.classList.add('rmtr-review-invalid-warning');
                         invalidTitleWarning.textContent = `Invalid title "${request.destination}"!`;
 
-                        const validNamespace = ![namespaces.file, namespaces.category].some((namespace) => mwOldTitle.getNamespaceId() === namespace || mwNewTitle.getNamespaceId() === namespace);
+                        const validNamespace = ![namespaces.file, namespaces.category].some(
+                            (namespace) => mwOldTitle.getNamespaceId() === namespace || mwNewTitle.getNamespaceId() === namespace,
+                        );
 
                         const invalidNamespaceWarning = document.createElement('span');
                         invalidNamespaceWarning.classList.add('rmtr-review-invalid-warning');
@@ -222,7 +236,10 @@ mw.loader.using(['mediawiki.util'], () => {
                     switchSectionCheckbox.id = `rmtr-review-move-request-${sectionIndex}-${requestIndex}`;
                     switchSectionCheckbox.addEventListener('change', () => {
                         if (switchSectionCheckbox.checked) {
-                            (allRequests[section][requestIndex].result as RequestResultMove) = { move: true, section: switchSectionDropdown.value };
+                            (allRequests[section][requestIndex].result as RequestResultMove) = {
+                                move: true,
+                                section: switchSectionDropdown.value,
+                            };
                             switchSectionExtraInputs.style.display = 'inline';
                             removeRequestCheckbox.disabled = true;
                         } else {
@@ -290,7 +307,8 @@ mw.loader.using(['mediawiki.util'], () => {
         submitButton.addEventListener('click', async () => {
             const newPageRevision = await getPageRevision();
 
-            if (newPageRevision.revid !== revId) return mw.notify('rmtr-helper: An edit conflict occurred, please start over!', { type: 'error' });
+            if (newPageRevision.revid !== revId)
+                return mw.notify('rmtr-helper: An edit conflict occurred, please start over!', { type: 'error' });
 
             submitButton.disabled = true;
             loadingSpinner.style.display = 'inline-block';
@@ -335,7 +353,9 @@ mw.loader.using(['mediawiki.util'], () => {
                 return mw.notify('No changes to make!', { type: 'error' });
             }
 
-            const noRemaining = Object.values(allRequests).every((section) => section.every((request) => request.result && 'remove' in request.result));
+            const noRemaining = Object.values(allRequests).every((section) =>
+                section.every((request) => request.result && 'remove' in request.result),
+            );
 
             const editSummary = `Handled ${changes.total} request${changes.total > 1 ? 's' : ''}: ${
                 Object.entries(changes.remove).length > 0

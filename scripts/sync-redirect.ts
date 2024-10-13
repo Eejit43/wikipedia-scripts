@@ -13,7 +13,12 @@ mw.loader.using(['mediawiki.util'], async () => {
     } satisfies ApiQueryInfoParams & ApiQueryRevisionsParams)) as PageRevisionsResult & { query: { pages: { redirect?: boolean }[] } };
     if (!mainPageInfoRevisions.query.pages[0].redirect) return;
 
-    const link = mw.util.addPortletLink(mw.config.get('skin') === 'minerva' ? 'p-tb' : 'p-cactions', '#', 'Sync with main page redirect', 'sync-redirect')!;
+    const link = mw.util.addPortletLink(
+        mw.config.get('skin') === 'minerva' ? 'p-tb' : 'p-cactions',
+        '#',
+        'Sync with main page redirect',
+        'sync-redirect',
+    )!;
 
     link.addEventListener('click', async (event) => {
         event.preventDefault();
@@ -22,11 +27,17 @@ mw.loader.using(['mediawiki.util'], async () => {
 
         const mainPageContent: string = mainPageInfoRevisions.query.pages[0].revisions[0].slots.main.content;
 
-        const redirectTarget = /#redirect:? *\[\[(.+)]]/i.exec(mainPageContent)?.[1].replaceAll('_', ' ').split('|')[0].split('#')[0].trim();
+        const redirectTarget = /#redirect:? *\[\[(.+)]]/i
+            .exec(mainPageContent)?.[1]
+            .replaceAll('_', ' ')
+            .split('|')[0]
+            .split('#')[0]
+            .trim();
         if (!redirectTarget) return mw.notify('Failed to parse redirect target!', { type: 'error', tag: 'sync-redirect-notification' });
 
         const redirectTargetParsed = new DOMParser().parseFromString(redirectTarget, 'text/html').documentElement.textContent;
-        if (!redirectTargetParsed) return mw.notify('Failed to parse redirect target!', { type: 'error', tag: 'sync-redirect-notification' });
+        if (!redirectTargetParsed)
+            return mw.notify('Failed to parse redirect target!', { type: 'error', tag: 'sync-redirect-notification' });
 
         const mwRedirectTarget = mw.Title.newFromText(redirectTargetParsed);
         if (!mwRedirectTarget) return mw.notify('Failed to parse redirect target!', { type: 'error', tag: 'sync-redirect-notification' });
@@ -46,13 +57,22 @@ mw.loader.using(['mediawiki.util'], async () => {
                     await new mw.Api()
                         .create(
                             mw.config.get('wgPageName'),
-                            { summary: `Create redirect matching main page, to [[${destinationTalkNamespaceName}:${mainTargetText}]] (via [[User:Eejit43/scripts/sync-redirect|script]])` },
+                            {
+                                summary: `Create redirect matching main page, to [[${destinationTalkNamespaceName}:${mainTargetText}]] (via [[User:Eejit43/scripts/sync-redirect|script]])`,
+                            },
                             `#REDIRECT [[${destinationTalkNamespaceName}:${mainTargetText}]]${pageMove ? '\n\n{{Redirect category shell|\n{{R from move}}\n}}' : ''}`,
                         )
                         .catch((errorCode: string, errorInfo: MediaWikiDataError) => {
-                            mw.notify(`Failed to redirect page: ${errorInfo?.error.info ?? 'Unknown error'} (${errorCode})`, { type: 'error', tag: 'sync-redirect-notification' });
+                            mw.notify(`Failed to redirect page: ${errorInfo?.error.info ?? 'Unknown error'} (${errorCode})`, {
+                                type: 'error',
+                                tag: 'sync-redirect-notification',
+                            });
                         });
-                else mw.notify(`Failed to redirect page: ${errorInfo?.error.info ?? 'Unknown error'} (${errorCode})`, { type: 'error', tag: 'sync-redirect-notification' });
+                else
+                    mw.notify(`Failed to redirect page: ${errorInfo?.error.info ?? 'Unknown error'} (${errorCode})`, {
+                        type: 'error',
+                        tag: 'sync-redirect-notification',
+                    });
             });
 
         mw.notify('Successfully redirected page, reloading...', { type: 'success', tag: 'sync-redirect-notification' });

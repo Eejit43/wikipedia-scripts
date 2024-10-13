@@ -1,5 +1,9 @@
 (function () {
-    if (mw.config.get('wgPageName') !== 'Wikipedia:Articles_for_creation/Redirects' && mw.config.get('wgPageName') !== 'Wikipedia:Articles_for_creation/Categories') return;
+    if (
+        mw.config.get('wgPageName') !== 'Wikipedia:Articles_for_creation/Redirects' &&
+        mw.config.get('wgPageName') !== 'Wikipedia:Articles_for_creation/Categories'
+    )
+        return;
 
     const redirectPageName = mw.config.get('wgPageName').replaceAll('_', ' ');
     const redirectSubmissions = [];
@@ -10,19 +14,20 @@
     const submissions = [];
     const needsUpdate = [];
     const redirectDeclineReasons = {
-        exists: 'The title you suggested already exists on Wikipedia',
-        blank: 'We cannot accept empty submissions',
-        'no-target': ' A redirect cannot be created unless the target is an existing article. Either you have not specified the target, or the target does not exist',
-        unlikely: 'The title you suggested seems unlikely. Could you provide a source showing that it is a commonly used alternate name?',
+        'exists': 'The title you suggested already exists on Wikipedia',
+        'blank': 'We cannot accept empty submissions',
+        'no-target':
+            ' A redirect cannot be created unless the target is an existing article. Either you have not specified the target, or the target does not exist',
+        'unlikely': 'The title you suggested seems unlikely. Could you provide a source showing that it is a commonly used alternate name?',
         'not-redirect': 'This request is not a redirect request',
-        custom: '',
+        'custom': '',
     };
     const categoryDeclineReasons = {
-        exists: 'The category you suggested already exists on Wikipedia',
-        blank: 'We cannot accept empty submissions',
-        unlikely: 'It seems unlikely that there are enough pages to support this category',
+        'exists': 'The category you suggested already exists on Wikipedia',
+        'blank': 'We cannot accept empty submissions',
+        'unlikely': 'It seems unlikely that there are enough pages to support this category',
         'not-category': 'This request is not a category request',
-        custom: '',
+        'custom': '',
     };
 
     /**
@@ -198,7 +203,9 @@
                                     .attr('for', 'afcHelper_redirect_action_' + from.id)
                                     .text('Action: '),
                             )
-                            .append(generateSelectObject('afcHelper_redirect_action_' + from.id, ACTIONS, redirectMakeActionChange(from.id)))
+                            .append(
+                                generateSelectObject('afcHelper_redirect_action_' + from.id, ACTIONS, redirectMakeActionChange(from.id)),
+                            )
                             .append($('<div>').attr('id', 'afcHelper_redirect_extra_' + from.id)),
                     );
                 }
@@ -224,7 +231,13 @@
             $thisSubList.append($thisSubListElement);
             $messageDiv.append($thisSubList);
         } // End loop over sections
-        $messageDiv.append($('<button>').attr('id', 'afcHelper_redirect_done_button').attr('name', 'afcHelper_redirect_done_button').text('Done').click(redirectPerformActions));
+        $messageDiv.append(
+            $('<button>')
+                .attr('id', 'afcHelper_redirect_done_button')
+                .attr('name', 'afcHelper_redirect_done_button')
+                .text('Done')
+                .click(redirectPerformActions),
+        );
         for (const element of needsUpdate) {
             $('#afcHelper_redirect_action_' + element.id).attr('value', 'decline');
             redirectOnActionChange(element.id);
@@ -479,7 +492,13 @@
                             '" />',
                     );
                     $extra.append('<br />');
-                    $extra.append($('<input>', { type: 'checkbox', name: 'afcHelper_redirect_container_' + id, id: 'afcHelper_redirect_container_' + id }));
+                    $extra.append(
+                        $('<input>', {
+                            type: 'checkbox',
+                            name: 'afcHelper_redirect_container_' + id,
+                            id: 'afcHelper_redirect_container_' + id,
+                        }),
+                    );
                     $extra.append(
                         '<label for="afcHelper_redirect_container_' +
                             id +
@@ -613,7 +632,10 @@
                     submission.title = $('#afcHelper_redirect_from_' + index).val();
                     submission.to = $('#afcHelper_redirect_to_' + index).val();
                     submission.append = $('#afcHelper_redirect_append_' + index).val();
-                    if (submission.append === 'custom') submission.append = prompt('Please enter the template to append to ' + submission.title + '. Do not include the curly brackets.');
+                    if (submission.append === 'custom')
+                        submission.append = prompt(
+                            'Please enter the template to append to ' + submission.title + '. Do not include the curly brackets.',
+                        );
 
                     submission.append = submission.append === 'none' || submission.append === null ? '' : '{{' + submission.append + '}}';
                 } else {
@@ -643,7 +665,9 @@
         let totalDecline = 0;
         let totalComment = 0;
         // Traverse the submissions and locate the relevant sections
-        addStatus('<li>Processing ' + redirectSubmissions.length + ' submission' + (redirectSubmissions.length === 1 ? '' : 's') + '...</li>');
+        addStatus(
+            '<li>Processing ' + redirectSubmissions.length + ' submission' + (redirectSubmissions.length === 1 ? '' : 's') + '...</li>',
+        );
         for (const sub of redirectSubmissions) {
             if (!pageText.includes(redirectSections[sub.section])) {
                 // Someone has modified the section in the mean time, skip
@@ -675,7 +699,10 @@
                         editPage(talkTitle, talkText, 'Placing WPAFC project banner', true);
                         const header = text.match(/==[^=]*==/)[0];
                         text = header + '\n{{AfC-c|a}}\n' + text.slice(header.length);
-                        text += sub.comment === '' ? '\n*{{subst:afc category}} ~~~~\n' : '\n*{{subst:afc category|accept|2=' + sub.comment + '}} ~~~~\n';
+                        text +=
+                            sub.comment === ''
+                                ? '\n*{{subst:afc category}} ~~~~\n'
+                                : '\n*{{subst:afc category|accept|2=' + sub.comment + '}} ~~~~\n';
                         text += '{{AfC-c|b}}\n';
                         totalAccept++;
 
@@ -687,11 +714,16 @@
                         if (reason === '') reason = sub.comment;
                         else if (sub.comment !== '') reason = reason + ': ' + sub.comment;
                         if (reason === '') {
-                            $('afcHelper_status').html($('#afcHelper_status').html() + '<li>Skipping ' + sub.title + ': No decline reason specified.</li>');
+                            $('afcHelper_status').html(
+                                $('#afcHelper_status').html() + '<li>Skipping ' + sub.title + ': No decline reason specified.</li>',
+                            );
                             continue;
                         }
                         text = header + '\n{{AfC-c|d}}\n' + text.slice(header.length);
-                        text += sub.comment === '' ? '\n*{{subst:afc category|' + sub.reason + '}} ~~~~\n' : '\n*{{subst:afc category|decline|2=' + reason + '}} ~~~~\n';
+                        text +=
+                            sub.comment === ''
+                                ? '\n*{{subst:afc category|' + sub.reason + '}} ~~~~\n'
+                                : '\n*{{subst:afc category|decline|2=' + reason + '}} ~~~~\n';
                         text += '{{AfC-c|b}}\n';
                         totalDecline++;
 
@@ -719,7 +751,12 @@
                     switch (redirect.action) {
                         case 'accept': {
                             const redirectText = `#REDIRECT [[${redirect.to}]]${redirect.append ? `\n\n{{Redirect category shell|\n${redirect.append}\n}}` : ''}`;
-                            editPage(redirect.title, redirectText, 'Redirected page to [[' + redirect.to + ']] via [[WP:AFC|Articles for Creation]]', true);
+                            editPage(
+                                redirect.title,
+                                redirectText,
+                                'Redirected page to [[' + redirect.to + ']] via [[WP:AFC|Articles for Creation]]',
+                                true,
+                            );
 
                             const mwTitle = new mw.Title(redirect.title);
                             if (!mwTitle.isTalkPage()) {
@@ -743,10 +780,18 @@
                             if (reason === '') reason = redirect.comment;
                             else if (redirect.comment !== '') reason = reason + ': ' + redirect.comment;
                             if (reason === '') {
-                                $('#afcHelper_status').html($('#afcHelper_status').html() + '<li>Skipping ' + redirect.title + ': No decline reason specified.</li>');
+                                $('#afcHelper_status').html(
+                                    $('#afcHelper_status').html() +
+                                        '<li>Skipping ' +
+                                        redirect.title +
+                                        ': No decline reason specified.</li>',
+                                );
                                 continue;
                             }
-                            declineComment += redirect.reason === 'blank' || redirect.reason === 'not-redirect' ? reason + '. ' : redirect.title + ' &rarr; ' + redirect.to + ': ' + reason + '. ';
+                            declineComment +=
+                                redirect.reason === 'blank' || redirect.reason === 'not-redirect'
+                                    ? reason + '. '
+                                    : redirect.title + ' &rarr; ' + redirect.to + ': ' + reason + '. ';
                             declineCount++;
 
                             break;
@@ -762,11 +807,14 @@
                 }
                 let reason = '';
 
-                if (acceptCount > 0) reason += '\n*{{subst:afc redirect|accept|2=' + acceptComment + ' Thank you for your contributions to Wikipedia!}} ~~~~';
+                if (acceptCount > 0)
+                    reason +=
+                        '\n*{{subst:afc redirect|accept|2=' + acceptComment + ' Thank you for your contributions to Wikipedia!}} ~~~~';
                 if (declineCount > 0) reason += '\n*{{subst:afc redirect|decline|2=' + declineComment + '}} ~~~~';
                 if (commentCount > 0) reason += '\n*{{afc comment|1=' + otherComment + '~~~~}}';
                 reason += '\n';
-                if (!hasComment && acceptCount === sub.from.length) reason = acceptCount > 1 ? '\n*{{subst:afc redirect|all}} ~~~~\n' : '\n*{{subst:afc redirect}} ~~~~\n';
+                if (!hasComment && acceptCount === sub.from.length)
+                    reason = acceptCount > 1 ? '\n*{{subst:afc redirect|all}} ~~~~\n' : '\n*{{subst:afc redirect}} ~~~~\n';
 
                 if (acceptCount + declineCount + commentCount > 0)
                     if (acceptCount + declineCount === sub.from.length) {
@@ -814,7 +862,15 @@
     async function getPageText(title: string, addStatus: (status: string) => void) {
         addStatus = addStatus ?? function () {}; // eslint-disable-line @typescript-eslint/no-empty-function
         addStatus(
-            '<li id="afcHelper_get' + jqEscape(title) + '">Getting <a href="' + mw.config.get('wgArticlePath').replace('$1', encodeURI(title)) + '" title="' + title + '">' + title + '</a></li>',
+            '<li id="afcHelper_get' +
+                jqEscape(title) +
+                '">Getting <a href="' +
+                mw.config.get('wgArticlePath').replace('$1', encodeURI(title)) +
+                '" title="' +
+                title +
+                '">' +
+                title +
+                '</a></li>',
         );
 
         // const request = {
@@ -834,15 +890,40 @@
         //     }).responseText,
         // );
 
-        const response = await new mw.Api().get({ action: 'query', prop: 'revisions', rvprop: 'content', format: 'json', indexpageids: true, titles: title });
+        const response = await new mw.Api().get({
+            action: 'query',
+            prop: 'revisions',
+            rvprop: 'content',
+            format: 'json',
+            indexpageids: true,
+            titles: title,
+        });
 
         const pageId = response.query.pageids[0];
         if (pageId === '-1') {
-            addStatus('The page <a class="new" href="' + mw.config.get('wgArticlePath').replace('$1', encodeURI(title)) + '" title="' + title + '">' + title + '</a> does not exist');
+            addStatus(
+                'The page <a class="new" href="' +
+                    mw.config.get('wgArticlePath').replace('$1', encodeURI(title)) +
+                    '" title="' +
+                    title +
+                    '">' +
+                    title +
+                    '</a> does not exist',
+            );
             return '';
         }
         const newText = response.query.pages[pageId].revisions[0]['*'];
-        addStatus('<li id="afcHelper_get' + jqEscape(title) + '">Got <a href="' + mw.config.get('wgArticlePath').replace('$1', encodeURI(title)) + '" title="' + title + '">' + title + '</a></li>');
+        addStatus(
+            '<li id="afcHelper_get' +
+                jqEscape(title) +
+                '">Got <a href="' +
+                mw.config.get('wgArticlePath').replace('$1', encodeURI(title)) +
+                '" title="' +
+                title +
+                '">' +
+                title +
+                '</a></li>',
+        );
         return newText;
     }
 
@@ -853,7 +934,8 @@
      */
     function cleanupLinks(text: string) {
         // Convert external links to Wikipedia articles to proper wikilinks
-        const wikilinkRegex = /(\[){1,2}(?:https?:)?\/\/(en.wikipedia.org\/wiki|enwp.org)\/([^\s[\]|]+)([\s|])?((?:\[\[[^[\]]*]]|[^[\]])*)(]){1,2}/gi;
+        const wikilinkRegex =
+            /(\[){1,2}(?:https?:)?\/\/(en.wikipedia.org\/wiki|enwp.org)\/([^\s[\]|]+)([\s|])?((?:\[\[[^[\]]*]]|[^[\]])*)(]){1,2}/gi;
         const temporaryText = text;
         let match;
         while ((match = wikilinkRegex.exec(temporaryText))) {
@@ -920,7 +1002,9 @@
             // an mw-js-message div to start with.
             let $messageDiv = $('#display-message');
             if ($messageDiv.length === 0) {
-                $messageDiv = $('<div id="display-message" style="margin:1em;padding:0.5em 2.5%;border:solid 1px #ddd;background-color:#fcfcfc;font-size: 0.8em"></div>');
+                $messageDiv = $(
+                    '<div id="display-message" style="margin:1em;padding:0.5em 2.5%;border:solid 1px #ddd;background-color:#fcfcfc;font-size: 0.8em"></div>',
+                );
                 if (mw.util.$content.length > 0) mw.util.$content.prepend($messageDiv);
                 else return false;
             }
@@ -954,7 +1038,13 @@
     function editPage(title: string, newText: string, summary: string, createOnly: boolean, noPatrol: boolean) {
         const wgArticlePath = mw.config.get('wgArticlePath');
         summary += summaryAdvert;
-        $('#afcHelper_finished_wrapper').html('<span id="afcHelper_AJAX_finished_' + ajaxNumber + '" style="display:none">' + $('#afcHelper_finished_wrapper').html() + '</span>');
+        $('#afcHelper_finished_wrapper').html(
+            '<span id="afcHelper_AJAX_finished_' +
+                ajaxNumber +
+                '" style="display:none">' +
+                $('#afcHelper_finished_wrapper').html() +
+                '</span>',
+        );
         const functionId = ajaxNumber;
         ajaxNumber++;
         $('#afcHelper_status').html(
@@ -981,7 +1071,9 @@
         api.postWithEditToken(request)
             .done((data) => {
                 if (data?.edit?.result && data.edit.result === 'Success')
-                    $('#afcHelper_edit' + jqEscape(title)).html('Saved <a href="' + wgArticlePath.replace('$1', encodeURI(title)) + '" title="' + title + '">' + title + '</a>');
+                    $('#afcHelper_edit' + jqEscape(title)).html(
+                        'Saved <a href="' + wgArticlePath.replace('$1', encodeURI(title)) + '" title="' + title + '">' + title + '</a>',
+                    );
                 else {
                     $('#afcHelper_edit' + jqEscape(title)).html(
                         '<span class="afcHelper_notice"><b>Edit failed on <a href="' +
@@ -993,7 +1085,12 @@
                             '</a></b></span>. Error info: ' +
                             JSON.stringify(data),
                     );
-                    console.error('Edit failed on %s (%s). Error info: %s', wgArticlePath.replace('$1', encodeURI(title)), title, JSON.stringify(data));
+                    console.error(
+                        'Edit failed on %s (%s). Error info: %s',
+                        wgArticlePath.replace('$1', encodeURI(title)),
+                        title,
+                        JSON.stringify(data),
+                    );
                 }
             })
             .fail((error) => {
@@ -1050,7 +1147,13 @@
                     .done((data) => {
                         if (data)
                             $('#afcHelper_patrol' + jqEscape(title)).html(
-                                'Marked <a href="' + wgArticlePath.replace('$1', encodeURI(title)) + '" title="' + title + '">' + title + '</a> as patrolled',
+                                'Marked <a href="' +
+                                    wgArticlePath.replace('$1', encodeURI(title)) +
+                                    '" title="' +
+                                    title +
+                                    '">' +
+                                    title +
+                                    '</a> as patrolled',
                             );
                         else {
                             $('#afcHelper_patrol' + jqEscape(title)).html(
@@ -1062,7 +1165,11 @@
                                     title +
                                     '</a></b></span> with an unknown error',
                             );
-                            console.error('Patrolling failed on %s (%s) with an unknown error.', wgArticlePath.replace('$1', encodeURI(title)), title);
+                            console.error(
+                                'Patrolling failed on %s (%s) with an unknown error.',
+                                wgArticlePath.replace('$1', encodeURI(title)),
+                                title,
+                            );
                         }
                     })
                     .fail((error) => {
@@ -1090,7 +1197,14 @@
     padding: revert;
 }`);
 
-        const redirectPortletLink = mw.util.addPortletLink(mw.config.get('skin') === 'minerva' ? 'p-tb' : 'p-cactions', '#', 'Review AFC/RC', 'ca-afcrhs', 'Review', 'a');
+        const redirectPortletLink = mw.util.addPortletLink(
+            mw.config.get('skin') === 'minerva' ? 'p-tb' : 'p-cactions',
+            '#',
+            'Review AFC/RC',
+            'ca-afcrhs',
+            'Review',
+            'a',
+        );
         $(redirectPortletLink).click((event) => {
             event.preventDefault();
             // Clear variables for the case somebody is clicking on "review" multiple times

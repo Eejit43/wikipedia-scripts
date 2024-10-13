@@ -5,8 +5,10 @@
 
     for (const element of title.children) {
         if (!element.textContent) continue;
-        if (element.nodeType === Node.TEXT_NODE) title.replaceChild(document.createRange().createContextualFragment(markHomographs(element.textContent)), element);
-        else if (element.classList.contains('mw-page-title-main') || element.tagName === 'I') element.innerHTML = markHomographs(element.innerHTML);
+        if (element.nodeType === Node.TEXT_NODE)
+            title.replaceChild(document.createRange().createContextualFragment(markHomographs(element.textContent)), element);
+        else if (element.classList.contains('mw-page-title-main') || element.tagName === 'I')
+            element.innerHTML = markHomographs(element.innerHTML);
     }
 
     /**

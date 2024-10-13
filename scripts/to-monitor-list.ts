@@ -8,7 +8,11 @@ interface SearchData {
     transclusions: { id: string; title: string; namespace?: string; notNamespace?: string }[];
 }
 
-type SearchDataCheck = SearchData['categories'][0] | SearchData['searches'][0] | SearchData['whatLinksHere'][0] | SearchData['transclusions'][0];
+type SearchDataCheck =
+    | SearchData['categories'][0]
+    | SearchData['searches'][0]
+    | SearchData['whatLinksHere'][0]
+    | SearchData['transclusions'][0];
 
 /**
  * An instance of this class handles the entire functionality of the to-monitor-list script.
@@ -46,7 +50,8 @@ class MonitoringListManager {
             if (this.isRunning) return;
             this.isRunning = true;
 
-            for (const element of document.querySelectorAll('.to-monitor-list-count')) if (element.id) element.innerHTML = '<span style="color: #ed8e07; font-weight: bold">?</span>';
+            for (const element of document.querySelectorAll('.to-monitor-list-count'))
+                if (element.id) element.innerHTML = '<span style="color: #ed8e07; font-weight: bold">?</span>';
 
             await this.loadToCheckData();
 
@@ -61,7 +66,10 @@ class MonitoringListManager {
                             srsearch: `incategory:"${check.category}"`,
                         } satisfies ApiQuerySearchParams)
                         .catch((errorCode: string, errorInfo: MediaWikiDataError) => {
-                            mw.notify(`An error occurred while trying to get category members: ${errorInfo?.error.info ?? 'Unknown error'} (${errorCode})`, { type: 'error' });
+                            mw.notify(
+                                `An error occurred while trying to get category members: ${errorInfo?.error.info ?? 'Unknown error'} (${errorCode})`,
+                                { type: 'error' },
+                            );
                             return null;
                         });
                     if (!data) return;
@@ -80,7 +88,10 @@ class MonitoringListManager {
                             srsearch: check.search,
                         } satisfies ApiQuerySearchParams)
                         .catch((errorCode: string, errorInfo: MediaWikiDataError) => {
-                            mw.notify(`An error occurred while trying to get search results: ${errorInfo?.error.info ?? 'Unknown error'} (${errorCode})`, { type: 'error' });
+                            mw.notify(
+                                `An error occurred while trying to get search results: ${errorInfo?.error.info ?? 'Unknown error'} (${errorCode})`,
+                                { type: 'error' },
+                            );
                             return null;
                         });
                     if (!data) return;
@@ -99,7 +110,10 @@ class MonitoringListManager {
                             bltitle: check.title,
                         } satisfies ApiQueryBacklinksParams)
                         .catch((errorCode: string, errorInfo: MediaWikiDataError) => {
-                            mw.notify(`An error occurred while trying to get backlinks: ${errorInfo?.error.info ?? 'Unknown error'} (${errorCode})`, { type: 'error' });
+                            mw.notify(
+                                `An error occurred while trying to get backlinks: ${errorInfo?.error.info ?? 'Unknown error'} (${errorCode})`,
+                                { type: 'error' },
+                            );
                             return null;
                         });
                     if (!data) return;
@@ -118,7 +132,10 @@ class MonitoringListManager {
                             eititle: check.title,
                         } satisfies ApiQueryBacklinksParams)
                         .catch((errorCode: string, errorInfo: MediaWikiDataError) => {
-                            mw.notify(`An error occurred while trying to get transclusions: ${errorInfo?.error.info ?? 'Unknown error'} (${errorCode})`, { type: 'error' });
+                            mw.notify(
+                                `An error occurred while trying to get transclusions: ${errorInfo?.error.info ?? 'Unknown error'} (${errorCode})`,
+                                { type: 'error' },
+                            );
                             return null;
                         });
                     if (!data) return;
@@ -168,7 +185,10 @@ class MonitoringListManager {
 
         const element = document.querySelector(`#to-monitor-list-${check.id}`);
         if (!element) return mw.notify(`Failed to find element for ID "${check.id}"`);
-        element.innerHTML = count === 0 ? '<span style="color: #00733f">None</span>' : `<b><span style="color: #bd2828">${count === 500 ? '500+' : count}</span></b>`;
+        element.innerHTML =
+            count === 0
+                ? '<span style="color: #00733f">None</span>'
+                : `<b><span style="color: #bd2828">${count === 500 ? '500+' : count}</span></b>`;
 
         this.handledRequests++;
         this.link.textContent = `Add missing counts (${this.handledRequests}/${this.totalToCheck} loaded)`;
@@ -192,7 +212,9 @@ class MonitoringListManager {
     private getCategory({ namespace, notNamespace }: { namespace?: string; notNamespace?: string }) {
         if (!namespace && !notNamespace) return 0;
         else if (namespace) {
-            const foundNamespace = Object.entries(mw.config.get('wgFormattedNamespaces')).find(([, namespaceName]) => namespaceName === namespace);
+            const foundNamespace = Object.entries(mw.config.get('wgFormattedNamespaces')).find(
+                ([, namespaceName]) => namespaceName === namespace,
+            );
 
             return foundNamespace ? Number.parseInt(foundNamespace[0]) : 0;
         } else

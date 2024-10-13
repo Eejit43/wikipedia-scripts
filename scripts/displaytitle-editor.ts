@@ -70,7 +70,10 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui.styles.icons-editing
 
                 return /{{short description/i.test(text)
                     ? {
-                          text: text.replace(/{{short description(.*?)}}/i, `{{short description$1}}\n{{DISPLAYTITLE:${editBox.getValue()}}}`),
+                          text: text.replace(
+                              /{{short description(.*?)}}/i,
+                              `{{short description$1}}\n{{DISPLAYTITLE:${editBox.getValue()}}}`,
+                          ),
                           summary: `${isAdded ? 'Adding DISPLAYTITLE of' : 'Changing DISPLAYTITLE to'} "${editBox.getValue()}" (via [[User:Eejit43/scripts/displaytitle-editor|script]])`,
                       }
                     : {

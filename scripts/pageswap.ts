@@ -6,7 +6,9 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
 
     const userPermissions = await fetchUserPermissions();
 
-    const pageInfo = (await new mw.Api().get({ action: 'query', prop: 'info', titles: currentTitle })) as { query: { pages: Record<number, unknown> } };
+    const pageInfo = (await new mw.Api().get({ action: 'query', prop: 'info', titles: currentTitle })) as {
+        query: { pages: Record<number, unknown> };
+    };
     if (pageInfo.query.pages[-1]) return;
 
     const link = mw.util.addPortletLink(mw.config.get('skin') === 'minerva' ? 'p-tb' : 'p-cactions', '#', 'Swap', 'eejit-pageswap')!;
@@ -94,19 +96,31 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
             this.summaryInputField = new OO.ui.FieldLayout(this.summaryInput, { label: 'Summary', align: 'top' });
 
             this.moveTalkCheckbox = new OO.ui.CheckboxInputWidget({ selected: true });
-            this.moveTalkCheckboxField = new OO.ui.FieldLayout(this.moveTalkCheckbox, { label: 'Move talk page (if applicable)', align: 'inline' });
+            this.moveTalkCheckboxField = new OO.ui.FieldLayout(this.moveTalkCheckbox, {
+                label: 'Move talk page (if applicable)',
+                align: 'inline',
+            });
 
             this.moveSubpagesCheckbox = new OO.ui.CheckboxInputWidget({ selected: true });
-            this.moveSubpagesCheckboxField = new OO.ui.FieldLayout(this.moveSubpagesCheckbox, { label: 'Move subpages (if applicable)', align: 'inline' });
+            this.moveSubpagesCheckboxField = new OO.ui.FieldLayout(this.moveSubpagesCheckbox, {
+                label: 'Move subpages (if applicable)',
+                align: 'inline',
+            });
 
-            this.content.addItems([this.destinationInputField, this.summaryInputField, this.moveTalkCheckboxField, this.moveSubpagesCheckboxField]);
+            this.content.addItems([
+                this.destinationInputField,
+                this.summaryInputField,
+                this.moveTalkCheckboxField,
+                this.moveSubpagesCheckboxField,
+            ]);
 
             this.panel.$element.append(this.content.$element);
             this.$body.append(this.panel.$element);
         };
 
         SwapDialog.prototype.updateActionState = function () {
-            const isValid = this.destinationInput.getValue() !== '' && this.destinationInput.getValidity() && this.summaryInput.getValue() !== '';
+            const isValid =
+                this.destinationInput.getValue() !== '' && this.destinationInput.getValidity() && this.summaryInput.getValue() !== '';
             this.actions.setAbilities({ swap: isValid });
         };
 
@@ -174,7 +188,8 @@ function fetchUserPermissions() {
  */
 function getTalkPageName(namespaceData, title, titleNamespace) {
     const result = {};
-    const prefixLength = namespaceData[titleNamespace.toString()]['*'].length === 0 ? 0 : namespaceData[titleNamespace.toString()]['*'].length + 1;
+    const prefixLength =
+        namespaceData[titleNamespace.toString()]['*'].length === 0 ? 0 : namespaceData[titleNamespace.toString()]['*'].length + 1;
     result.titleWithoutPrefix = title.substring(prefixLength, title.length);
     result.talkTitle = `${namespaceData[(titleNamespace + 1).toString()]['*']}:${result.titleWithoutPrefix}`;
     return result;
@@ -327,7 +342,8 @@ async function talkValidate(checkTalk, firstTalk, secondTalk) {
             }
     }
 
-    result.allowMoveTalk = result.currentTalkCanCreate && result.currentTalkCanMove && result.destinationTalkCanCreate && result.destinationTalkCanMove;
+    result.allowMoveTalk =
+        result.currentTalkCanCreate && result.currentTalkCanMove && result.destinationTalkCanCreate && result.destinationTalkCanMove;
     return result;
 }
 
@@ -526,23 +542,48 @@ async function roundRobin(userPermissions, currentTitle, destinationTitle, summa
     const currentSubpages = await getSubpages(namespacesInformation, validationData.currentTitle, validationData.currentNamespace, false);
     if (currentSubpages.error !== undefined) throw new Error(currentSubpages.error);
     const currentSubpageFlags = printSubpageInfo(validationData.currentTitle, currentSubpages);
-    const destinationSubpages = await getSubpages(namespacesInformation, validationData.destinationTitle, validationData.destinationNamespace, false);
+    const destinationSubpages = await getSubpages(
+        namespacesInformation,
+        validationData.destinationTitle,
+        validationData.destinationNamespace,
+        false,
+    );
     if (destinationSubpages.error !== undefined) throw new Error(destinationSubpages.error);
     const destinationSubpageFlags = printSubpageInfo(validationData.destinationTitle, destinationSubpages);
 
-    const talkValidationData = await talkValidate(validationData.checkTalk, validationData.currentTalkName, validationData.destinationTalkName);
+    const talkValidationData = await talkValidate(
+        validationData.checkTalk,
+        validationData.currentTalkName,
+        validationData.destinationTalkName,
+    );
 
     // TODO: check empty subpage destinations on both sides (subj, talk) for create protection
-    const currentTalkSubpages = await getSubpages(namespacesInformation, validationData.currentTitle, validationData.currentNamespace, true);
+    const currentTalkSubpages = await getSubpages(
+        namespacesInformation,
+        validationData.currentTitle,
+        validationData.currentNamespace,
+        true,
+    );
     if (currentTalkSubpages.error !== undefined) throw new Error(currentTalkSubpages.error);
     const currentTalkSubpageFlags = printSubpageInfo(validationData.currentTalkName, currentTalkSubpages);
-    const destinationTalkSubpages = await getSubpages(namespacesInformation, validationData.destinationTitle, validationData.destinationNamespace, true);
+    const destinationTalkSubpages = await getSubpages(
+        namespacesInformation,
+        validationData.destinationTitle,
+        validationData.destinationNamespace,
+        true,
+    );
     if (destinationTalkSubpages.error !== undefined) throw new Error(destinationTalkSubpages.error);
     const destinationTalkSubpageFlags = printSubpageInfo(validationData.destinationTalkName, destinationTalkSubpages);
 
-    const noSubpages = currentSubpageFlags.noNeed && destinationSubpageFlags.noNeed && currentTalkSubpageFlags.noNeed && destinationTalkSubpageFlags.noNeed;
+    const noSubpages =
+        currentSubpageFlags.noNeed &&
+        destinationSubpageFlags.noNeed &&
+        currentTalkSubpageFlags.noNeed &&
+        destinationTalkSubpageFlags.noNeed;
     // If one namespace disables subpages, other enables subpages (and has subpages), consider abort. Assume talk pages always safe (TODO fix)
-    const subpageCollision = (validationData.currentNamespaceAllowSubpages && !destinationSubpageFlags.noNeed) || (validationData.destinationNamespaceAllowSubpages && !currentSubpageFlags.noNeed);
+    const subpageCollision =
+        (validationData.currentNamespaceAllowSubpages && !destinationSubpageFlags.noNeed) ||
+        (validationData.destinationNamespaceAllowSubpages && !currentSubpageFlags.noNeed);
 
     if (moveTalk && validationData.checkTalk && !talkValidationData.allowMoveTalk) {
         moveTalk = false;
@@ -574,7 +615,9 @@ async function roundRobin(userPermissions, currentTitle, destinationTitle, summa
         mw.notify('One namespace does not have subpages enabled. Disallowing move subpages.');
     }
 
-    console.log(`[Pageswap] Swapping "${currentTitle}" with "${destinationTitle}" with summary "${summary}" and moveTalk ${moveTalk} and moveSubpages ${finalMoveSubpages}`);
+    console.log(
+        `[Pageswap] Swapping "${currentTitle}" with "${destinationTitle}" with summary "${summary}" and moveTalk ${moveTalk} and moveSubpages ${finalMoveSubpages}`,
+    );
 
     const result = await swapPages(currentTitle, destinationTitle, summary, moveTalk, finalMoveSubpages);
 

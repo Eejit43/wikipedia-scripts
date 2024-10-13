@@ -1,22 +1,22 @@
 import { MediaWikiDataError } from '../global-types';
 
 interface Script {
-    name: string;
+    'name': string;
     'in-development'?: boolean;
     'use-instead'?: string;
-    image?: false;
+    'image'?: false;
     'image-caption'?: string;
     'short-description': string;
-    description: string;
-    usage?: string;
-    changelog?: Record<string, string | string[]>;
+    'description': string;
+    'usage'?: string;
+    'changelog'?: Record<string, string | string[]>;
     'other-authors'?: string[];
-    fork?: true;
-    personal?: true;
+    'fork'?: true;
+    'personal'?: true;
     'skin-support': Record<string, boolean>;
-    released: string;
-    updated: string;
-    css?: true;
+    'released': string;
+    'updated': string;
+    'css'?: true;
 }
 
 mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-windows'], () => {
@@ -109,7 +109,8 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
             else if (action === 'save')
                 return new OO.ui.Process(() => {
                     const selectedScripts = [];
-                    for (const [scriptName, checkbox] of this.checkboxElements) if (checkbox.isSelected()) selectedScripts.push(this.scripts.find((script) => script.name === scriptName)!);
+                    for (const [scriptName, checkbox] of this.checkboxElements)
+                        if (checkbox.isSelected()) selectedScripts.push(this.scripts.find((script) => script.name === scriptName)!);
 
                     this.getManager().closeWindow(this);
 
@@ -132,7 +133,10 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                             'Syncing script list from GitHub',
                         );
 
-                        mw.notify(`Synced ${selectedScripts.length} script${selectedScripts.length === 1 ? '' : 's'} from GitHub!`, { type: 'success', tag: 'sync-scripts-notification' });
+                        mw.notify(`Synced ${selectedScripts.length} script${selectedScripts.length === 1 ? '' : 's'} from GitHub!`, {
+                            type: 'success',
+                            tag: 'sync-scripts-notification',
+                        });
                     })();
                 });
             else return ScriptUpdaterDialog.super.prototype.getActionProcess.call(this, action);
@@ -161,12 +165,16 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
          */
         private loadScriptData = async () => {
             const latestCommitHashResponse = await fetch(`https://api.github.com/repos/${this.repoOwner}/${this.repoName}/commits`);
-            if (!latestCommitHashResponse.ok) return `Failed to fetch latest commit hash from GitHub: ${latestCommitHashResponse.statusText} (${latestCommitHashResponse.status})`;
+            if (!latestCommitHashResponse.ok)
+                return `Failed to fetch latest commit hash from GitHub: ${latestCommitHashResponse.statusText} (${latestCommitHashResponse.status})`;
 
             this.latestCommitHash = ((await latestCommitHashResponse.json()) as { sha: string }[])[0].sha;
 
-            const scriptDataResponse = await fetch(`https://raw.githubusercontent.com/${this.repoOwner}/${this.repoName}/${this.latestCommitHash}/scripts.json`);
-            if (!scriptDataResponse.ok) return `Failed to fetch script data from GitHub: ${scriptDataResponse.statusText} (${scriptDataResponse.status})`;
+            const scriptDataResponse = await fetch(
+                `https://raw.githubusercontent.com/${this.repoOwner}/${this.repoName}/${this.latestCommitHash}/scripts.json`,
+            );
+            if (!scriptDataResponse.ok)
+                return `Failed to fetch script data from GitHub: ${scriptDataResponse.statusText} (${scriptDataResponse.status})`;
 
             this.scripts = (await scriptDataResponse.json()) as Script[];
         };
@@ -189,7 +197,9 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                     ? `| use-instead       = ${script['use-instead'].includes('User:') ? script['use-instead'] : `[[User:Eejit43/scripts/${script['use-instead']}|${script['use-instead']}]]`}`
                     : null,
                 script['image-caption'] ? `| image-caption     = ${script['image-caption']}` : null,
-                script['other-authors'] ? `| other-authors     = ${script['other-authors'].map((author) => `[[User:${author}|${author}]]`).join(', ')}` : null,
+                script['other-authors']
+                    ? `| other-authors     = ${script['other-authors'].map((author) => `[[User:${author}|${author}]]`).join(', ')}`
+                    : null,
                 `| description-short = ${script['short-description']}`,
                 `| description       = ${script.description}`,
                 script.usage ? `| usage             = ${script.usage}` : null,
@@ -211,29 +221,43 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
 
             let scriptContent = null;
 
-            const scriptContentResponse = await fetch(`https://raw.githubusercontent.com/${this.repoOwner}/${this.repoName}/${this.latestCommitHash}/dist/scripts/${script.name}.js`);
+            const scriptContentResponse = await fetch(
+                `https://raw.githubusercontent.com/${this.repoOwner}/${this.repoName}/${this.latestCommitHash}/dist/scripts/${script.name}.js`,
+            );
             if (scriptContentResponse.ok) scriptContent = await scriptContentResponse.text();
             else
-                return mw.notify(`Failed to fetch "${script.name}.js" from GitHub: ${scriptContentResponse.statusText} (${scriptContentResponse.status})`, {
-                    type: 'error',
-                    tag: 'sync-scripts-notification',
-                });
+                return mw.notify(
+                    `Failed to fetch "${script.name}.js" from GitHub: ${scriptContentResponse.statusText} (${scriptContentResponse.status})`,
+                    {
+                        type: 'error',
+                        tag: 'sync-scripts-notification',
+                    },
+                );
 
             let styleContent = null;
             if (script.css) {
-                const styleContentResponse = await fetch(`https://raw.githubusercontent.com/${this.repoOwner}/${this.repoName}/${this.latestCommitHash}/dist/styles/${script.name}.css`);
+                const styleContentResponse = await fetch(
+                    `https://raw.githubusercontent.com/${this.repoOwner}/${this.repoName}/${this.latestCommitHash}/dist/styles/${script.name}.css`,
+                );
 
                 if (styleContentResponse.ok) styleContent = await styleContentResponse.text();
                 else
-                    mw.notify(`Failed to fetch "${script.name}.css" from GitHub: ${styleContentResponse.statusText} (${styleContentResponse.status})`, {
-                        type: 'error',
-                        tag: 'sync-scripts-notification',
-                    });
+                    mw.notify(
+                        `Failed to fetch "${script.name}.css" from GitHub: ${styleContentResponse.statusText} (${styleContentResponse.status})`,
+                        {
+                            type: 'error',
+                            tag: 'sync-scripts-notification',
+                        },
+                    );
             }
 
             if (!script.personal) {
                 await this.editOrCreate(subpageName, fullSubpageInfo.join('\n'), 'Syncing script documentation from GitHub');
-                await this.editOrCreate(subpageTalkName, '#REDIRECT [[User talk:Eejit43]]', 'Redirecting script documentation talk page to main user talk page');
+                await this.editOrCreate(
+                    subpageTalkName,
+                    '#REDIRECT [[User talk:Eejit43]]',
+                    'Redirecting script documentation talk page to main user talk page',
+                );
             }
 
             if (scriptContent) await this.editOrCreate(scriptName, scriptContent, 'Syncing script from GitHub');
@@ -269,12 +293,18 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                 .edit(title, () => ({ text, summary, watchlist: 'watch' }))
                 .catch(async (errorCode: string, errorInfo: MediaWikiDataError) => {
                     if (errorCode === 'nocreate-missing')
-                        await new mw.Api().create(title, { summary, watchlist: 'watch' }, text).catch((errorCode: string, errorInfo: MediaWikiDataError) => {
-                            mw.notify(`Error creating ${title}: ${errorInfo?.error.info ?? 'Unknown error'} (${errorCode})`, { type: 'error' });
-                            return;
-                        });
+                        await new mw.Api()
+                            .create(title, { summary, watchlist: 'watch' }, text)
+                            .catch((errorCode: string, errorInfo: MediaWikiDataError) => {
+                                mw.notify(`Error creating ${title}: ${errorInfo?.error.info ?? 'Unknown error'} (${errorCode})`, {
+                                    type: 'error',
+                                });
+                                return;
+                            });
                     else {
-                        mw.notify(`Error editing or creating ${title}: ${errorInfo?.error.info ?? 'Unknown error'} (${errorCode})`, { type: 'error' });
+                        mw.notify(`Error editing or creating ${title}: ${errorInfo?.error.info ?? 'Unknown error'} (${errorCode})`, {
+                            type: 'error',
+                        });
                         return;
                     }
                 });

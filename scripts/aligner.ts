@@ -12,7 +12,12 @@
     display: unset;
 }`);
 
-        const link = mw.util.addPortletLink(mw.config.get('skin') === 'minerva' ? 'p-navigation' : 'p-cactions', '#', 'Align template parameters', 'align-parameters')!;
+        const link = mw.util.addPortletLink(
+            mw.config.get('skin') === 'minerva' ? 'p-navigation' : 'p-cactions',
+            '#',
+            'Align template parameters',
+            'align-parameters',
+        )!;
         link.addEventListener('click', (event) => {
             event.preventDefault();
 
@@ -79,7 +84,10 @@
 
                 if (output.endsWith('\n')) output = output.slice(0, -1);
 
-                editBox.textSelection('setContents', editBox.textSelection('getContents').replace(origTemplate, output).replace(/\n+$/, ''));
+                editBox.textSelection(
+                    'setContents',
+                    editBox.textSelection('getContents').replace(origTemplate, output).replace(/\n+$/, ''),
+                );
 
                 editBox.textSelection('setSelection', { start: 0 });
             }
@@ -98,7 +106,8 @@
 
                     if (
                         text.length - index > searchLength &&
-                        (text.slice(index, index + searchLength).toLowerCase() === search || text.slice(index, index + searchLength).toLowerCase() === search.replace(' ', '_'))
+                        (text.slice(index, index + searchLength).toLowerCase() === search ||
+                            text.slice(index, index + searchLength).toLowerCase() === search.replace(' ', '_'))
                     ) {
                         open++;
                         template += text[index];

@@ -1,4 +1,4 @@
-import { MediaWikiDataError } from '../global-types';
+import type { MediaWikiDataError } from '../global-types';
 
 interface Script {
     'name': string;

@@ -1,5 +1,5 @@
-import { MediaWikiDataError, PageRevisionsResult } from '../global-types';
-import { ApiQueryInfoParams, ApiQueryRevisionsParams } from '../node_modules/types-mediawiki/api_params/index';
+import type { ApiQueryInfoParams, ApiQueryRevisionsParams } from 'types-mediawiki/api_params';
+import type { MediaWikiDataError, PageRevisionsResult } from '../global-types';
 
 mw.loader.using(['mediawiki.util'], async () => {
     if (!mw.Title.isTalkNamespace(mw.config.get('wgNamespaceNumber'))) return;

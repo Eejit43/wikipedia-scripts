@@ -1,6 +1,6 @@
-import { ApiQueryAllPagesGeneratorParams, MediaWikiDataError, PageRevisionsResult } from '../global-types'; // eslint-disable-line unicorn/prevent-abbreviations
-import { ApiEditPageParams, ApiQueryRevisionsParams } from '../node_modules/types-mediawiki/api_params/index';
-import { RedirectTemplateData, TemplateEditorElementInfo } from './redirect-helper';
+import type { ApiEditPageParams, ApiQueryRevisionsParams } from 'types-mediawiki/api_params';
+import type { ApiQueryAllPagesGeneratorParams, MediaWikiDataError, PageRevisionsResult } from '../global-types'; // eslint-disable-line unicorn/prevent-abbreviations
+import type { RedirectTemplateData, TemplateEditorElementInfo } from './redirect-helper';
 
 mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-windows'], () => {
     const isRedirectRequestPage = mw.config.get('wgPageName') === 'Wikipedia:Articles_for_creation/Redirects';
@@ -1335,10 +1335,8 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                             (action) => action.action === 'accept' || action.action === 'deny',
                         );
 
-                        const firstCloseReason = Object.values(requests as Record<string, RedirectAction>).find(
-                            (action) => action.action === 'close',
-                        )?.closingReason?.id;
-                        const allRequestsClosed = Object.values(requests as Record<string, RedirectAction>).every(
+                        const firstCloseReason = Object.values(requests).find((action) => action.action === 'close')?.closingReason?.id;
+                        const allRequestsClosed = Object.values(requests).every(
                             (action) => action.action === 'close' && action.closingReason?.id === firstCloseReason,
                         );
 
@@ -1348,7 +1346,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
 
                         const amountOfPages = Object.keys(requests).length;
 
-                        for (const [requestedTitle, action] of Object.entries(requests) as [string, RedirectAction][])
+                        for (const [requestedTitle, action] of Object.entries(requests))
                             switch (action.action) {
                                 case 'accept': {
                                     if (someRequestAcceptedDenied && !allRequestsAcceptedDenied)

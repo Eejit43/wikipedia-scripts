@@ -1,4 +1,4 @@
-import { ApiQueryParams } from './node_modules/types-mediawiki/api_params/index';
+import type { ApiQueryParams } from 'types-mediawiki/api_params';
 
 type OneOrMore<T> = T | T[];
 

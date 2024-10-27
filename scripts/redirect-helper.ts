@@ -1,4 +1,12 @@
-import {
+import type {
+    ApiComparePagesParams,
+    ApiParseParams,
+    ApiQueryInfoParams,
+    ApiQueryPagePropsParams,
+    ApiQueryRevisionsParams,
+    PageTriageApiPageTriageListParams,
+} from 'types-mediawiki/api_params';
+import type {
     ApiQueryAllPagesGeneratorParams, // eslint-disable-line unicorn/prevent-abbreviations
     CategoriesResult,
     MediaWikiDataError,
@@ -8,14 +16,6 @@ import {
     PageTriageListResponse,
     PagepropsResult,
 } from '../global-types';
-import type {
-    ApiComparePagesParams,
-    ApiParseParams,
-    ApiQueryInfoParams,
-    ApiQueryPagePropsParams,
-    ApiQueryRevisionsParams,
-    PageTriageApiPageTriageListParams,
-} from '../node_modules/types-mediawiki/api_params/index';
 
 export type RedirectTemplateData = Record<string, { redirect?: true; parameters: RedirectTemplateParameters; aliases: string[] }>;
 
@@ -377,7 +377,7 @@ mw.loader.using(
 
                 this.redirectTemplates = await this.fetchRedirectTemplates();
 
-                this.contentText = document.querySelector('#mw-content-text') as HTMLDivElement;
+                this.contentText = document.querySelector<HTMLDivElement>('#mw-content-text')!;
                 if (!this.contentText) return mw.notify('redirect-helper: Failed to find content text element!', { type: 'error' });
 
                 this.pageTitle = mw.config.get('wgPageName');
@@ -1047,7 +1047,7 @@ mw.loader.using(
              * Determines if the user should be prompted to patrol the page.
              */
             private async checkShouldPromptPatrol() {
-                const pageTriageMarkButton = document.querySelector('#mwe-pt-mark .mwe-pt-tool-icon') as HTMLImageElement | null;
+                const pageTriageMarkButton = document.querySelector<HTMLImageElement>('#mwe-pt-mark .mwe-pt-tool-icon');
                 pageTriageMarkButton?.click();
                 pageTriageMarkButton?.click();
 
@@ -1099,8 +1099,7 @@ mw.loader.using(
                             const tagWasSelected = this.oldRedirectTags!.includes(tag);
                             if (!tagWasSelected || !this.tagSelect.getValue().includes(tag)) continue;
 
-                            const oldTagData =
-                                this.oldRedirectTagData[tag as string] ?? Object.entries(data.parameters).map(([name]) => [name, '']);
+                            const oldTagData = this.oldRedirectTagData[tag] ?? Object.entries(data.parameters).map(([name]) => [name, '']);
 
                             const foundTagEditorData = this.templateEditorsInfo.find((template) => template.name === tag)!;
 
@@ -1485,7 +1484,7 @@ mw.loader.using(
                     });
 
                 /* Missing tag required parameter */
-                for (const tag of tags as string[]) {
+                for (const tag of tags) {
                     const tagData = this.redirectTemplates[tag];
                     if (!tagData) continue;
 
@@ -1643,7 +1642,7 @@ mw.loader.using(
                     this.submitButton.setLabel('Patrolling redirect...');
 
                     const patrolLink: HTMLAnchorElement | null = document.querySelector('.patrollink a');
-                    const markReviewedButton = document.querySelector('#mwe-pt-mark-as-reviewed-button') as HTMLButtonElement | null;
+                    const markReviewedButton = document.querySelector<HTMLButtonElement>('#mwe-pt-mark-as-reviewed-button');
 
                     if (patrolLink) {
                         const patrolResult = await this.api

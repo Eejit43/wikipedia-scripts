@@ -1,5 +1,5 @@
-import { PageRevisionsResult } from '../global-types';
-import { ApiQueryRevisionsParams } from '../node_modules/types-mediawiki/api_params/index';
+import type { ApiQueryRevisionsParams } from 'types-mediawiki/api_params';
+import type { PageRevisionsResult } from '../global-types';
 
 mw.loader.using(['mediawiki.util'], () => {
     const developmentMode = false;

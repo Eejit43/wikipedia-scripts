@@ -9,6 +9,7 @@ interface Script {
     'short-description': string;
     'description': string;
     'usage'?: string;
+    'configuration'?: string;
     'changelog'?: Record<string, string | string[]>;
     'other-authors'?: string[];
     'fork'?: true;
@@ -203,6 +204,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                 `| description-short = ${script['short-description']}`,
                 `| description       = ${script.description}`,
                 script.usage ? `| usage             = ${script.usage}` : null,
+                script.configuration ? `| configuration     = ${script.configuration}` : null,
                 script.changelog
                     ? `| changelog         = \n${Object.entries(script.changelog)
                           .map(

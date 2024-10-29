@@ -2,6 +2,14 @@ import type { ApiEditPageParams, ApiQueryRevisionsParams } from 'types-mediawiki
 import type { ApiQueryAllPagesGeneratorParams, MediaWikiDataError, PageRevisionsResult } from '../global-types'; // eslint-disable-line unicorn/prevent-abbreviations
 import type { RedirectTemplateData, TemplateEditorElementInfo } from './redirect-helper';
 
+type WatchMethod = 'nochange' | 'preferences' | 'unwatch' | 'watch';
+
+declare global {
+    interface Window {
+        afcrcConfiguration?: { createdPageWatchMethod: WatchMethod };
+    }
+}
+
 mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-windows'], () => {
     const isRedirectRequestPage = mw.config.get('wgPageName') === 'Wikipedia:Articles_for_creation/Redirects';
     const isCategoryRequestPage = mw.config.get('wgPageName') === 'Wikipedia:Articles_for_creation/Categories';
@@ -23,7 +31,11 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
         const windowManager = new OO.ui.WindowManager();
         document.body.append(windowManager.$element[0]);
 
-        const afcrcHelperDialog = new AfcrcHelperDialog(requestPageType, mw.config.get('wgPageName').replaceAll('_', ' '));
+        const afcrcHelperDialog = new AfcrcHelperDialog(
+            requestPageType,
+            mw.config.get('wgPageName').replaceAll('_', ' '),
+            window.afcrcConfiguration?.createdPageWatchMethod,
+        );
 
         windowManager.addWindows([afcrcHelperDialog]);
 
@@ -258,6 +270,8 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
         private requestPageType: 'redirect' | 'category';
         private pageTitle!: string;
 
+        private createdPageWatchMethod: WatchMethod;
+
         private redirectTemplates!: RedirectTemplateData;
 
         private beforeText!: string;
@@ -270,7 +284,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
             | { type: 'create'; isRedirect: boolean; title: string; text: string; summary: string }
         )[] = [];
 
-        constructor(requestPageType: 'redirect' | 'category', pageTitle: string) {
+        constructor(requestPageType: 'redirect' | 'category', pageTitle: string, createdWatchMethod?: WatchMethod) {
             super({ size: 'large' });
 
             AfcrcHelperDialog.static.name = 'AfcrcHelperDialog';
@@ -282,6 +296,11 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
 
             this.pageTitle = pageTitle;
             this.requestPageType = requestPageType;
+
+            this.createdPageWatchMethod =
+                createdWatchMethod && ['nochange', 'preferences', 'unwatch', 'watch'].includes(createdWatchMethod)
+                    ? createdWatchMethod
+                    : 'preferences';
 
             mw.util.addCSS(`
 .afcrc-helper-request {
@@ -1734,7 +1753,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                 const apiFunction =
                     action.type === 'edit'
                         ? this.api.edit(action.title, action.transform)
-                        : this.api.create(action.title, { summary: action.summary }, action.text);
+                        : this.api.create(action.title, { summary: action.summary, watchlist: this.createdPageWatchMethod }, action.text);
 
                 const linkElement = document.createElement('a');
                 linkElement.target = '_blank';

@@ -3,7 +3,9 @@
         "name": "afcrc-helper",
         "short-description": "User script to help handle requests at [[WP:AFC/R]] and [[WP:AFC/C]]",
         "description": "This user script was inspired by [[User:Enterprisey/AFCRHS|Enterprisey's \"AFCRHS\" script]], and helps to handle requests at [[WP:AFC/R]] and [[WP:AFC/C]] (redirects and categories creation requests). This script features an easier to use interface with improved functionality and new features. It can be run using the link in the \"More\"/\"Tools\" menu.",
+        "configuration": "This script can be configured via a {{code|window.afcrcConfig}} object to [[Special:MyPage/common.js|your common.js]]. This takes the following form:\n\n<syntaxhighlight lang=\"js\">\nwindow.afcrcConfiguration = {\n    createdPageWatchMethod: 'nochange' | 'preferences' | 'unwatch' | 'watch',\n};\n</syntaxhighlight>\n\nBy default, pages that are created will use the {{code|preferences}} watchlist change method, following the {{myprefs|Watchlist|Watched pages|check={{int:tog-watchdefault}}}} configuration field. This can be changed through {{code|createdPageWatchMethod}} to either {{code|nochange}} (don't change watch settings for the created page), {{code|unwatch}} (unwatch the created page), or {{code|watch}} (watch the created page).\n\nFor example, to not change watch settings for created pages, add the following to your common.js:\n\n<syntaxhighlight lang=\"js\">\nwindow.afcrcConfiguration = {\n    createdPageWatchMethod: 'nochange',\n};\n</syntaxhighlight>",
         "changelog": {
+            "2024|10|29": "Support modification of page creation watch method via global parameter.",
             "2024|08|29": "Correctly handle unnamed template parameters without preceding parameters.",
             "2024|07|15": "Add very basic dark mode support.",
             "2024|06|02": "Support adding additional reasoning to denied requests by appending content following a comma.",
@@ -12,7 +14,7 @@
             "2024|04|07": "Support adding template parmaters to accepted redirects.",
             "2024|04|01": "Link to pages in changes UI.",
             "2024|03|28": "Improve requester detection logic.",
-            "2024|03|17": ["Support \"notredirect\" autofill closing reason.", "Better parse variatons of category request data."],
+            "2024|03|17": ["Support \"notredirect\" autofill closing reason.", "Better parse variations of category request data."],
             "2024|03|14": "Improve handling of invalid sections.",
             "2024|03|12": "Improve rate limit handling.",
             "2024|02|22": "Merge identical comments where applicable.",
@@ -32,7 +34,7 @@
             "cologne-blue": "yes"
         },
         "released": "2024|02|15",
-        "updated": "2024|09|14"
+        "updated": "2024|10|29"
     },
     {
         "name": "AFCRHS",
@@ -289,7 +291,7 @@
             "cologne-blue": "yes"
         },
         "released": "2023|04|05",
-        "updated": "2024|10|07"
+        "updated": "2024|10|29"
     },
     {
         "name": "search-links",

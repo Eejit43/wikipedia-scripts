@@ -46,7 +46,7 @@ export interface PageParseResult {
 }
 
 export interface PagepropsResult {
-    query: { pages: { pageprops?: { disambiguation?: string } }[] };
+    query: { pages: { pageprops?: { defaultsort?: string; disambiguation?: string; displaytitle?: string } }[] };
 }
 
 export interface CategoriesResult {

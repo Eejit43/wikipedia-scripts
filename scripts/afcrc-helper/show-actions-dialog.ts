@@ -1,18 +1,18 @@
 /**
  * An instance of this class is an action dialog.
  */
-export default class ShowActionsDialog extends OO.ui.Dialog {
+export default class ActionsDialog extends OO.ui.Dialog {
     private contentLayout!: OO.ui.PanelLayout;
     private logOutput!: HTMLDivElement;
     private closeButton!: OO.ui.ButtonWidget;
 
     constructor() {
-        Object.assign(ShowActionsDialog.prototype, OO.ui.Dialog.prototype);
+        Object.assign(ActionsDialog.prototype, OO.ui.Dialog.prototype);
 
         super({ size: 'large' });
 
-        ShowActionsDialog.static.name = 'ShowActionsDialog';
-        ShowActionsDialog.static.title = 'Actions';
+        ActionsDialog.static.name = 'ActionsDialog';
+        ActionsDialog.static.title = 'Actions';
     }
 
     initialize = () => {

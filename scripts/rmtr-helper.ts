@@ -209,7 +209,7 @@ mw.loader.using(['mediawiki.util'], () => {
                     });
 
                     const removeRequestDropdownOptions = [
-                        'Completed', //
+                        'Completed',
                         'Contested',
                         'Already done',
                         'Invalid page name',

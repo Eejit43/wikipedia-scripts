@@ -1,5 +1,5 @@
 import type { ApiQueryAllPagesGeneratorParameters } from '../../global-types';
-import type { LookupElementConfig } from './page-input-widget';
+import type { LookupElementConfig } from '../redirect-helper/redirect-target-input-widget';
 
 /**
  * An instance of this class is a category lookup element.
@@ -36,7 +36,7 @@ export default class CategoryInputWidget extends OO.ui.TextInputWidget {
             .catch(() => null)
             .then((result: { query: { pages: { title: string; categories?: { title: string }[] }[] } } | null) => {
                 if (result?.query?.pages) {
-                    const pages = result.query.pages //
+                    const pages = result.query.pages
                         .filter(
                             (page) =>
                                 !page.categories?.some((category) => category.title === 'Category:Wikipedia soft redirected categories'),

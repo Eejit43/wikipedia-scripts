@@ -82,7 +82,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                 required: true,
                 $overlay: this.$overlay,
                 options: [
-                    { data: 'Performing [[WP:RM/TR|requested technical move]]' }, //
+                    { data: 'Performing [[WP:RM/TR|requested technical move]]' },
                     { data: 'Result of [[WP:RM|requested move]]' },
                     { data: 'Move to [[WP:COMMONNAME|common name]]' },
                     { data: 'Fixing typo' },

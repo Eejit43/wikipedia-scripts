@@ -123,7 +123,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                         await this.editOrCreate(
                             'User:Eejit43/scripts-info',
                             [
-                                this.mapScripts(this.scripts.filter((script) => !script.personal && !script.fork)), //
+                                this.mapScripts(this.scripts.filter((script) => !script.personal && !script.fork)),
                                 '',
                                 '=== Forks ===',
                                 this.mapScripts(this.scripts.filter((script) => script.fork)),
@@ -191,7 +191,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
             const styleName = `${subpageName}.css`;
 
             const fullSubpageInfo = [
-                '{{User:Eejit43/script-documentation', //
+                '{{User:Eejit43/script-documentation',
                 script.image === false ? `| image             = ${script.image}` : null,
                 script['in-development'] ? `| in-development    = ${script['in-development']}` : null,
                 script['use-instead']

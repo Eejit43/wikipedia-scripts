@@ -1,10 +1,10 @@
 import type { ApiEditPageParams, ApiQueryRevisionsParams } from 'types-mediawiki/api_params';
 import type { MediaWikiDataError, PageRevisionsResult } from '../../global-types';
-import type { RedirectTemplateData, TemplateEditorElementInfo } from '../redirect-helper';
+import type { RedirectTemplateData, TemplateEditorElementInfo } from '../redirect-helper/redirect-helper-dialog';
 import type { WatchMethod } from './afcrc-helper';
 import CategoryInputWidget from './category-input-widget';
 import PageInputWidget from './page-input-widget';
-import ShowActionsDialog from './show-actions-dialog';
+import ActionsDialog from './show-actions-dialog';
 
 type Requester = { type: 'user' | 'ip'; name: string } | null;
 
@@ -1107,7 +1107,7 @@ export default class AfcrcHelperDialog extends OO.ui.ProcessDialog {
         const windowManager = new OO.ui.WindowManager();
         document.body.append(windowManager.$element[0]);
 
-        const showActionsDialog = new ShowActionsDialog();
+        const showActionsDialog = new ActionsDialog();
         windowManager.addWindows([showActionsDialog]);
         showActionsDialog.open();
 
@@ -1532,7 +1532,7 @@ export default class AfcrcHelperDialog extends OO.ui.ProcessDialog {
      * Makes all edits and creations that need to be made.
      * @param showActionsDialog The dialog to log the results to.
      */
-    private async makeAllEditsCreations(showActionsDialog: ShowActionsDialog) {
+    private async makeAllEditsCreations(showActionsDialog: ActionsDialog) {
         for (const action of this.editsCreationsToMake) {
             const apiFunction =
                 action.type === 'edit'

@@ -10,6 +10,8 @@ export default class PageInputWidget extends OO.ui.TextInputWidget {
     private api = new mw.Api();
 
     constructor(config: LookupElementConfig) {
+        Object.assign(PageInputWidget.prototype, OO.ui.mixin.LookupElement.prototype);
+
         super(config);
         OO.ui.mixin.LookupElement.call(this as unknown as OO.ui.mixin.LookupElement, config);
     }
@@ -50,5 +52,3 @@ export default class PageInputWidget extends OO.ui.TextInputWidget {
     getLookupMenuOptionsFromData = (data: { data: string; label: string }[]) =>
         data.map(({ data, label }) => new OO.ui.MenuOptionWidget({ data, label }));
 }
-
-Object.assign(PageInputWidget.prototype, OO.ui.mixin.LookupElement.prototype);

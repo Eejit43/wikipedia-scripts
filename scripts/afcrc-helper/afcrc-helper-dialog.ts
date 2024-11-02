@@ -67,6 +67,8 @@ export default class AfcrcHelperDialog extends OO.ui.ProcessDialog {
     )[] = [];
 
     constructor(requestPageType: 'redirect' | 'category', pageTitle: string, createdWatchMethod?: WatchMethod) {
+        Object.assign(AfcrcHelperDialog.prototype, OO.ui.ProcessDialog.prototype);
+
         super({ size: 'large' });
 
         AfcrcHelperDialog.static.name = 'AfcrcHelperDialog';
@@ -1570,5 +1572,3 @@ export default class AfcrcHelperDialog extends OO.ui.ProcessDialog {
         }
     }
 }
-
-Object.assign(AfcrcHelperDialog.prototype, OO.ui.ProcessDialog.prototype);

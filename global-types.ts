@@ -17,8 +17,7 @@ export interface SearchResult {
 
 // Generators (modified from their ApiQueryParams counterparts)
 
-// eslint-disable-next-line unicorn/prevent-abbreviations
-export interface ApiQueryAllPagesGeneratorParams extends ApiQueryParams {
+export interface ApiQueryAllPagesGeneratorParameters extends ApiQueryParams {
     gapfrom?: string;
     gapcontinue?: string;
     gapto?: string;

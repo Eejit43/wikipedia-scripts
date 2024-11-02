@@ -3,13 +3,17 @@ import postcss from 'esbuild-postcss';
 import { readdirSync } from 'node:fs';
 
 const scripts = readdirSync('scripts')
-    .filter((file) => file.endsWith('.ts'))
-    .map((file) => `scripts/${file}`);
+    .filter((fileOrDirectory) => !fileOrDirectory.endsWith('.json'))
+    .map((fileOrDirectory) =>
+        fileOrDirectory.endsWith('.ts') ? `scripts/${fileOrDirectory}` : `scripts/${fileOrDirectory}/${fileOrDirectory}.ts`,
+    );
+
 for (const script of scripts)
     build({
         entryPoints: [script],
         outdir: 'dist/scripts',
         minify: true,
+        bundle: true,
         sourcemap: 'inline',
         banner: {
             js: `// <nowiki>\n// Note: This script was compiled and minified from TypeScript. For a more readable version, see https://github.com/Eejit43/wikipedia-scripts/blob/main/${script}\n`,
@@ -18,6 +22,7 @@ for (const script of scripts)
     });
 
 const styles = readdirSync('styles').map((file) => `styles/${file}`);
+
 for (const style of styles)
     build({
         entryPoints: [style],

@@ -1,6 +1,6 @@
 {
     "extends": "@eejit/eslint-config-typescript/tsconfig-dom.json",
-    "include": ["*.ts", "../global-types.ts", "../node_modules/types-mediawiki"],
+    "include": ["**/*.ts", "../global-types.ts", "../node_modules/types-mediawiki"],
 
     "compilerOptions": {
         "moduleResolution": "Bundler" // Allow importing of dependencies for types

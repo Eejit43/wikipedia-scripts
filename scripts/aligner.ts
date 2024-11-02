@@ -18,6 +18,7 @@
             'Align template parameters',
             'align-parameters',
         )!;
+
         link.addEventListener('click', (event) => {
             event.preventDefault();
 

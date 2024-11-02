@@ -35,3 +35,8 @@ for (const style of styles)
         },
         footer: { css: '\n/* </nowiki> */' },
     });
+
+// eslint-disable-next-line no-console
+console.log(
+    `Successfully compiled ${scripts.length} script${scripts.length === 1 ? '' : 's'} and ${styles.length} style${styles.length === 1 ? '' : 's'}!`,
+);

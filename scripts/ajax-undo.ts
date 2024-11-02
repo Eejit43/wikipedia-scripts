@@ -45,7 +45,7 @@ mw.loader.using(['mediawiki.util'], () => {
 
 #ajax-undo-loading.is-minerva:not(.is-diff) {
     float: right;
-    margin-top: 0px;
+    margin-top: 0;
 }
 
 @keyframes ajax-undo-loading {

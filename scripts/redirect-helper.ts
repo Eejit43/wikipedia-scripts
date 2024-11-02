@@ -564,13 +564,13 @@ mw.loader.using(dependencies, () => {
 }
 
 #redirect-helper-box {
-    color: #202122;
+    margin-right: auto;
+    margin-bottom: 25px !important;
+    margin-left: auto;
     background-color: whitesmoke;
     width: 700px;
     max-width: calc(100% - 50px);
-    margin-left: auto;
-    margin-right: auto;
-    margin-bottom: 25px !important;
+    color: #202122;
 }
 
 .redirect-input-layout label {
@@ -582,10 +582,11 @@ mw.loader.using(dependencies, () => {
     font-style: italic;
 }
 
-.redirect-helper-template-parameters-container, .redirect-helper-template-parameters-container details {
-    background-color: #e2e2e2;
-    border-radius: 5px;
+.redirect-helper-template-parameters-container,
+.redirect-helper-template-parameters-container details {
     margin-block: 10px;
+    border-radius: 5px;
+    background-color: #e2e2e2;
     padding: 5px;
 }
 
@@ -595,8 +596,8 @@ mw.loader.using(dependencies, () => {
 }
 
 .redirect-helper-template-parameters-container details {
-    background-color: #d1cece;
     margin-block: 5px;
+    background-color: #d1cece;
 }
 
 #redirect-helper-no-templates-message {
@@ -604,9 +605,9 @@ mw.loader.using(dependencies, () => {
 }
 
 #redirect-helper-summary-layout {
-    padding-top: 10px;
     margin-top: 15px;
     border-top: 1px solid gray;
+    padding-top: 10px;
 }
 
 #redirect-helper-submit-layout {

@@ -2,7 +2,7 @@
     "name": "wikipedia-scripts",
     "type": "module",
     "scripts": {
-        "build": "cp compile.ts compile.js && node compile.js && rm -f compile.js"
+        "build": "bun compile.ts"
     },
     "prettier": "@eejit/prettier-config",
     "devDependencies": {
@@ -16,6 +16,7 @@
         "esbuild": "^0.24.0",
         "esbuild-postcss": "^0.0.4",
         "postcss-preset-env": "^10.0.8",
+        "stylelint": "^16.10.0",
         "types-mediawiki": "^1.8.1",
         "typescript": "^5.6.3"
     }

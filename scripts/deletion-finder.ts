@@ -19,7 +19,7 @@ mw.loader.using(['mediawiki.util'], async () => {
 }
 
 #deletion-finder-previously-deleted {
-    color: #dd3333;
+    color: #d33;
 }
 
 #deletion-finder-previously-deleted::before {
@@ -27,7 +27,7 @@ mw.loader.using(['mediawiki.util'], async () => {
 }
 
 #deletion-finder-previous-afd {
-    color: #3366cc;
+    color: #36c;
 }
 
 #deletion-finder-previous-afd::before {

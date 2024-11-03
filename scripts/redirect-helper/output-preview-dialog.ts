@@ -11,8 +11,6 @@ export default class OutputPreviewDialog extends OO.ui.ProcessDialog {
     private pageTitleParsed: mw.Title;
 
     constructor(config: OO.ui.ProcessDialog.ConfigOptions, pageTitleParsed: mw.Title) {
-        Object.assign(OutputPreviewDialog.prototype, OO.ui.ProcessDialog.prototype);
-
         super(config);
 
         this.pageTitleParsed = pageTitleParsed;
@@ -59,3 +57,5 @@ export default class OutputPreviewDialog extends OO.ui.ProcessDialog {
         });
     };
 }
+
+Object.assign(OutputPreviewDialog.prototype, OO.ui.ProcessDialog.prototype);

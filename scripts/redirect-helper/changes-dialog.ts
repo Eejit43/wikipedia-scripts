@@ -8,8 +8,6 @@ export default class ChangesDialog extends OO.ui.ProcessDialog {
     private api = new mw.Api();
 
     constructor(config: OO.ui.ProcessDialog.ConfigOptions) {
-        Object.assign(ChangesDialog.prototype, OO.ui.ProcessDialog.prototype);
-
         super(config);
 
         ChangesDialog.static.name = 'ShowChangesDialog';
@@ -80,3 +78,5 @@ export default class ChangesDialog extends OO.ui.ProcessDialog {
         });
     };
 }
+
+Object.assign(ChangesDialog.prototype, OO.ui.ProcessDialog.prototype);

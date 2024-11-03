@@ -7,8 +7,6 @@ export default class ActionsDialog extends OO.ui.Dialog {
     private closeButton!: OO.ui.ButtonWidget;
 
     constructor() {
-        Object.assign(ActionsDialog.prototype, OO.ui.Dialog.prototype);
-
         super({ size: 'large' });
 
         ActionsDialog.static.name = 'ActionsDialog';
@@ -64,3 +62,5 @@ margin-block: 8px;
         this.contentLayout.$element.append(reloadButton.$element);
     }
 }
+
+Object.assign(ActionsDialog.prototype, OO.ui.Dialog.prototype);

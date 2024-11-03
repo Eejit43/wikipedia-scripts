@@ -1,5 +1,3 @@
-import AfcrcHelperDialog from './afcrc-helper-dialog';
-
 export type WatchMethod = 'nochange' | 'preferences' | 'unwatch' | 'watch';
 
 declare global {
@@ -8,7 +6,9 @@ declare global {
     }
 }
 
-mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-windows'], () => {
+mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-windows'], async () => {
+    const { default: AfcrcHelperDialog } = await import('./afcrc-helper-dialog'); // eslint-disable-line @typescript-eslint/naming-convention
+
     const pageName = mw.config.get('wgPageName').replaceAll('_', ' ');
 
     const isRedirectRequestPage = pageName === 'Wikipedia:Articles for creation/Redirects';

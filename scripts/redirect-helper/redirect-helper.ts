@@ -1,6 +1,6 @@
 import type { ApiQueryInfoParams, ApiQueryRevisionsParams } from 'types-mediawiki/api_params';
 import type { PageInfoResult, PageRevisionsResult } from '../../global-types';
-import RedirectHelperDialog, { type RedirectTemplateData } from './redirect-helper-dialog';
+import type { RedirectTemplateData } from './redirect-helper-dialog';
 
 const dependencies = [
     'mediawiki.util',
@@ -11,7 +11,9 @@ const dependencies = [
     'oojs-ui.styles.icons-editing-core',
 ];
 
-mw.loader.using(dependencies, () => {
+mw.loader.using(dependencies, async () => {
+    const { default: RedirectHelperDialog } = await import('./redirect-helper-dialog'); // eslint-disable-line @typescript-eslint/naming-convention
+
     /**
      * An instance of this class handles the entire functionality of the redirect-helper script.
      */

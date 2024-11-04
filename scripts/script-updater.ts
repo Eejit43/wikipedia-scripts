@@ -54,6 +54,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
 
         private content!: OO.ui.PanelLayout;
         private checkboxElements: [string, OO.ui.CheckboxInputWidget][] = [];
+        private actionsMultiselect!: OO.ui.CheckboxMultiselectWidget;
 
         private latestCommitHash!: string;
         private scripts!: Script[];
@@ -96,6 +97,25 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
 
                         this.content.$element.append(layout.$element);
                     }
+
+                    this.actionsMultiselect = new OO.ui.CheckboxMultiselectWidget({
+                        items: [
+                            { id: 'documentation', name: 'Update script documentation' },
+                            { id: 'script', name: 'Update script code' },
+                            { id: 'style', name: 'Update stylesheet' },
+                            { id: 'talk', name: 'Create talk redirect', selectedDefault: false },
+                        ].map(
+                            ({ id, name, selectedDefault }) =>
+                                new OO.ui.CheckboxMultioptionWidget({ data: id, label: name, selected: selectedDefault ?? true }),
+                        ),
+                    });
+
+                    const actionsMultiselectLayout = new OO.ui.FieldLayout(this.actionsMultiselect, {
+                        label: new OO.ui.HtmlSnippet('<b>Actions to take (if applicable):</b>'),
+                        align: 'inline',
+                    });
+
+                    this.content.$element.append(actionsMultiselectLayout.$element);
 
                     (this as unknown as { $body: JQuery }).$body.append(this.content.$element);
                 });
@@ -185,6 +205,8 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
          * @param script The script to handle.
          */
         private async handleScript(script: Script) {
+            const actionsToTake = this.actionsMultiselect.findSelectedItemsData() as ('documentation' | 'script' | 'style' | 'talk')[];
+
             const subpageName = `User:Eejit43/scripts/${script.name}`;
             const subpageTalkName = `User talk:Eejit43/scripts/${script.name}`;
             const scriptName = `${subpageName}.js`;
@@ -223,21 +245,23 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
 
             let scriptContent = null;
 
-            const scriptContentResponse = await fetch(
-                `https://raw.githubusercontent.com/${this.repoOwner}/${this.repoName}/${this.latestCommitHash}/dist/scripts/${script.name}.js`,
-            );
-            if (scriptContentResponse.ok) scriptContent = await scriptContentResponse.text();
-            else
-                return mw.notify(
-                    `Failed to fetch "${script.name}.js" from GitHub: ${scriptContentResponse.statusText} (${scriptContentResponse.status})`,
-                    {
-                        type: 'error',
-                        tag: 'sync-scripts-notification',
-                    },
+            if (actionsToTake.includes('script')) {
+                const scriptContentResponse = await fetch(
+                    `https://raw.githubusercontent.com/${this.repoOwner}/${this.repoName}/${this.latestCommitHash}/dist/scripts/${script.name}.js`,
                 );
+                if (scriptContentResponse.ok) scriptContent = await scriptContentResponse.text();
+                else
+                    return mw.notify(
+                        `Failed to fetch "${script.name}.js" from GitHub: ${scriptContentResponse.statusText} (${scriptContentResponse.status})`,
+                        {
+                            type: 'error',
+                            tag: 'sync-scripts-notification',
+                        },
+                    );
+            }
 
             let styleContent = null;
-            if (script.css) {
+            if (actionsToTake.includes('style') && script.css) {
                 const styleContentResponse = await fetch(
                     `https://raw.githubusercontent.com/${this.repoOwner}/${this.repoName}/${this.latestCommitHash}/dist/styles/${script.name}.css`,
                 );
@@ -254,12 +278,15 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
             }
 
             if (!script.personal) {
-                await this.editOrCreate(subpageName, fullSubpageInfo.join('\n'), 'Syncing script documentation from GitHub');
-                await this.editOrCreate(
-                    subpageTalkName,
-                    '#REDIRECT [[User talk:Eejit43]]',
-                    'Redirecting script documentation talk page to main user talk page',
-                );
+                if (actionsToTake.includes('documentation'))
+                    await this.editOrCreate(subpageName, fullSubpageInfo.join('\n'), 'Syncing script documentation from GitHub');
+
+                if (actionsToTake.includes('talk'))
+                    await this.editOrCreate(
+                        subpageTalkName,
+                        '#REDIRECT [[User talk:Eejit43]]',
+                        'Redirecting script documentation talk page to main user talk page',
+                    );
             }
 
             if (scriptContent) await this.editOrCreate(scriptName, scriptContent, 'Syncing script from GitHub');

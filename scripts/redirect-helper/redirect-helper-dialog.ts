@@ -243,7 +243,7 @@ export default class RedirectHelperDialog {
             const target = this.redirectRegex.exec(mainPageContent)?.[1];
             if (!target) return mw.notify('Failed to parse main page content!', { type: 'error' });
 
-            this.redirectInput.setValue(mw.Title.newFromText(target)?.getTalkPage()?.toString() ?? '');
+            this.redirectInput.setValue(mw.Title.newFromText(target)?.getTalkPage()?.getPrefixedText() ?? '');
             const fromMove = ['R from move', ...this.redirectTemplates['R from move'].aliases].some((tagOrRedirect) =>
                 new RegExp(`{{\\s*[${tagOrRedirect[0].toLowerCase()}${tagOrRedirect[0]}]${tagOrRedirect.slice(1)}\\s*(\\||}})`).test(
                     mainPageContent,
@@ -833,7 +833,8 @@ export default class RedirectHelperDialog {
         if (!this.parsedDestination && errors.length === 0) errors.push({ title: destination, message: 'is not a valid page title!' });
 
         /* Self redirects */
-        if (this.parsedDestination?.toString() === this.pageTitleParsed.toString()) errors.push({ message: 'cannot redirect to itself!' });
+        if (this.parsedDestination?.getPrefixedText() === this.pageTitleParsed.getPrefixedText())
+            errors.push({ message: 'cannot redirect to itself!' });
 
         const destinationData = (await this.api
             .get({
@@ -897,7 +898,7 @@ export default class RedirectHelperDialog {
                         prop: 'revisions',
                         rvprop: 'content',
                         rvslots: 'main',
-                        titles: this.parsedDestination!.toString(),
+                        titles: this.parsedDestination!.getPrefixedText(),
                     } satisfies ApiQueryRevisionsParams)) as PageRevisionsResult
                 ).query.pages[0].revisions[0].slots.main.content;
 

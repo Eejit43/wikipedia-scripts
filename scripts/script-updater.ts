@@ -125,7 +125,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
         getActionProcess = (action: string) => {
             if (action === 'cancel')
                 return new OO.ui.Process(() => {
-                    this.getManager().closeWindow(this);
+                    this.close();
                 });
             else if (action === 'save')
                 return new OO.ui.Process(() => {
@@ -133,7 +133,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                     for (const [scriptName, checkbox] of this.checkboxElements)
                         if (checkbox.isSelected()) selectedScripts.push(this.scripts.find((script) => script.name === scriptName)!);
 
-                    this.getManager().closeWindow(this);
+                    this.close();
 
                     (async () => {
                         mw.notify('Syncing scripts...', { tag: 'sync-scripts-notification' });

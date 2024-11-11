@@ -67,7 +67,7 @@ export default class ChangesDialog extends OO.ui.ProcessDialog {
     getActionProcess = (action: string) => {
         return action
             ? new OO.ui.Process(() => {
-                  this.getManager().closeWindow(this);
+                  this.close();
               })
             : ChangesDialog.super.prototype.getActionProcess.call(this, action);
     };

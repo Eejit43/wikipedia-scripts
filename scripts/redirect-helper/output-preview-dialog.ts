@@ -46,7 +46,7 @@ export default class OutputPreviewDialog extends OO.ui.ProcessDialog {
     getActionProcess = (action: string) => {
         return action
             ? new OO.ui.Process(() => {
-                  this.getManager().closeWindow(this);
+                  this.close();
               })
             : OutputPreviewDialog.super.prototype.getActionProcess.call(this, action);
     };

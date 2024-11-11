@@ -7,7 +7,8 @@ declare global {
 }
 
 mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-windows'], async () => {
-    const { default: AfcrcHelperDialog } = await import('./afcrc-helper-dialog'); // eslint-disable-line @typescript-eslint/naming-convention
+    const { default: AfcrcHelperRedirectsDialog } = await import('./afcrc-helper-redirects-dialog'); // eslint-disable-line @typescript-eslint/naming-convention
+    const { default: AfcrcHelperCategoriesDialog } = await import('./afcrc-helper-categories-dialog'); // eslint-disable-line @typescript-eslint/naming-convention
 
     const pageName = mw.config.get('wgPageName').replaceAll('_', ' ');
 
@@ -31,7 +32,9 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
         const windowManager = new OO.ui.WindowManager();
         document.body.append(windowManager.$element[0]);
 
-        const afcrcHelperDialog = new AfcrcHelperDialog(requestPageType, pageName, window.afcrcConfiguration?.createdPageWatchMethod);
+        const helper = requestPageType === 'redirect' ? AfcrcHelperRedirectsDialog : AfcrcHelperCategoriesDialog;
+
+        const afcrcHelperDialog = new helper(requestPageType, pageName, window.afcrcConfiguration?.createdPageWatchMethod);
 
         windowManager.addWindows([afcrcHelperDialog]);
 

@@ -1,5 +1,5 @@
-import AfcrcHelperDialog, { type AfcrcRequestAction, type AfcrcRequestActionType, type AfcrcRequestRequester } from './afcrc-helper-dialog';
 import CategoryInputWidget from './category-input-widget';
+import HelperDialog, { type RequestAction, type RequestActionType, type RequestRequester } from './helper-dialog';
 import PageInputWidget from './page-input-widget';
 import type ActionsDialog from './show-actions-dialog';
 
@@ -7,17 +7,22 @@ interface CategoryRequestData {
     category: string;
     examples: string[];
     parents: string[];
-    requester: AfcrcRequestRequester;
+    requester: RequestRequester;
 }
 
-export type CategoryAction = AfcrcRequestAction & { category: string; examples: string[]; parents: string[] };
+export type CategoryAction = RequestAction & { category: string; examples: string[]; parents: string[] };
 
 export type CategoryActions = CategoryAction[];
 
-export default class AfcrcHelperRedirectDialog extends AfcrcHelperDialog {
+export default class CategoriesDialog extends HelperDialog {
     protected parsedRequests: CategoryRequestData[] = [];
     private actionsToTake: CategoryActions = [];
 
+    /**
+     * Parses redirect requests from section text.
+     * @param sectionText The section text.
+     * @param sectionHeader The section header.
+     */
     protected parseSubtypeRequests(sectionText: string, sectionHeader: string) {
         const parsedData = {} as CategoryRequestData;
 
@@ -175,7 +180,7 @@ export default class AfcrcHelperRedirectDialog extends AfcrcHelperDialog {
 
             const option = (
                 (actionRadioInput.findSelectedItem() as OO.ui.RadioOptionWidget).getData() as string
-            ).toLowerCase() as AfcrcRequestActionType;
+            ).toLowerCase() as RequestActionType;
 
             this.actionsToTake[index].action = option;
 
@@ -387,36 +392,11 @@ export default class AfcrcHelperRedirectDialog extends AfcrcHelperDialog {
     }
 
     /**
-     * Handles the creation of pages related to an accepted category request.
-     * @param data The data of the requested category.
+     * Performs actions on a given category request.
+     * @param showActionsDialog The dialog to add messages to.
+     * @param counts The count object used to track requests for the edit summary.
+     * @param newPageText The new page text.
      */
-    protected handleAcceptedCategory(data: CategoryAction) {
-        this.editsCreationsToMake.push(
-            {
-                type: 'create',
-                isRedirect: false,
-                title: `Category:${data.category}`,
-                text: data.parents.map((parent) => `[[Category:${parent}]]`).join('\n'),
-                summary: `Creating category as requested at [[WP:AFC/C]]${this.scriptMessage}`,
-            },
-            {
-                type: 'create',
-                isRedirect: false,
-                title: `Category talk:${data.category}`,
-                text: `{{WikiProject banner shell|\n{{WikiProject Articles for creation|ts={{subst:LOCALTIMESTAMP}}|reviewer=${mw.config.get('wgUserName')}}}\n}}`,
-                summary: `Adding [[Wikipedia:WikiProject Articles for creation|WikiProject Articles for creation]] banner${this.scriptMessage}`,
-            },
-            ...data.examples.map((example) => ({
-                type: 'edit' as const,
-                title: example,
-                transform: ({ content }: { content: string }) => ({
-                    text: `${content}\n[[Category:${data.category}]]`,
-                    summary: `Adding page to [[:Category:${data.category}]] as requested at [[WP:AFC/C]]${this.scriptMessage}`,
-                }),
-            })),
-        );
-    }
-
     protected async performSubtypeActions(showActionsDialog: ActionsDialog, counts: Record<string, number>, newPageText: string) {
         const anyRequestHandled = this.actionsToTake.some((actionData) => actionData.action !== 'none');
 
@@ -500,5 +480,36 @@ export default class AfcrcHelperRedirectDialog extends AfcrcHelperDialog {
 
             showActionsDialog.showReload();
         } else showActionsDialog.addLogEntry('No requests have been handled!');
+    }
+
+    /**
+     * Handles the creation of pages related to an accepted category request.
+     * @param data The data of the requested category.
+     */
+    protected handleAcceptedCategory(data: CategoryAction) {
+        this.editsCreationsToMake.push(
+            {
+                type: 'create',
+                isRedirect: false,
+                title: `Category:${data.category}`,
+                text: data.parents.map((parent) => `[[Category:${parent}]]`).join('\n'),
+                summary: `Creating category as requested at [[WP:AFC/C]]${this.scriptMessage}`,
+            },
+            {
+                type: 'create',
+                isRedirect: false,
+                title: `Category talk:${data.category}`,
+                text: `{{WikiProject banner shell|\n{{WikiProject Articles for creation|ts={{subst:LOCALTIMESTAMP}}|reviewer=${mw.config.get('wgUserName')}}}\n}}`,
+                summary: `Adding [[Wikipedia:WikiProject Articles for creation|WikiProject Articles for creation]] banner${this.scriptMessage}`,
+            },
+            ...data.examples.map((example) => ({
+                type: 'edit' as const,
+                title: example,
+                transform: ({ content }: { content: string }) => ({
+                    text: `${content}\n[[Category:${data.category}]]`,
+                    summary: `Adding page to [[:Category:${data.category}]] as requested at [[WP:AFC/C]]${this.scriptMessage}`,
+                }),
+            })),
+        );
     }
 }

@@ -1,7 +1,8 @@
 import type { ApiQueryRevisionsParams } from 'types-mediawiki/api_params';
 import type { PageRevisionsResult } from '../../global-types';
 import type { RedirectTemplateData, TemplateEditorElementInfo } from '../redirect-helper/redirect-helper-dialog';
-import AfcrcHelperDialog, { type AfcrcRequestAction, type AfcrcRequestActionType, type AfcrcRequestRequester } from './afcrc-helper-dialog';
+import HelperDialog, { type RequestAction, type RequestRequester } from './helper-dialog';
+import RedirectRequestHandler from './redirect-request-handler';
 import type ActionsDialog from './show-actions-dialog';
 
 interface RedirectRequestData {
@@ -9,19 +10,22 @@ interface RedirectRequestData {
     target: string;
     reason: string;
     source: string;
-    requester: AfcrcRequestRequester;
+    requester: RequestRequester;
 }
 
-type RedirectAction = AfcrcRequestAction & { redirectTemplates?: string[]; redirectTemplateParameters?: TemplateEditorElementInfo[] };
+export type RedirectAction = RequestAction & { redirectTemplates?: string[]; redirectTemplateParameters?: TemplateEditorElementInfo[] };
 
 type RedirectActions = { target: string; requests: Record<string, RedirectAction> }[];
 
-export default class AfcrcHelperRedirectDialog extends AfcrcHelperDialog {
-    private redirectTemplates!: RedirectTemplateData;
+export default class RedirectsDialog extends HelperDialog {
+    public redirectTemplates!: RedirectTemplateData;
 
     protected parsedRequests: RedirectRequestData[] = [];
-    private actionsToTake: RedirectActions = [];
+    public actionsToTake: RedirectActions = [];
 
+    /**
+     * Load elements in the window.
+     */
     public async load() {
         const redirectTemplateResponse = (await this.api.get({
             action: 'query',
@@ -39,6 +43,11 @@ export default class AfcrcHelperRedirectDialog extends AfcrcHelperDialog {
         super.load();
     }
 
+    /**
+     * Parses redirect requests from section text.
+     * @param sectionText The section text.
+     * @param sectionHeader The section header.
+     */
     protected parseSubtypeRequests(sectionText: string, sectionHeader: string) {
         const parsedData = {} as RedirectRequestData;
 
@@ -203,251 +212,10 @@ export default class AfcrcHelperRedirectDialog extends AfcrcHelperDialog {
         const requestResponderElement = document.createElement('div');
         requestResponderElement.classList.add('afcrc-helper-request-responder');
 
-        const actionRadioInputs: OO.ui.RadioSelectWidget[] = [];
-        const denyReasonInputs: OO.ui.ComboBoxInputWidget[] = [];
-        const closingReasonDropdowns: OO.ui.DropdownWidget[] = [];
-        const commentInputs: OO.ui.TextInputWidget[] = [];
-
         for (const requestedTitle of request.pages) {
-            const requestedTitleDiv = document.createElement('div');
+            const handler = new RedirectRequestHandler(index, requestedTitle, detailsElement, requestResponderElement, this);
 
-            const label = document.createElement('b');
-            label.textContent = requestedTitle;
-            requestedTitleDiv.append(label);
-
-            let tagSelectLayout: OO.ui.FieldLayout, templateParametersEditor: HTMLDetailsElement;
-
-            const templateEditorsInfo: TemplateEditorElementInfo[] = [];
-
-            const actionRadioInput = new OO.ui.RadioSelectWidget({
-                classes: ['afcrc-helper-action-radio'],
-                items: ['Accept', 'Deny', 'Comment', 'Close', 'None'].map((label) => new OO.ui.RadioOptionWidget({ data: label, label })),
-            });
-            actionRadioInputs.push(actionRadioInput);
-            actionRadioInput.selectItemByLabel('None');
-            actionRadioInput.on('choose', (selected) => {
-                setTimeout(() => this.updateSize(), 0);
-
-                const option = (selected.getData() as string).toLowerCase() as AfcrcRequestActionType;
-
-                this.actionsToTake[index].requests[requestedTitle].action = option;
-
-                if (!tagSelectLayout || !templateParametersEditor) {
-                    const tagSelect = new OO.ui.MenuTagMultiselectWidget({
-                        allowArbitrary: false,
-                        allowReordering: false,
-                        options: Object.entries(this.redirectTemplates).map(([tag, { redirect }]) => {
-                            if (!redirect) return { data: tag, label: tag };
-
-                            const label = new OO.ui.HtmlSnippet(`${tag} <i>(redirect with possibilities)</i>`);
-
-                            return { data: tag, label };
-                        }),
-                    });
-                    (tagSelect.getMenu() as OO.ui.MenuSelectWidget.ConfigOptions).filterMode = 'substring';
-                    tagSelect.on('change', () => {
-                        const sortedTags = (tagSelect.getValue() as string[]).sort((a, b) =>
-                            a.toLowerCase().localeCompare(b.toLowerCase()),
-                        );
-
-                        if ((tagSelect.getValue() as string[]).join(';') !== sortedTags.join(';')) tagSelect.setValue(sortedTags);
-
-                        this.actionsToTake[index].requests[requestedTitle].redirectTemplates = sortedTags;
-
-                        for (const editorInfo of templateEditorsInfo) editorInfo.details.style.display = 'none';
-
-                        let shownTemplateEditors = 0;
-                        for (const tag of tagSelect.getValue() as string[]) {
-                            const editorInfo = templateEditorsInfo.find((editorInfo) => editorInfo.name === tag);
-
-                            if (editorInfo) {
-                                editorInfo.details.style.display = 'block';
-                                shownTemplateEditors++;
-                            }
-                        }
-
-                        summaryElement.textContent = `Template parameters (${shownTemplateEditors > 0 ? `for ${shownTemplateEditors} template${shownTemplateEditors > 1 ? 's' : ''}` : 'none to show'})`;
-
-                        noTemplatesMessage.style.display = shownTemplateEditors > 0 ? 'none' : 'block';
-                    });
-
-                    tagSelectLayout = new OO.ui.FieldLayout(tagSelect, {
-                        classes: ['afcrc-helper-tag-select-layout'],
-                        align: 'inline',
-                        label: 'Redirect templates:',
-                    });
-                    commentInputLayout.$element[0].before(tagSelectLayout.$element[0]);
-
-                    templateParametersEditor = document.createElement('details');
-                    templateParametersEditor.classList.add('afcrc-helper-template-parameters-container');
-
-                    const summaryElement = document.createElement('summary');
-                    summaryElement.textContent = 'Template parameters (none to show)';
-                    templateParametersEditor.append(summaryElement);
-
-                    for (const [templateName, templateData] of Object.entries(this.redirectTemplates)) {
-                        const parameters = Object.entries(templateData.parameters);
-                        if (parameters.length === 0) continue;
-
-                        const details = document.createElement('details');
-                        details.style.display = 'none';
-
-                        const summary = document.createElement('summary');
-                        summary.textContent = templateName;
-                        details.append(summary);
-
-                        const elementData: TemplateEditorElementInfo = { name: templateName, details, parameters: [] };
-
-                        for (const [parameterName, parameterData] of parameters) {
-                            const input = new OO.ui.TextInputWidget({
-                                placeholder: parameterData.default?.toString(),
-                                required: parameterData.required,
-                            });
-
-                            const inputLayout = new OO.ui.FieldLayout(input, {
-                                label: new OO.ui.HtmlSnippet(
-                                    `${parameterName}${!parameterData.label || parameterName.toLowerCase() === parameterData.label?.toLowerCase() ? '' : ` (${parameterData.label})`}${parameterData.description ? ` (${parameterData.description})` : ''} (type: ${parameterData.type}) ${parameterData.suggested ? ' (suggested)' : ''}${parameterData.example ? ` (example: "${parameterData.example}")` : ''}`,
-                                ),
-                                align: 'inline',
-                            });
-                            details.append(inputLayout.$element[0]);
-
-                            elementData.parameters.push({ name: parameterName, aliases: parameterData.aliases, editor: input });
-                        }
-
-                        templateParametersEditor.append(details);
-
-                        templateEditorsInfo.push(elementData);
-                    }
-
-                    this.actionsToTake[index].requests[requestedTitle].redirectTemplateParameters = templateEditorsInfo;
-
-                    const noTemplatesMessage = document.createElement('div');
-                    noTemplatesMessage.id = 'afcrc-helper-no-templates-message';
-                    noTemplatesMessage.textContent = 'No templates with parameters to display!';
-
-                    templateParametersEditor.append(noTemplatesMessage);
-
-                    commentInputLayout.$element[0].before(templateParametersEditor);
-                }
-
-                if (['accept', 'comment', 'close'].includes(option)) {
-                    commentInputLayout.$element.show();
-
-                    const comment = commentInput.getValue().trim();
-                    if (comment) this.actionsToTake[index].requests[requestedTitle].comment = comment;
-                    else delete this.actionsToTake[index].requests[requestedTitle].comment;
-                } else {
-                    commentInputLayout.$element.hide();
-
-                    delete this.actionsToTake[index].requests[requestedTitle].comment;
-                }
-
-                this.updateRequestColor(detailsElement, index);
-
-                tagSelectLayout.$element.hide();
-                templateParametersEditor.style.display = 'none';
-                denyReasonLayout.$element.hide();
-                closingReasonLayout.$element.hide();
-
-                switch (option) {
-                    case 'accept': {
-                        tagSelectLayout.$element.show();
-                        templateParametersEditor.style.display = 'block';
-
-                        break;
-                    }
-                    case 'deny': {
-                        denyReasonLayout.$element.show();
-
-                        break;
-                    }
-                    case 'close': {
-                        closingReasonLayout.$element.show();
-
-                        break;
-                    }
-                }
-            });
-
-            const denyReasonInput = new OO.ui.ComboBoxInputWidget({
-                classes: ['afcrc-closing-reason-input'],
-                placeholder: 'autofill:unlikely',
-                options: [
-                    ['exists', 'existing pages'],
-                    ['empty', 'empty submissions'],
-                    ['notarget', 'nonexistent or no provided target'],
-                    ['notitle', 'no title provided'],
-                    ['unlikely', 'unlikely redirects'],
-                    ['notredirect', 'article creation requests'],
-                    ['externallink', 'external link redirects'],
-                    ['editrequest', 'edit requests'],
-                    ['notenglish', 'requests not in English'],
-                ].map(([value, label]) => ({ data: `autofill:${value}`, label: `Autofilled text for ${label}` })),
-            });
-            denyReasonInputs.push(denyReasonInput);
-            denyReasonInput.on('change', (value) => {
-                this.actionsToTake[index].requests[requestedTitle].denyReason = value || 'autofill:unlikely';
-            });
-            denyReasonInput.setValue('autofill:unlikely');
-            denyReasonInput.getMenu().selectItemByData('autofill:unlikely');
-
-            const denyReasonLayout = new OO.ui.FieldLayout(denyReasonInput, {
-                align: 'inline',
-                label: 'Deny reason:',
-                help: 'Supports automatic reasoning, custom reasoning, or a combination of the two with "autofill:REASON, CUSTOM" format',
-            });
-            denyReasonLayout.$element.hide();
-
-            const closingReasonDropdown = new OO.ui.DropdownWidget({
-                classes: ['afcrc-closing-reason-input'],
-                menu: {
-                    items: [
-                        ['No response', 'r'],
-                        ['Succeeded', 's'],
-                        ['Withdrawn', 'w'],
-                    ].map(([title, id]) => new OO.ui.MenuOptionWidget({ data: id, label: title })),
-                },
-            });
-            closingReasonDropdowns.push(closingReasonDropdown);
-            closingReasonDropdown.getMenu().on('choose', (selected) => {
-                this.actionsToTake[index].requests[requestedTitle].closingReason = {
-                    name: selected.getLabel() as string,
-                    id: selected.getData() as string,
-                };
-
-                this.updateRequestColor(detailsElement, index);
-            });
-            closingReasonDropdown.getMenu().selectItemByData('r');
-            if (requestedTitle) this.actionsToTake[index].requests[requestedTitle].closingReason = { name: 'No response', id: 'r' };
-
-            const closingReasonLayout = new OO.ui.FieldLayout(closingReasonDropdown, { align: 'inline', label: 'Closing reason:' });
-            closingReasonLayout.$element.hide();
-
-            const commentInput = new OO.ui.TextInputWidget();
-            commentInputs.push(commentInput);
-            commentInput.on('change', () => {
-                const comment = commentInput.getValue().trim();
-
-                if (comment) this.actionsToTake[index].requests[requestedTitle].comment = comment;
-                else delete this.actionsToTake[index].requests[requestedTitle].comment;
-            });
-
-            const commentInputLayout = new OO.ui.FieldLayout(commentInput, {
-                classes: ['afcrc-comment-input'],
-                align: 'inline',
-                label: 'Comment:',
-            });
-            commentInputLayout.$element.hide();
-
-            requestedTitleDiv.append(
-                actionRadioInput.$element[0],
-                denyReasonLayout.$element[0],
-                closingReasonLayout.$element[0],
-                commentInputLayout.$element[0],
-            );
-
-            requestResponderElement.append(requestedTitleDiv);
+            handler.setup();
         }
 
         detailsElement.append(requestResponderElement);
@@ -462,7 +230,7 @@ export default class AfcrcHelperRedirectDialog extends AfcrcHelperDialog {
      * @param detailsElement The details element to update.
      * @param index The index of the redirect target.
      */
-    protected updateRequestColor(detailsElement: HTMLDetailsElement, index: number) {
+    public updateRequestColor(detailsElement: HTMLDetailsElement, index: number) {
         const actionsToTake = Object.values(this.actionsToTake[index].requests);
 
         const allRequestsAcceptedDenied = actionsToTake.every((action) => action.action === 'accept' || action.action === 'deny');
@@ -489,6 +257,12 @@ export default class AfcrcHelperRedirectDialog extends AfcrcHelperDialog {
         detailsElement.style.backgroundColor = backgroundColor;
     }
 
+    /**
+     * Performs actions on a given category request.
+     * @param showActionsDialog The dialog to add messages to.
+     * @param counts The count object used to track requests for the edit summary.
+     * @param newPageText The new page text.
+     */
     protected async performSubtypeActions(showActionsDialog: ActionsDialog, counts: Record<string, number>, newPageText: string) {
         const anyRequestHandled = this.actionsToTake.some((actionData) =>
             Object.values(actionData.requests).some((action) => action.action !== 'none'),

@@ -3,13 +3,13 @@ import type { MediaWikiDataError, PageRevisionsResult } from '../../global-types
 import type { WatchMethod } from './afcrc-helper';
 import ActionsDialog from './show-actions-dialog';
 
-export type AfcrcRequestRequester = { type: 'user' | 'ip'; name: string } | null;
+export type RequestRequester = { type: 'user' | 'ip'; name: string } | null;
 
-export type AfcrcRequestActionType = 'accept' | 'deny' | 'comment' | 'close' | 'none';
+export type RequestActionType = 'accept' | 'deny' | 'comment' | 'close' | 'none';
 
-export interface AfcrcRequestAction {
+export interface RequestAction {
     originalText: { fullSectionText: string; sectionText: string };
-    action: AfcrcRequestActionType;
+    action: RequestActionType;
     comment?: string;
     denyReason?: string;
     closingReason?: { name: string; id: string };
@@ -18,7 +18,7 @@ export interface AfcrcRequestAction {
 /**
  * An instance of this class is a dialog that handles redirect and category requests.
  */
-export default class AfcrcHelperDialog extends OO.ui.ProcessDialog {
+export default class HelperDialog extends OO.ui.ProcessDialog {
     protected api = new mw.Api();
 
     protected scriptMessage = ' ([[User:Eejit43/scripts/afcrc-helper|afcrc-helper]])';
@@ -40,9 +40,9 @@ export default class AfcrcHelperDialog extends OO.ui.ProcessDialog {
     constructor(requestPageType: 'redirect' | 'category', pageTitle: string, createdWatchMethod: WatchMethod | undefined) {
         super({ size: 'large' });
 
-        AfcrcHelperDialog.static.name = 'AfcrcHelperDialog';
-        AfcrcHelperDialog.static.title = 'afcrc-helper';
-        AfcrcHelperDialog.static.actions = [
+        HelperDialog.static.name = 'AfcrcHelperDialog';
+        HelperDialog.static.title = 'afcrc-helper';
+        HelperDialog.static.actions = [
             { action: 'cancel', label: 'Close', flags: ['safe', 'close'] },
             { action: 'save', label: 'Run', flags: ['primary', 'progressive'] },
         ];
@@ -168,11 +168,11 @@ body.afcrc-helper-open #mw-teleport-target {
             return new OO.ui.Process(() => {
                 this.performActions();
             });
-        else return AfcrcHelperDialog.super.prototype.getActionProcess.call(this, action);
+        else return HelperDialog.super.prototype.getActionProcess.call(this, action);
     };
 
     getTeardownProcess = () => {
-        return AfcrcHelperDialog.super.prototype.getTeardownProcess.call(this).next(() => {
+        return HelperDialog.super.prototype.getTeardownProcess.call(this).next(() => {
             (this as unknown as { $body: JQuery }).$body.empty();
 
             document.body.classList.remove('afcrc-helper-open');
@@ -218,11 +218,6 @@ body.afcrc-helper-open #mw-teleport-target {
         }
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    protected parseSubtypeRequests(sectionText: string, sectionHeader: string) {
-        throw new Error('Not implemented.');
-    }
-
     /**
      * Loads the input elements in the dialog.
      */
@@ -261,16 +256,6 @@ body.afcrc-helper-open #mw-teleport-target {
         }
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    protected loadSubtypeElements(index: number) {
-        throw new Error('Not implemented.');
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    protected updateRequestColor(detailsElement: HTMLDetailsElement, index: number) {
-        throw new Error('Not implemented.');
-    }
-
     /**
      * Performs all actions and logs their results.
      */
@@ -296,11 +281,6 @@ body.afcrc-helper-open #mw-teleport-target {
         ).query.pages[0].revisions[0].slots.main.content.trim();
 
         this.performSubtypeActions(showActionsDialog, counts, newPageText);
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/require-await
-    protected async performSubtypeActions(dialog: ActionsDialog, counts: Record<string, number>, newPageText: string) {
-        throw new Error('Not implemented.');
     }
 
     /**
@@ -375,7 +355,7 @@ body.afcrc-helper-open #mw-teleport-target {
      * @param changes.append The text to append to the section text.
      */
     protected modifySectionData(
-        sectionData: { pageText: string } & AfcrcRequestAction['originalText'],
+        sectionData: { pageText: string } & RequestAction['originalText'],
         { prepend, append }: { prepend?: string; append?: string },
     ) {
         const { fullSectionText: oldFullSectionText, sectionText: oldSectionText } = sectionData;
@@ -433,6 +413,26 @@ body.afcrc-helper-open #mw-teleport-target {
             });
         }
     }
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    protected parseSubtypeRequests(sectionText: string, sectionHeader: string) {
+        throw new Error('Not implemented.');
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    protected loadSubtypeElements(index: number) {
+        throw new Error('Not implemented.');
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    protected updateRequestColor(detailsElement: HTMLDetailsElement, index: number) {
+        throw new Error('Not implemented.');
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/require-await
+    protected async performSubtypeActions(dialog: ActionsDialog, counts: Record<string, number>, newPageText: string) {
+        throw new Error('Not implemented.');
+    }
 }
 
-Object.assign(AfcrcHelperDialog.prototype, OO.ui.ProcessDialog.prototype);
+Object.assign(HelperDialog.prototype, OO.ui.ProcessDialog.prototype);

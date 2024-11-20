@@ -236,12 +236,12 @@ export default class RedirectRequestHandler {
             ].map(([value, label]) => ({ data: `autofill:${value}`, label: `Autofilled text for ${label}` })),
         });
 
-        denyReasonInput.setValue('autofill:unlikely');
-        denyReasonInput.getMenu().selectItemByData('autofill:unlikely');
-
         denyReasonInput.on('change', (value) => {
             this.updateActionsToTake({ denyReason: value || 'autofill:unlikely' });
         });
+
+        denyReasonInput.setValue('autofill:unlikely');
+        denyReasonInput.getMenu().selectItemByData('autofill:unlikely');
 
         this.denyReasonLayout = new OO.ui.FieldLayout(denyReasonInput, {
             align: 'inline',
@@ -274,8 +274,6 @@ export default class RedirectRequestHandler {
 
             this.dialog.updateRequestColor(this.detailsElement, this.titleIndex);
         });
-
-        this.updateActionsToTake({ closingReason: { name: 'No response', id: 'r' } });
 
         this.closingReasonLayout = new OO.ui.FieldLayout(closingReasonDropdown, { align: 'inline', label: 'Closing reason:' });
         this.closingReasonLayout.$element.hide();

@@ -290,7 +290,8 @@ body.afcrc-helper-open #mw-teleport-target {
     protected formatDeniedReason(reason: string) {
         const templateParameters = reason.startsWith('autofill:') ? /autofill:(\w+)/.exec(reason)![1] : `decline|2=${reason}`;
 
-        const additionalReasoning = reason.includes(',') ? ' ' + reason.slice(reason.indexOf(',') + 1).trim() : '';
+        const additionalReasoning =
+            reason.startsWith('autofill:') && reason.includes(',') ? ' ' + reason.slice(reason.indexOf(',') + 1).trim() : '';
 
         return `{{subst:AfC ${this.requestPageType}|${templateParameters}}}${additionalReasoning}`;
     }

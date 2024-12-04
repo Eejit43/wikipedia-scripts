@@ -53,9 +53,8 @@ mw.loader.using(dependencies, async () => {
             const conditions = [
                 mw.config.get('wgNamespaceNumber') >= 0, // Is not virtual namespace
                 mw.config.get('wgIsProbablyEditable'), // Page is editable
-                mw.config.get('wgIsArticle'), // Viewing the content of a page
-                mw.config.get('wgAction') === 'view', // Viewing the page (not editing)
-                mw.config.get('wgRevisionId') === mw.config.get('wgCurRevisionId'), // Viewing the current revision
+                mw.config.get('wgAction') === 'view' || mw.config.get('wgAction') === 'edit', // Viewing or editing the page
+                (mw.config.get('wgRevisionId') || mw.config.get('wgCurRevisionId')) === mw.config.get('wgCurRevisionId'), // Viewing the current revision
                 !mw.config.get('wgDiffOldId'), // Not viewing a diff
             ];
 

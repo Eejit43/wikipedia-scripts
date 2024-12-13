@@ -15,6 +15,7 @@ interface Script {
     'fork'?: true;
     'personal'?: true;
     'skin-support': Record<string, boolean>;
+    'source-multiple'?: true;
     'released': string;
     'updated': string;
     'css'?: true;
@@ -238,6 +239,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                 `| skin-support      = {{User:Eejit43/script-documentation/skin-support|${Object.entries(script['skin-support'])
                     .map(([skin, status]) => `${skin}=${status}`)
                     .join('|')}}}`,
+                script['source-multiple'] ? `| source-multiple   = ${script['source-multiple']}` : null,
                 `| released          = {{start date and age|${script.released}}}`,
                 `| updated           = {{start date and age|${script.updated}}}`,
                 '}}',

@@ -34,6 +34,7 @@
             "minerva": "yes",
             "cologne-blue": "yes"
         },
+        "source-multiple": true,
         "released": "2024|02|15",
         "updated": "2024|11|23"
     },
@@ -250,6 +251,7 @@
             "minerva": "yes",
             "cologne-blue": "yes"
         },
+        "source-multiple": true,
         "released": "2023|05|17",
         "updated": "2024|12|13"
     },
@@ -294,7 +296,7 @@
             "cologne-blue": "yes"
         },
         "released": "2023|04|05",
-        "updated": "2024|11|03"
+        "updated": "2024|12|13"
     },
     {
         "name": "search-links",

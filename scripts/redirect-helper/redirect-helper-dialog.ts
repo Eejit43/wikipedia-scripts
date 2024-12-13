@@ -47,7 +47,7 @@ export interface TemplateEditorElementInfo {
 export default class RedirectHelperDialog {
     // Utility variables
     private api = new mw.Api();
-    private redirectRegex = /^#redirect:?\s*\[\[\s*:?([^[\]{|}]+?)\s*(?:\|[^[\]{|}]+?)?]]\s*/i;
+    private redirectRegex = /^#.*?:?\s*\[\[\s*:?([^[\]{|}]+?)\s*(?:\|[^[\]{|}]+?)?]]\s*/i;
     private scriptMessage = ' (via [[w:en:User:Eejit43/scripts/redirect-helper|redirect-helper]])';
 
     // Assigned in constructor

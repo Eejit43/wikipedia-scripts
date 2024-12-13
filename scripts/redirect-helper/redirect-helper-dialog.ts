@@ -48,7 +48,7 @@ export default class RedirectHelperDialog {
     // Utility variables
     private api = new mw.Api();
     private redirectRegex = /^#redirect:?\s*\[\[\s*:?([^[\]{|}]+?)\s*(?:\|[^[\]{|}]+?)?]]\s*/i;
-    private scriptAdvert = ' (via [[User:Eejit43/scripts/redirect-helper|redirect-helper]])';
+    private scriptMessage = ' (via [[w:en:User:Eejit43/scripts/redirect-helper|redirect-helper]])';
 
     // Assigned in constructor
     private redirectTemplates: RedirectTemplateData;
@@ -1140,7 +1140,7 @@ export default class RedirectHelperDialog {
         );
 
         const summary =
-            (this.summaryInput.getValue() || (this.summaryInput.$tabIndexed[0] as HTMLInputElement).placeholder) + this.scriptAdvert;
+            (this.summaryInput.getValue() || (this.summaryInput.$tabIndexed[0] as HTMLInputElement).placeholder) + this.scriptMessage;
 
         const result = await this.editOrCreate(this.pageTitle, output, summary);
         if (!result) return;
@@ -1164,7 +1164,7 @@ export default class RedirectHelperDialog {
             const talkResult = await this.editOrCreate(
                 this.pageTitleParsed.getTalkPage()!.getPrefixedText(),
                 output,
-                'Syncing redirect from main page' + this.scriptAdvert,
+                'Syncing redirect from main page' + this.scriptMessage,
             );
             if (!talkResult) return;
 

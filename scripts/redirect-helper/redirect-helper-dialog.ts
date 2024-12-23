@@ -1205,9 +1205,9 @@ export default class RedirectHelperDialog {
             if (patrolLink) {
                 const patrolResult = await this.api
                     .postWithToken('patrol', { action: 'patrol', rcid: new URL(patrolLink.href).searchParams.get('rcid')! })
-                    .catch((errorCode: string, errorInfo: MediaWikiDataError) => {
+                    .catch((errorCode: string, errorInfo) => {
                         mw.notify(
-                            `Error patrolling ${this.pageTitle} via API: ${errorInfo?.error.info ?? 'Unknown error'} (${errorCode})`,
+                            `Error patrolling ${this.pageTitle} via API: ${(errorInfo as MediaWikiDataError)?.error.info ?? 'Unknown error'} (${errorCode})`,
                             { type: 'error' },
                         );
                         return null;
@@ -1322,19 +1322,23 @@ export default class RedirectHelperDialog {
 
         return await this.api
             .edit(title, () => ({ text, summary }))
-            .catch((errorCode: string, errorInfo: MediaWikiDataError) => {
+            .catch((errorCode: string, errorInfo) => {
                 if (errorCode === 'nocreate-missing')
-                    return this.api
-                        .create(title, { summary, watchlist }, text)
-                        .catch((errorCode: string, errorInfo: MediaWikiDataError) => {
-                            mw.notify(`Error creating ${title}: ${errorInfo?.error.info ?? 'Unknown error'} (${errorCode})`, {
+                    return this.api.create(title, { summary, watchlist }, text).catch((errorCode: string, errorInfo) => {
+                        mw.notify(
+                            `Error creating ${title}: ${(errorInfo as MediaWikiDataError)?.error.info ?? 'Unknown error'} (${errorCode})`,
+                            {
                                 type: 'error',
-                            });
-                        });
-                else {
-                    mw.notify(`Error editing or creating ${title}: ${errorInfo?.error.info ?? 'Unknown error'} (${errorCode})`, {
-                        type: 'error',
+                            },
+                        );
                     });
+                else {
+                    mw.notify(
+                        `Error editing or creating ${title}: ${(errorInfo as MediaWikiDataError)?.error.info ?? 'Unknown error'} (${errorCode})`,
+                        {
+                            type: 'error',
+                        },
+                    );
                     return null;
                 }
             });

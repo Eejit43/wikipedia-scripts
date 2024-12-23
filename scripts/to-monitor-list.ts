@@ -65,9 +65,9 @@ class MonitoringListManager {
                             srnamespace: this.getCategory(check),
                             srsearch: `incategory:"${check.category}"`,
                         } satisfies ApiQuerySearchParams)
-                        .catch((errorCode: string, errorInfo: MediaWikiDataError) => {
+                        .catch((errorCode: string, errorInfo) => {
                             mw.notify(
-                                `An error occurred while trying to get category members: ${errorInfo?.error.info ?? 'Unknown error'} (${errorCode})`,
+                                `An error occurred while trying to get category members: ${(errorInfo as MediaWikiDataError)?.error.info ?? 'Unknown error'} (${errorCode})`,
                                 { type: 'error' },
                             );
                             return null;
@@ -87,9 +87,9 @@ class MonitoringListManager {
                             srnamespace: this.getCategory(check),
                             srsearch: check.search,
                         } satisfies ApiQuerySearchParams)
-                        .catch((errorCode: string, errorInfo: MediaWikiDataError) => {
+                        .catch((errorCode: string, errorInfo) => {
                             mw.notify(
-                                `An error occurred while trying to get search results: ${errorInfo?.error.info ?? 'Unknown error'} (${errorCode})`,
+                                `An error occurred while trying to get search results: ${(errorInfo as MediaWikiDataError)?.error.info ?? 'Unknown error'} (${errorCode})`,
                                 { type: 'error' },
                             );
                             return null;
@@ -109,9 +109,9 @@ class MonitoringListManager {
                             blnamespace: this.getCategory(check),
                             bltitle: check.title,
                         } satisfies ApiQueryBacklinksParams)
-                        .catch((errorCode: string, errorInfo: MediaWikiDataError) => {
+                        .catch((errorCode: string, errorInfo) => {
                             mw.notify(
-                                `An error occurred while trying to get backlinks: ${errorInfo?.error.info ?? 'Unknown error'} (${errorCode})`,
+                                `An error occurred while trying to get backlinks: ${(errorInfo as MediaWikiDataError)?.error.info ?? 'Unknown error'} (${errorCode})`,
                                 { type: 'error' },
                             );
                             return null;
@@ -131,9 +131,9 @@ class MonitoringListManager {
                             einamespace: this.getCategory(check),
                             eititle: check.title,
                         } satisfies ApiQueryBacklinksParams)
-                        .catch((errorCode: string, errorInfo: MediaWikiDataError) => {
+                        .catch((errorCode: string, errorInfo) => {
                             mw.notify(
-                                `An error occurred while trying to get transclusions: ${errorInfo?.error.info ?? 'Unknown error'} (${errorCode})`,
+                                `An error occurred while trying to get transclusions: ${(errorInfo as MediaWikiDataError)?.error.info ?? 'Unknown error'} (${errorCode})`,
                                 { type: 'error' },
                             );
                             return null;

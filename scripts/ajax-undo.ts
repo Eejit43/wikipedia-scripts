@@ -125,8 +125,13 @@ mw.loader.using(['mediawiki.util'], () => {
                             reasonInput.value ? `: ${reasonInput.value}` : ''
                         }`,
                     })
-                    .catch((errorCode: string, errorInfo: MediaWikiDataError) => {
-                        mw.notify(`${errorInfo?.error.code ?? 'Unknown error'} (${errorCode})`, { type: 'error' });
+                    .catch((errorCode: string, errorInfo) => {
+                        mw.notify(
+                            `Error undoing revision: ${(errorInfo as MediaWikiDataError)?.error.code ?? 'Unknown error'} (${errorCode})`,
+                            {
+                                type: 'error',
+                            },
+                        );
                         setTimeout(() => window.location.reload(), 2000);
                         return false;
                     });

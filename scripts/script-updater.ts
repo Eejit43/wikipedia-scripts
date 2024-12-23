@@ -322,20 +322,24 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
             summary += ' (via [[User:Eejit43/scripts/script-updater.js|script]])';
             await new mw.Api()
                 .edit(title, () => ({ text, summary, watchlist: 'watch' }))
-                .catch(async (errorCode: string, errorInfo: MediaWikiDataError) => {
+                .catch(async (errorCode: string, errorInfo) => {
                     if (errorCode === 'nocreate-missing')
-                        await new mw.Api()
-                            .create(title, { summary, watchlist: 'watch' }, text)
-                            .catch((errorCode: string, errorInfo: MediaWikiDataError) => {
-                                mw.notify(`Error creating ${title}: ${errorInfo?.error.info ?? 'Unknown error'} (${errorCode})`, {
+                        await new mw.Api().create(title, { summary, watchlist: 'watch' }, text).catch((errorCode: string, errorInfo) => {
+                            mw.notify(
+                                `Error creating ${title}: ${(errorInfo as MediaWikiDataError)?.error.info ?? 'Unknown error'} (${errorCode})`,
+                                {
                                     type: 'error',
-                                });
-                                return;
-                            });
-                    else {
-                        mw.notify(`Error editing or creating ${title}: ${errorInfo?.error.info ?? 'Unknown error'} (${errorCode})`, {
-                            type: 'error',
+                                },
+                            );
+                            return;
                         });
+                    else {
+                        mw.notify(
+                            `Error editing or creating ${title}: ${(errorInfo as MediaWikiDataError)?.error.info ?? 'Unknown error'} (${errorCode})`,
+                            {
+                                type: 'error',
+                            },
+                        );
                         return;
                     }
                 });

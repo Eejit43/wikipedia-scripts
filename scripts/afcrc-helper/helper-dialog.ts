@@ -390,7 +390,7 @@ body.afcrc-helper-open #mw-teleport-target {
             showActionsDialog.addLogEntry(`${action.type === 'edit' ? 'Editing' : 'Creating'} ${linkElement.outerHTML}...`);
 
             // eslint-disable-next-line no-await-in-loop
-            await apiFunction.catch(async (errorCode: string, errorInfo: MediaWikiDataError) => {
+            await apiFunction.catch(async (errorCode: string, errorInfo) => {
                 if (errorCode === 'ratelimited') {
                     showActionsDialog.addLogEntry(
                         `Rate limited. Waiting for 70 seconds... (resuming at ${new Date(Date.now() + 70_000).toLocaleTimeString()})`,
@@ -400,15 +400,15 @@ body.afcrc-helper-open #mw-teleport-target {
 
                     showActionsDialog.addLogEntry('Continuing...', 'success');
 
-                    await apiFunction.catch((errorCode: string, errorInfo: MediaWikiDataError) => {
+                    await apiFunction.catch((errorCode: string, errorInfo) => {
                         showActionsDialog.addLogEntry(
-                            `Error ${action.type === 'edit' ? 'editing' : 'creating'} ${linkElement.outerHTML}: ${errorInfo?.error.info ?? 'Unknown error'} (${errorCode}).`,
+                            `Error ${action.type === 'edit' ? 'editing' : 'creating'} ${linkElement.outerHTML}: ${(errorInfo as MediaWikiDataError)?.error.info ?? 'Unknown error'} (${errorCode}).`,
                             'error',
                         );
                     });
                 } else
                     showActionsDialog.addLogEntry(
-                        `Error ${action.type === 'edit' ? 'editing' : 'creating'} ${linkElement.outerHTML}: ${errorInfo?.error.info ?? 'Unknown error'} (${errorCode}).`,
+                        `Error ${action.type === 'edit' ? 'editing' : 'creating'} ${linkElement.outerHTML}: ${(errorInfo as MediaWikiDataError)?.error.info ?? 'Unknown error'} (${errorCode}).`,
                         'error',
                     );
             });

@@ -215,7 +215,7 @@ export default class RedirectsDialog extends HelperDialog {
         for (const requestedTitle of request.pages) {
             const handler = new RedirectRequestHandler(index, requestedTitle, detailsElement, requestResponderElement, this);
 
-            handler.setup();
+            handler.setUp();
         }
 
         detailsElement.append(requestResponderElement);

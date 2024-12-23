@@ -14,6 +14,7 @@ import type {
     PageTriageListResponse,
     PagepropsResult,
 } from '../../global-types';
+import type { WatchMethod } from '../afcrc-helper/afcrc-helper';
 import CategoryInputWidget from './category-input-widget';
 import ChangesDialog from './changes-dialog';
 import OutputPreviewDialog from './output-preview-dialog';
@@ -57,6 +58,7 @@ export default class RedirectHelperDialog {
     private pageTitleParsed: mw.Title;
 
     private exists: boolean;
+    private defaultCreatedWatchMethod: WatchMethod;
 
     // Used during run()
     private needsCheck = true;
@@ -82,6 +84,8 @@ export default class RedirectHelperDialog {
     private showPreviewButton!: OO.ui.ButtonWidget;
     private syncTalkCheckbox?: OO.ui.CheckboxInputWidget;
     private syncTalkCheckboxLayout?: OO.ui.Widget;
+    private watchCheckbox?: OO.ui.CheckboxInputWidget;
+    private watchCheckboxLayout?: OO.ui.Widget;
     private patrolCheckbox?: OO.ui.CheckboxInputWidget;
     private patrolCheckboxLayout?: OO.ui.Widget;
     private submitLayout!: OO.ui.HorizontalLayout;
@@ -107,6 +111,7 @@ export default class RedirectHelperDialog {
             pageTitleParsed,
         }: { redirectTemplates: RedirectTemplateData; contentText: HTMLDivElement; pageTitle: string; pageTitleParsed: mw.Title },
         exists: boolean,
+        createdWatchMethod: WatchMethod,
     ) {
         this.redirectTemplates = redirectTemplates;
         this.contentText = contentText;
@@ -114,6 +119,8 @@ export default class RedirectHelperDialog {
         this.pageTitleParsed = pageTitleParsed;
 
         this.exists = exists;
+
+        this.defaultCreatedWatchMethod = createdWatchMethod;
     }
 
     /**
@@ -518,11 +525,11 @@ export default class RedirectHelperDialog {
         const windowManager = new OO.ui.WindowManager();
         document.body.append(windowManager.$element[0]);
 
-        /* Setup submit button */
+        /* Set up submit button */
         this.submitButton = new OO.ui.ButtonWidget({ label: 'Submit', disabled: true, flags: ['progressive'] });
         this.submitButton.on('click', () => this.handleSubmitButtonClick());
 
-        /* Setup show preview button */
+        /* Set up show preview button */
         const templatePreviewDialog = new OutputPreviewDialog({ size: 'large' }, this.pageTitleParsed);
         windowManager.addWindows([templatePreviewDialog]);
 
@@ -540,7 +547,7 @@ export default class RedirectHelperDialog {
             templatePreviewDialog.open();
         });
 
-        /* Setup show changes button */
+        /* Set up show changes button */
         const showChangesDialog = new ChangesDialog({ size: 'large' });
         windowManager.addWindows([showChangesDialog]);
 
@@ -561,7 +568,7 @@ export default class RedirectHelperDialog {
             showChangesDialog.open();
         });
 
-        /* Setup sync talk checkbox */
+        /* Set up sync talk checkbox */
         if (!this.pageTitleParsed.isTalkPage()) {
             this.talkData = (await this.api.get({
                 action: 'query',
@@ -576,7 +583,22 @@ export default class RedirectHelperDialog {
             });
         }
 
-        /* Setup patrol checkbox */
+        /* Set up watch page checkbox */
+        if (!this.exists) {
+            const config: OO.ui.CheckboxInputWidget.ConfigOptions = {};
+
+            if (['nochange', 'preferences'].includes(this.defaultCreatedWatchMethod)) config.indeterminate = true;
+            else if (this.defaultCreatedWatchMethod === 'watch') config.selected = true;
+            else config.selected = false;
+
+            this.watchCheckbox = new OO.ui.CheckboxInputWidget(config);
+
+            this.watchCheckboxLayout = new OO.ui.Widget({
+                content: [new OO.ui.FieldLayout(this.watchCheckbox, { label: 'Watch page', align: 'inline' })],
+            });
+        }
+
+        /* Set up patrol checkbox */
         if (await this.checkShouldPromptPatrol()) {
             this.patrolCheckbox = new OO.ui.CheckboxInputWidget({ selected: true });
 
@@ -585,7 +607,7 @@ export default class RedirectHelperDialog {
             });
         }
 
-        /* Setup layout */
+        /* Set up layout */
         this.submitLayout = new OO.ui.HorizontalLayout({
             id: 'redirect-helper-submit-layout',
             items: [
@@ -593,6 +615,7 @@ export default class RedirectHelperDialog {
                 this.showPreviewButton,
                 this.showChangesButton,
                 this.syncTalkCheckboxLayout,
+                this.watchCheckboxLayout,
                 this.patrolCheckboxLayout,
             ].filter(Boolean) as OO.ui.Widget[],
         });
@@ -1069,6 +1092,7 @@ export default class RedirectHelperDialog {
             this.showPreviewButton,
             this.showChangesButton,
             this.syncTalkCheckbox,
+            this.watchCheckbox,
             this.patrolCheckbox,
         ].filter(Boolean);
 
@@ -1285,15 +1309,28 @@ export default class RedirectHelperDialog {
      * @param summary The edit summary.
      */
     private async editOrCreate(title: string, text: string, summary: string) {
+        let watchlist: WatchMethod = 'preferences';
+
+        if (this.watchCheckbox) {
+            const isWatchChecked = this.watchCheckbox.isSelected();
+            const isWatchIndeterminate = this.watchCheckbox.isIndeterminate();
+
+            if (!this.watchCheckbox || isWatchIndeterminate) watchlist = this.defaultCreatedWatchMethod;
+            else if (isWatchChecked) watchlist = 'watch';
+            else watchlist = 'unwatch';
+        }
+
         return await this.api
             .edit(title, () => ({ text, summary }))
             .catch((errorCode: string, errorInfo: MediaWikiDataError) => {
                 if (errorCode === 'nocreate-missing')
-                    return this.api.create(title, { summary }, text).catch((errorCode: string, errorInfo: MediaWikiDataError) => {
-                        mw.notify(`Error creating ${title}: ${errorInfo?.error.info ?? 'Unknown error'} (${errorCode})`, {
-                            type: 'error',
+                    return this.api
+                        .create(title, { summary, watchlist }, text)
+                        .catch((errorCode: string, errorInfo: MediaWikiDataError) => {
+                            mw.notify(`Error creating ${title}: ${errorInfo?.error.info ?? 'Unknown error'} (${errorCode})`, {
+                                type: 'error',
+                            });
                         });
-                    });
                 else {
                     mw.notify(`Error editing or creating ${title}: ${errorInfo?.error.info ?? 'Unknown error'} (${errorCode})`, {
                         type: 'error',

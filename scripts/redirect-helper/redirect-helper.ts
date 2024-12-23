@@ -1,6 +1,13 @@
 import type { ApiQueryInfoParams, ApiQueryRevisionsParams } from 'types-mediawiki/api_params';
 import type { PageInfoResult, PageRevisionsResult } from '../../global-types';
+import type { WatchMethod } from '../afcrc-helper/afcrc-helper';
 import type { RedirectTemplateData } from './redirect-helper-dialog';
+
+declare global {
+    interface Window {
+        redirectHelperConfiguration?: { createdWatchMethod?: WatchMethod };
+    }
+}
 
 const dependencies = [
     'mediawiki.util',
@@ -21,11 +28,12 @@ mw.loader.using(dependencies, async () => {
         // Utility variables
         private api = new mw.Api();
 
-        // Assigned in constructor
+        // Assigned during run()
         private redirectTemplates!: RedirectTemplateData;
         private contentText!: HTMLDivElement;
         private pageTitle!: string;
         private pageTitleParsed!: mw.Title;
+        private createdWatchMethod!: WatchMethod;
 
         /**
          * Runs the redirect helper.
@@ -42,6 +50,13 @@ mw.loader.using(dependencies, async () => {
 
             this.pageTitleParsed = mw.Title.newFromText(this.pageTitle)!;
             if (!this.pageTitleParsed) return mw.notify('redirect-helper: Failed to parse page title!', { type: 'error' });
+
+            const configCreatedWatchMethod = window.redirectHelperConfiguration?.createdWatchMethod;
+
+            this.createdWatchMethod =
+                configCreatedWatchMethod && ['nochange', 'preferences', 'unwatch', 'watch'].includes(configCreatedWatchMethod)
+                    ? configCreatedWatchMethod
+                    : 'preferences';
 
             await this.checkPageAndLoad();
         }
@@ -111,11 +126,11 @@ mw.loader.using(dependencies, async () => {
                 });
                 button.on('click', () => {
                     button.$element[0].remove();
-                    new RedirectHelperDialog(dialogInfo, false).load();
+                    new RedirectHelperDialog(dialogInfo, false, this.createdWatchMethod).load();
                 });
 
                 this.contentText.prepend(button.$element[0]);
-            } else if (pageInfo.query.pages[0].redirect) new RedirectHelperDialog(dialogInfo, true).load();
+            } else if (pageInfo.query.pages[0].redirect) new RedirectHelperDialog(dialogInfo, true, this.createdWatchMethod).load();
             else {
                 const portletLink = mw.util.addPortletLink(
                     mw.config.get('skin') === 'minerva' ? 'p-tb' : 'p-cactions',
@@ -126,7 +141,7 @@ mw.loader.using(dependencies, async () => {
                 portletLink.addEventListener('click', (event) => {
                     event.preventDefault();
 
-                    new RedirectHelperDialog(dialogInfo, false).load();
+                    new RedirectHelperDialog(dialogInfo, false, this.createdWatchMethod).load();
 
                     window.scrollTo({ top: 0, behavior: 'smooth' });
 

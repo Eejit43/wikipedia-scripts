@@ -38,7 +38,7 @@ export default class RedirectRequestHandler {
     /**
      * Sets up the request handler, loading elements into the DOM.
      */
-    public setup() {
+    public setUp() {
         const requestedTitleDiv = document.createElement('div');
 
         const label = document.createElement('b');

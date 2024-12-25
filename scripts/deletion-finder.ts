@@ -44,7 +44,7 @@ mw.loader.using(['mediawiki.util'], async () => {
         lelimit: 1,
         letitle: mw.config.get('wgPageName'),
         list: 'logevents',
-    } satisfies ApiQueryLogEventsParams)) as { query: { logevents: [] } };
+    } satisfies ApiQueryLogEventsParams)) as { query: { logevents: unknown[] } };
 
     if (deletionResult.query.logevents.length > 0) {
         const link = document.createElement('a');

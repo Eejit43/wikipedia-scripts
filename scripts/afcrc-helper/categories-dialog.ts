@@ -31,25 +31,23 @@ export default class CategoriesDialog extends HelperDialog {
 
         parsedData.category = foundCategory.replaceAll('_', ' ');
 
-        parsedData.examples =
-            [
-                ...(
-                    /example pages which belong to this category:(.*?)(parent category\/categories:|\n\[\[(special:contributions\/|user:))/is.exec(
-                        sectionText,
-                    )?.[1] ?? ''
-                ).matchAll(/\*\s*(?:\[\[)?(.*?)(\||]]|\s*?\n)/g),
-            ]
-                .map((match) => match[1].trim().replace(/^:/, '').replaceAll('_', ' '))
-                .filter(Boolean) ?? [];
+        parsedData.examples = [
+            ...(
+                /example pages which belong to this category:(.*?)(parent category\/categories:|\n\[\[(special:contributions\/|user:))/is.exec(
+                    sectionText,
+                )?.[1] ?? ''
+            ).matchAll(/\*\s*(?:\[\[)?(.*?)(\||]]|\s*?\n)/g),
+        ]
+            .map((match) => match[1].trim().replace(/^:/, '').replaceAll('_', ' '))
+            .filter(Boolean);
 
-        parsedData.parents =
-            [
-                ...(
-                    /parent category\/categories:(.*?)(\n\n|\n\[\[(special:contributions\/|user:))/is.exec(sectionText)?.[1] ?? ''
-                ).matchAll(/(?<!\|)#?:?Category:(.*?)(\||]]|\s*?\n)/g),
-            ]
-                ?.map((match) => match[1].trim().replace(/^:/, '').replaceAll('_', ' '))
-                .filter(Boolean) ?? [];
+        parsedData.parents = [
+            ...(/parent category\/categories:(.*?)(\n\n|\n\[\[(special:contributions\/|user:))/is.exec(sectionText)?.[1] ?? '').matchAll(
+                /(?<!\|)#?:?Category:(.*?)(\||]]|\s*?\n)/g,
+            ),
+        ]
+            .map((match) => match[1].trim().replace(/^:/, '').replaceAll('_', ' '))
+            .filter(Boolean);
 
         const firstUserIndex = sectionText.indexOf('[[User:');
         const firstUserTalkIndex = sectionText.indexOf('[[User talk:');
@@ -457,8 +455,11 @@ export default class CategoriesDialog extends HelperDialog {
                 newPageText = sectionData.pageText;
             }
 
-            if (this.beforeText + this.pageContent === newPageText)
-                return showActionsDialog.addLogEntry('No requests have been handled (page content identical)!');
+            if (this.beforeText + this.pageContent === newPageText) {
+                showActionsDialog.addLogEntry('No requests have been handled (page content identical)!');
+
+                return;
+            }
 
             const mappedCounts = Object.entries(counts)
                 .filter(([, count]) => count > 0)

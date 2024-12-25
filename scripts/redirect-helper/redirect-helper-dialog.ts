@@ -223,7 +223,7 @@ export default class RedirectHelperDialog {
         /* Add elements to screen and load data (if applicable) */
         this.editorBox.$element[0].append(
             ...([
-                this.syncWithMainButton?.$element?.[0],
+                this.syncWithMainButton?.$element[0],
                 this.redirectInputLayout.$element[0],
                 this.tagSelectLayout.$element[0],
                 this.templateParametersEditor,
@@ -236,7 +236,7 @@ export default class RedirectHelperDialog {
 
         this.contentText.prepend(this.editorBox.$element[0]);
 
-        if (this.exists) this.loadExistingData();
+        if (this.exists) void this.loadExistingData();
     }
 
     /**
@@ -374,7 +374,7 @@ export default class RedirectHelperDialog {
 
                 const inputLayout = new OO.ui.FieldLayout(input, {
                     label: new OO.ui.HtmlSnippet(
-                        `${parameterName}${!parameterData.label || parameterName.toLowerCase() === parameterData.label?.toLowerCase() ? '' : ` (${parameterData.label})`}${parameterData.description ? ` (${parameterData.description})` : ''} (type: ${parameterData.type}) ${parameterData.suggested ? ' (suggested)' : ''}${parameterData.example ? ` (example: "${parameterData.example}")` : ''}`,
+                        `${parameterName}${!parameterData.label || parameterName.toLowerCase() === parameterData.label.toLowerCase() ? '' : ` (${parameterData.label})`}${parameterData.description ? ` (${parameterData.description})` : ''} (type: ${parameterData.type}) ${parameterData.suggested ? ' (suggested)' : ''}${parameterData.example ? ` (example: "${parameterData.example}")` : ''}`,
                     ),
                     align: 'inline',
                 });
@@ -791,7 +791,7 @@ export default class RedirectHelperDialog {
                 .match(/{{DEFAULTSORT:.*?}}/g)
                 ?.at(-1)
                 ?.slice(14, -2)
-                ?.trim() ?? '';
+                .trim() ?? '';
 
         this.oldCategories = this.pageContent.match(/\[\[[Cc]ategory:.+?]]/g)?.map((category) => category.slice(11, -2)) ?? [];
 
@@ -866,11 +866,10 @@ export default class RedirectHelperDialog {
                 prop: ['pageprops', 'categories'],
                 titles: destination,
             } satisfies ApiQueryPagePropsParams)
-            .catch((errorCode: string) => {
-                /* Nonexistent destination */ if (errorCode === 'missingtitle')
-                    errors.push({ title: destination, message: 'does not exist!' });
-                /* Other API error */ else
-                    errors.push({ title: destination, message: `was not able to be fetched from the API (${errorCode})!` });
+            .catch((errorCode) => {
+                if (errorCode === 'missingtitle') errors.push({ title: destination, message: 'does not exist!' });
+                else errors.push({ title: destination, message: `was not able to be fetched from the API (${errorCode})!` });
+
                 return null;
             })) as (PagepropsResult & CategoriesResult) | null;
         const destinationParseResult = (await this.api.get({
@@ -881,7 +880,7 @@ export default class RedirectHelperDialog {
         } satisfies ApiParseParams)) as PageParseResult;
 
         /* Double redirects */
-        if (destinationParseResult.parse.redirects?.[0]) {
+        if (destinationParseResult.parse.redirects.length > 0) {
             const destinationRedirect =
                 destinationParseResult.parse.redirects[0].to +
                 (destinationParseResult.parse.redirects[0].tofragment ? `#${destinationParseResult.parse.redirects[0].tofragment}` : '');
@@ -929,7 +928,7 @@ export default class RedirectHelperDialog {
                     ...(destinationContent
                         .match(/(?<={{\s*?[Aa](?:nchors?|nchor for redirect|nker|NCHOR|nc)\s*?\|).+?(?=}})/g)
                         ?.map((anchor: string) => anchor.split('|').map((part) => part.trim()))
-                        ?.flat() ?? []),
+                        .flat() ?? []),
                     ...(destinationContent
                         .match(
                             /(?<={{\s*?(?:[Vv](?:isible anchors?|isanc|Anch|anchor|isibleanchor|a)|[Aa](?:nchord|chored|nchor\+)|[Tt]ext anchor)\s*?\|).+?(?=(?<!!|=)}})/g,
@@ -940,7 +939,7 @@ export default class RedirectHelperDialog {
                                 .map((part) => part.trim())
                                 .filter((part) => !/^text\s*?=/.test(part)),
                         )
-                        ?.flat() ?? []),
+                        .flat() ?? []),
                     ...(destinationContent.match(/(?<=id=)"?.+?(?="|>|\|)/g)?.map((anchor: string) => anchor.trim()) ?? []),
                     ...(destinationContent.match(/EpisodeNumber += +\d+/g)?.map((anchor: string) => `ep${anchor.split('=')[1].trim()}`) ??
                         []),
@@ -1049,8 +1048,9 @@ export default class RedirectHelperDialog {
 
         /* Missing tag required parameter */
         for (const tag of tags) {
+            if (!(tag in this.redirectTemplates)) continue;
+
             const tagData = this.redirectTemplates[tag];
-            if (!tagData) continue;
 
             for (const [parameterName, parameterData] of Object.entries(tagData.parameters)) {
                 const foundParameter = this.templateEditorsInfo
@@ -1203,15 +1203,16 @@ export default class RedirectHelperDialog {
             const markReviewedButton = document.querySelector<HTMLButtonElement>('#mwe-pt-mark-as-reviewed-button');
 
             if (patrolLink) {
-                const patrolResult = await this.api
+                const patrolResult = (await this.api
                     .postWithToken('patrol', { action: 'patrol', rcid: new URL(patrolLink.href).searchParams.get('rcid')! })
-                    .catch((errorCode: string, errorInfo) => {
+                    .catch((errorCode, errorInfo) => {
                         mw.notify(
                             `Error patrolling ${this.pageTitle} via API: ${(errorInfo as MediaWikiDataError)?.error.info ?? 'Unknown error'} (${errorCode})`,
                             { type: 'error' },
                         );
+
                         return null;
-                    });
+                    })) as object | null;
                 if (patrolResult) mw.notify('Redirect patrolled successfully!', { type: 'success' });
             } else if (markReviewedButton) {
                 markReviewedButton.click();
@@ -1311,26 +1312,23 @@ export default class RedirectHelperDialog {
     private async editOrCreate(title: string, text: string, summary: string) {
         let watchlist: WatchMethod = 'preferences';
 
-        if (this.watchCheckbox) {
-            const isWatchChecked = this.watchCheckbox.isSelected();
-            const isWatchIndeterminate = this.watchCheckbox.isIndeterminate();
-
-            if (!this.watchCheckbox || isWatchIndeterminate) watchlist = this.defaultCreatedWatchMethod;
-            else if (isWatchChecked) watchlist = 'watch';
+        if (this.watchCheckbox)
+            if (this.watchCheckbox.isIndeterminate()) watchlist = this.defaultCreatedWatchMethod;
+            else if (this.watchCheckbox.isSelected()) watchlist = 'watch';
             else watchlist = 'unwatch';
-        }
 
-        return await this.api
+        return (await this.api
             .edit(title, () => ({ text, summary }))
-            .catch((errorCode: string, errorInfo) => {
+            .catch((errorCode, errorInfo) => {
                 if (errorCode === 'nocreate-missing')
-                    return this.api.create(title, { summary, watchlist }, text).catch((errorCode: string, errorInfo) => {
+                    return this.api.create(title, { summary, watchlist }, text).catch((errorCode, errorInfo) => {
                         mw.notify(
                             `Error creating ${title}: ${(errorInfo as MediaWikiDataError)?.error.info ?? 'Unknown error'} (${errorCode})`,
                             {
                                 type: 'error',
                             },
                         );
+                        return null;
                     });
                 else {
                     mw.notify(
@@ -1341,6 +1339,6 @@ export default class RedirectHelperDialog {
                     );
                     return null;
                 }
-            });
+            })) as ReturnType<typeof this.api.edit> | null;
     }
 }

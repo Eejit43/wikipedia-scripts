@@ -34,7 +34,7 @@ export default class CategoryInputWidget extends OO.ui.TextInputWidget {
             } satisfies ApiQueryAllPagesGeneratorParameters)
             .catch(() => null)
             .then((result: { query: { pages: { title: string; categories?: { title: string }[] }[] } } | null) => {
-                if (result?.query?.pages) {
+                if (result?.query.pages) {
                     const pages = result.query.pages
                         .filter(
                             (page) =>

@@ -56,8 +56,8 @@ class MonitoringListManager {
             await this.loadToCheckData();
 
             for (const check of this.toCheck.categories)
-                this.handleCheck(check, async () => {
-                    const data: SearchResult | null = await this.api
+                void this.handleCheck(check, async () => {
+                    const data = (await this.api
                         .get({
                             action: 'query',
                             list: 'search',
@@ -65,21 +65,21 @@ class MonitoringListManager {
                             srnamespace: this.getCategory(check),
                             srsearch: `incategory:"${check.category}"`,
                         } satisfies ApiQuerySearchParams)
-                        .catch((errorCode: string, errorInfo) => {
+                        .catch((errorCode, errorInfo) => {
                             mw.notify(
                                 `An error occurred while trying to get category members: ${(errorInfo as MediaWikiDataError)?.error.info ?? 'Unknown error'} (${errorCode})`,
                                 { type: 'error' },
                             );
                             return null;
-                        });
+                        })) as SearchResult | null;
                     if (!data) return;
 
-                    return (data as SearchResult).query.searchinfo.totalhits;
+                    return data.query.searchinfo.totalhits;
                 });
 
             for (const check of this.toCheck.searches)
-                this.handleCheck(check, async () => {
-                    const data: SearchResult | null = await this.api
+                void this.handleCheck(check, async () => {
+                    const data = (await this.api
                         .get({
                             action: 'query',
                             list: 'search',
@@ -87,21 +87,21 @@ class MonitoringListManager {
                             srnamespace: this.getCategory(check),
                             srsearch: check.search,
                         } satisfies ApiQuerySearchParams)
-                        .catch((errorCode: string, errorInfo) => {
+                        .catch((errorCode, errorInfo) => {
                             mw.notify(
                                 `An error occurred while trying to get search results: ${(errorInfo as MediaWikiDataError)?.error.info ?? 'Unknown error'} (${errorCode})`,
                                 { type: 'error' },
                             );
                             return null;
-                        });
+                        })) as SearchResult | null;
                     if (!data) return;
 
-                    return (data as SearchResult).query.searchinfo.totalhits;
+                    return data.query.searchinfo.totalhits;
                 });
 
             for (const check of this.toCheck.whatLinksHere)
-                this.handleCheck(check, async () => {
-                    const data: BacklinksResult | null = await this.api
+                void this.handleCheck(check, async () => {
+                    const data = (await this.api
                         .get({
                             action: 'query',
                             list: 'backlinks',
@@ -109,21 +109,21 @@ class MonitoringListManager {
                             blnamespace: this.getCategory(check),
                             bltitle: check.title,
                         } satisfies ApiQueryBacklinksParams)
-                        .catch((errorCode: string, errorInfo) => {
+                        .catch((errorCode, errorInfo) => {
                             mw.notify(
                                 `An error occurred while trying to get backlinks: ${(errorInfo as MediaWikiDataError)?.error.info ?? 'Unknown error'} (${errorCode})`,
                                 { type: 'error' },
                             );
                             return null;
-                        });
+                        })) as BacklinksResult | null;
                     if (!data) return;
 
-                    return (data as BacklinksResult).query.backlinks.length;
+                    return data.query.backlinks.length;
                 });
 
             for (const check of this.toCheck.transclusions)
-                this.handleCheck(check, async () => {
-                    const data: EmbeddedinResult | null = await this.api
+                void this.handleCheck(check, async () => {
+                    const data = (await this.api
                         .get({
                             action: 'query',
                             list: 'embeddedin',
@@ -131,16 +131,16 @@ class MonitoringListManager {
                             einamespace: this.getCategory(check),
                             eititle: check.title,
                         } satisfies ApiQueryBacklinksParams)
-                        .catch((errorCode: string, errorInfo) => {
+                        .catch((errorCode, errorInfo) => {
                             mw.notify(
                                 `An error occurred while trying to get transclusions: ${(errorInfo as MediaWikiDataError)?.error.info ?? 'Unknown error'} (${errorCode})`,
                                 { type: 'error' },
                             );
                             return null;
-                        });
+                        })) as EmbeddedinResult | null;
                     if (!data) return;
 
-                    return (data as EmbeddedinResult).query.embeddedin.length;
+                    return data.query.embeddedin.length;
                 });
         });
 
@@ -179,7 +179,7 @@ class MonitoringListManager {
      * @param check The check data to handle.
      * @param handler The handler to find the count from a check.
      */
-    private async handleCheck(check: SearchDataCheck, handler: () => Promise<number | void>) {
+    private async handleCheck(check: SearchDataCheck, handler: () => Promise<number | undefined>) {
         const count = await handler();
         if (count === undefined) return;
 

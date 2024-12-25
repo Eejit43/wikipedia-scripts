@@ -69,7 +69,7 @@
                 maxLength += 2; // to include '| '
 
                 for (let line of newLines) {
-                    const parts = splitParameter(line) as [string, string];
+                    const parts = splitParameter(line);
 
                     if (parts.length < 2) {
                         output += line += '\n';
@@ -147,7 +147,7 @@ function splitParameter(string: string) {
     if (split.length <= 2) return split;
 
     const first = split.shift();
-    return [first, split.join('=')];
+    return [first!, split.join('=')];
 }
 
 /**

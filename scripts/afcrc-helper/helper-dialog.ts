@@ -166,7 +166,7 @@ body.afcrc-helper-open #mw-teleport-target {
             });
         else if (action === 'save')
             return new OO.ui.Process(() => {
-                this.performActions();
+                void this.performActions();
             });
         else return HelperDialog.super.prototype.getActionProcess.call(this, action);
     };
@@ -280,7 +280,7 @@ body.afcrc-helper-open #mw-teleport-target {
             } satisfies ApiQueryRevisionsParams)) as PageRevisionsResult
         ).query.pages[0].revisions[0].slots.main.content.trim();
 
-        this.performSubtypeActions(showActionsDialog, counts, newPageText);
+        void this.performSubtypeActions(showActionsDialog, counts, newPageText);
     }
 
     /**
@@ -308,7 +308,7 @@ body.afcrc-helper-open #mw-teleport-target {
         const reasons: Record<string, string[]> = {};
 
         for (const [page, reason] of deniedPages) {
-            if (!reasons[reason]) reasons[reason] = [];
+            if (!(reason in reasons)) reasons[reason] = [];
             reasons[reason].push(page);
         }
 
@@ -334,7 +334,7 @@ body.afcrc-helper-open #mw-teleport-target {
         const commentMessages: Record<string, string[]> = {};
 
         for (const [page, comment] of comments) {
-            if (!commentMessages[comment]) commentMessages[comment] = [];
+            if (!(comment in commentMessages)) commentMessages[comment] = [];
             commentMessages[comment].push(page);
         }
 
@@ -390,7 +390,7 @@ body.afcrc-helper-open #mw-teleport-target {
             showActionsDialog.addLogEntry(`${action.type === 'edit' ? 'Editing' : 'Creating'} ${linkElement.outerHTML}...`);
 
             // eslint-disable-next-line no-await-in-loop
-            await apiFunction.catch(async (errorCode: string, errorInfo) => {
+            await apiFunction.catch(async (errorCode, errorInfo) => {
                 if (errorCode === 'ratelimited') {
                     showActionsDialog.addLogEntry(
                         `Rate limited. Waiting for 70 seconds... (resuming at ${new Date(Date.now() + 70_000).toLocaleTimeString()})`,
@@ -400,7 +400,7 @@ body.afcrc-helper-open #mw-teleport-target {
 
                     showActionsDialog.addLogEntry('Continuing...', 'success');
 
-                    await apiFunction.catch((errorCode: string, errorInfo) => {
+                    await apiFunction.catch((errorCode, errorInfo) => {
                         showActionsDialog.addLogEntry(
                             `Error ${action.type === 'edit' ? 'editing' : 'creating'} ${linkElement.outerHTML}: ${(errorInfo as MediaWikiDataError)?.error.info ?? 'Unknown error'} (${errorCode}).`,
                             'error',

@@ -43,13 +43,17 @@ mw.loader.using(dependencies, async () => {
 
             this.redirectTemplates = await this.fetchRedirectTemplates();
 
-            this.contentText = document.querySelector<HTMLDivElement>('#mw-content-text')!;
-            if (!this.contentText) return mw.notify('redirect-helper: Failed to find content text element!', { type: 'error' });
+            const contentText = document.querySelector<HTMLDivElement>('#mw-content-text');
+            if (!contentText) return mw.notify('redirect-helper: Failed to find content text element!', { type: 'error' });
+
+            this.contentText = contentText;
 
             this.pageTitle = mw.config.get('wgPageName');
 
-            this.pageTitleParsed = mw.Title.newFromText(this.pageTitle)!;
-            if (!this.pageTitleParsed) return mw.notify('redirect-helper: Failed to parse page title!', { type: 'error' });
+            const pageTitleParsed = mw.Title.newFromText(this.pageTitle);
+            if (!pageTitleParsed) return mw.notify('redirect-helper: Failed to parse page title!', { type: 'error' });
+
+            this.pageTitleParsed = pageTitleParsed;
 
             const configCreatedWatchMethod = window.redirectHelperConfiguration?.createdWatchMethod;
 
@@ -90,7 +94,7 @@ mw.loader.using(dependencies, async () => {
                         rvslots: 'main',
                         titles: 'User:Eejit43/scripts/redirect-helper.json',
                     } satisfies ApiQueryRevisionsParams)) as PageRevisionsResult
-                ).query.pages?.[0]?.revisions?.[0]?.slots?.main?.content || '{}',
+                ).query.pages[0]?.revisions?.[0]?.slots?.main?.content || '{}',
             ) as RedirectTemplateData;
         }
 
@@ -126,11 +130,11 @@ mw.loader.using(dependencies, async () => {
                 });
                 button.on('click', () => {
                     button.$element[0].remove();
-                    new RedirectHelperDialog(dialogInfo, false, this.createdWatchMethod).load();
+                    void new RedirectHelperDialog(dialogInfo, false, this.createdWatchMethod).load();
                 });
 
                 this.contentText.prepend(button.$element[0]);
-            } else if (pageInfo.query.pages[0].redirect) new RedirectHelperDialog(dialogInfo, true, this.createdWatchMethod).load();
+            } else if (pageInfo.query.pages[0].redirect) void new RedirectHelperDialog(dialogInfo, true, this.createdWatchMethod).load();
             else {
                 const portletLink = mw.util.addPortletLink(
                     mw.config.get('skin') === 'minerva' ? 'p-tb' : 'p-cactions',
@@ -141,7 +145,7 @@ mw.loader.using(dependencies, async () => {
                 portletLink.addEventListener('click', (event) => {
                     event.preventDefault();
 
-                    new RedirectHelperDialog(dialogInfo, false, this.createdWatchMethod).load();
+                    void new RedirectHelperDialog(dialogInfo, false, this.createdWatchMethod).load();
 
                     window.scrollTo({ top: 0, behavior: 'smooth' });
 
@@ -151,5 +155,5 @@ mw.loader.using(dependencies, async () => {
         }
     }
 
-    new RedirectHelper().run();
+    void new RedirectHelper().run();
 });

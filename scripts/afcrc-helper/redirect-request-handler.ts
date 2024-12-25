@@ -52,7 +52,9 @@ export default class RedirectRequestHandler {
 
         actionRadioInput.selectItemByLabel('None');
 
-        actionRadioInput.on('choose', (selected) => this.handleActionChange(selected));
+        actionRadioInput.on('choose', (selected) => {
+            this.handleActionChange(selected);
+        });
 
         this.loadCommentLayout();
 
@@ -191,7 +193,7 @@ export default class RedirectRequestHandler {
 
                 const inputLayout = new OO.ui.FieldLayout(input, {
                     label: new OO.ui.HtmlSnippet(
-                        `${parameterName}${!parameterData.label || parameterName.toLowerCase() === parameterData.label?.toLowerCase() ? '' : ` (${parameterData.label})`}${parameterData.description ? ` (${parameterData.description})` : ''} (type: ${parameterData.type}) ${parameterData.suggested ? ' (suggested)' : ''}${parameterData.example ? ` (example: "${parameterData.example}")` : ''}`,
+                        `${parameterName}${!parameterData.label || parameterName.toLowerCase() === parameterData.label.toLowerCase() ? '' : ` (${parameterData.label})`}${parameterData.description ? ` (${parameterData.description})` : ''} (type: ${parameterData.type}) ${parameterData.suggested ? ' (suggested)' : ''}${parameterData.example ? ` (example: "${parameterData.example}")` : ''}`,
                     ),
                     align: 'inline',
                 });
@@ -229,6 +231,7 @@ export default class RedirectRequestHandler {
                 ['notarget', 'nonexistent or no provided target'],
                 ['notitle', 'no title provided'],
                 ['unlikely', 'unlikely redirects'],
+                ['unrelated', 'apparently unrelated titles'],
                 ['notredirect', 'article creation requests'],
                 ['externallink', 'external link redirects'],
                 ['editrequest', 'edit requests'],

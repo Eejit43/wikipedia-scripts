@@ -109,11 +109,17 @@ mw.loader.using(['mediawiki.util'], () => {
                 const undoId = undoUrl.searchParams.get('undo');
                 const undoAfter = undoUrl.searchParams.get('undoafter');
 
-                if (!undoId || !undoAfter) return mw.notify('Could not find undo parameters in URL!', { type: 'error' });
+                if (!undoId || !undoAfter) {
+                    mw.notify('Could not find undo parameters in URL!', { type: 'error' });
+                    return;
+                }
 
                 const revisionUser = undoSpan.closest(isDiff ? 'td' : 'li')?.querySelector('.mw-userlink bdi')?.textContent;
 
-                if (!revisionUser) return mw.notify('Could not find revision user!', { type: 'error' });
+                if (!revisionUser) {
+                    mw.notify('Could not find revision user!', { type: 'error' });
+                    return;
+                }
 
                 const success = await new mw.Api()
                     .postWithEditToken({
@@ -125,14 +131,16 @@ mw.loader.using(['mediawiki.util'], () => {
                             reasonInput.value ? `: ${reasonInput.value}` : ''
                         }`,
                     })
-                    .catch((errorCode: string, errorInfo) => {
+                    .catch((errorCode, errorInfo) => {
                         mw.notify(
                             `Error undoing revision: ${(errorInfo as MediaWikiDataError)?.error.code ?? 'Unknown error'} (${errorCode})`,
                             {
                                 type: 'error',
                             },
                         );
-                        setTimeout(() => window.location.reload(), 2000);
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 2000);
                         return false;
                     });
 

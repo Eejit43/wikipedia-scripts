@@ -39,6 +39,6 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
         windowManager.addWindows([afcrcHelperDialog]);
 
         afcrcHelperDialog.open();
-        afcrcHelperDialog.load();
+        void afcrcHelperDialog.load();
     });
 });

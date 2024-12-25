@@ -37,10 +37,10 @@ export default class RedirectsDialog extends HelperDialog {
         } satisfies ApiQueryRevisionsParams)) as PageRevisionsResult;
 
         this.redirectTemplates = JSON.parse(
-            redirectTemplateResponse.query.pages?.[0]?.revisions?.[0]?.slots?.main?.content || '{}',
+            redirectTemplateResponse.query.pages[0]?.revisions?.[0]?.slots?.main?.content || '{}',
         ) as RedirectTemplateData;
 
-        super.load();
+        void super.load();
     }
 
     /**
@@ -51,8 +51,10 @@ export default class RedirectsDialog extends HelperDialog {
     protected parseSubtypeRequests(sectionText: string, sectionHeader: string) {
         const parsedData = {} as RedirectRequestData;
 
-        const requestedPages = [...sectionHeader.matchAll(/\[\[(.*?)]]/g)]
-            .map((match) => match[1]?.trim().replace(/^:/, '').replaceAll('_', ' '))
+        const requestedPages = sectionHeader
+            .matchAll(/\[\[(.*?)]]/g)
+            .toArray()
+            .map((match) => match[1].trim().replace(/^:/, '').replaceAll('_', ' '))
             .filter(Boolean);
         if (requestedPages.length === 0) return;
 
@@ -389,8 +391,11 @@ export default class RedirectsDialog extends HelperDialog {
                 newPageText = sectionData.pageText;
             }
 
-            if (this.beforeText + this.pageContent === newPageText)
-                return showActionsDialog.addLogEntry('No requests have been handled (page content identical)!');
+            if (this.beforeText + this.pageContent === newPageText) {
+                showActionsDialog.addLogEntry('No requests have been handled (page content identical)!');
+
+                return;
+            }
 
             const mappedCounts = Object.entries(counts)
                 .filter(([, count]) => count > 0)

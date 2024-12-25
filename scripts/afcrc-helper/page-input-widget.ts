@@ -32,7 +32,7 @@ export default class PageInputWidget extends OO.ui.TextInputWidget {
             } satisfies ApiQueryAllPagesGeneratorParameters)
             .catch(() => null)
             .then((result: { query: { pages: { title: string }[] } } | null) => {
-                if (result?.query?.pages) {
+                if (result?.query.pages) {
                     const pages = result.query.pages.map((page) => ({ data: page.title, label: page.title }));
 
                     this.emit('showing-values', pages);

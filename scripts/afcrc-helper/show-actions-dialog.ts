@@ -57,7 +57,9 @@ margin-block: 8px;
         this.closeButton.$element.remove();
 
         const reloadButton = new OO.ui.ButtonWidget({ label: 'Reload', flags: ['primary'] });
-        reloadButton.on('click', () => window.location.reload());
+        reloadButton.on('click', () => {
+            window.location.reload();
+        });
 
         this.contentLayout.$element.append(reloadButton.$element);
     }

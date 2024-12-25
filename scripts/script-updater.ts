@@ -136,7 +136,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
 
                     this.close();
 
-                    (async () => {
+                    void (async () => {
                         mw.notify('Syncing scripts...', { tag: 'sync-scripts-notification' });
 
                         await Promise.all(selectedScripts.map((script) => this.handleScript(script)));
@@ -177,7 +177,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
         private wrapAsyncMethod(method: () => Promise<unknown>) {
             const deferred = $.Deferred();
 
-            method().then((result) => deferred.resolve(result));
+            void method().then((result) => deferred.resolve(result));
 
             return deferred.promise();
         }
@@ -322,9 +322,9 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
             summary += ' (via [[User:Eejit43/scripts/script-updater.js|script]])';
             await new mw.Api()
                 .edit(title, () => ({ text, summary, watchlist: 'watch' }))
-                .catch(async (errorCode: string, errorInfo) => {
+                .catch(async (errorCode, errorInfo) => {
                     if (errorCode === 'nocreate-missing')
-                        await new mw.Api().create(title, { summary, watchlist: 'watch' }, text).catch((errorCode: string, errorInfo) => {
+                        await new mw.Api().create(title, { summary, watchlist: 'watch' }, text).catch((errorCode, errorInfo) => {
                             mw.notify(
                                 `Error creating ${title}: ${(errorInfo as MediaWikiDataError)?.error.info ?? 'Unknown error'} (${errorCode})`,
                                 {

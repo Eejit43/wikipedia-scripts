@@ -70,16 +70,14 @@ export default class RedirectTargetInputWidget extends OO.ui.TextInputWidget {
                     ) => {
                         if (result)
                             deferred.resolve(
-                                result.query?.pages
-                                    ? result.query.pages
-                                          .filter((page) => page.title !== this.pageTitleParsed.getPrefixedText())
-                                          .map((page) => ({
-                                              data: page.title,
-                                              label: new OO.ui.HtmlSnippet(
-                                                  `${page.title}${page.pageprops && 'disambiguation' in page.pageprops ? ' <i>(disambiguation)</i>' : ''}${'redirect' in page ? ' <i>(redirect)</i>' : ''}`,
-                                              ),
-                                          }))
-                                    : [],
+                                result.query.pages
+                                    .filter((page) => page.title !== this.pageTitleParsed.getPrefixedText())
+                                    .map((page) => ({
+                                        data: page.title,
+                                        label: new OO.ui.HtmlSnippet(
+                                            `${page.title}${'disambiguation' in page.pageprops ? ' <i>(disambiguation)</i>' : ''}${'redirect' in page ? ' <i>(redirect)</i>' : ''}`,
+                                        ),
+                                    })),
                             );
                         else deferred.resolve([]);
                     },

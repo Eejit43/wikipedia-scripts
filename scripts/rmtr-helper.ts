@@ -2,9 +2,7 @@ import type { ApiQueryRevisionsParams } from 'types-mediawiki/api_params';
 import type { PageRevisionsResult } from '../global-types';
 
 mw.loader.using(['mediawiki.util'], () => {
-    const developmentMode = false;
-
-    if (mw.config.get('wgPageName') !== (developmentMode ? 'User:Eejit43/sandbox' : 'Wikipedia:Requested_moves/Technical_requests')) return;
+    if (mw.config.get('wgPageName') !== 'Wikipedia:Requested_moves/Technical_requests') return;
 
     importStylesheet('User:Eejit43/scripts/rmtr-helper.css');
 
@@ -15,7 +13,7 @@ mw.loader.using(['mediawiki.util'], () => {
     const link = mw.util.addPortletLink(
         mw.config.get('skin') === 'minerva' ? 'p-tb' : 'p-cactions',
         '#',
-        `Review move requests${developmentMode ? ' (DEV)' : ''}`,
+        'Review move requests',
         'review-rmtr-requests',
     )!;
 
@@ -80,7 +78,7 @@ mw.loader.using(['mediawiki.util'], () => {
 
                     const finalParameters = Object.fromEntries(
                         parameters.map((parameter) => parameter.split(' = ').map((value) => value.trim())),
-                    ) as Record<string, string>;
+                    ) as Record<string, string | undefined>;
 
                     finalParameters.full = full;
 
@@ -329,7 +327,7 @@ mw.loader.using(['mediawiki.util'], () => {
 
                     if ('remove' in request.result) {
                         endResult = endResult.replace(request.full + '\n', '').replace(request.full, '');
-                        if (!changes.remove[request.result.reason]) changes.remove[request.result.reason] = [];
+                        if (!(request.result.reason in changes.remove)) changes.remove[request.result.reason] = [];
                         changes.remove[request.result.reason].push(request);
                         changes.total++;
                     } else if ('move' in request.result) {
@@ -340,7 +338,7 @@ mw.loader.using(['mediawiki.util'], () => {
                             new RegExp(`(\n?\n?(?:={3,} ?${sectionTitleAfter} ?={3,}|$))`),
                             `\n${request.full}${request.result.reason ? `\n:: ${request.requester && request.requester.length > 0 ? (mw.util.isIPAddress(request.requester) ? '' : `@[[User:${request.requester}|${request.requester}]] `) : ''} ${request.result.reason} ~~~~` : ''}$1`,
                         );
-                        if (!changes.move[request.result.section]) changes.move[request.result.section] = [];
+                        if (!(request.result.section in changes.move)) changes.move[request.result.section] = [];
 
                         changes.move[request.result.section].push(request);
                         changes.total++;
@@ -371,14 +369,11 @@ mw.loader.using(['mediawiki.util'], () => {
                     : ''
             }${noRemaining ? ' (no requests remain)' : ''} (via [[User:Eejit43/scripts/rmtr-helper|script]])`;
 
-            if (developmentMode) showEditPreview(mw.config.get('wgPageName'), endResult, editSummary);
-            else {
-                await new mw.Api().edit(mw.config.get('wgPageName'), () => ({ text: endResult, summary: editSummary }));
+            await new mw.Api().edit(mw.config.get('wgPageName'), () => ({ text: endResult, summary: editSummary }));
 
-                mw.notify(`Successfully handled ${changes.total} requests, reloading...`, { type: 'success' });
+            mw.notify(`Successfully handled ${changes.total} requests, reloading...`, { type: 'success' });
 
-                window.location.reload();
-            }
+            window.location.reload();
         });
 
         const loadingSpinner = document.createElement('span');
@@ -409,51 +404,4 @@ async function getPageRevision() {
             titles: mw.config.get('wgPageName'),
         } satisfies ApiQueryRevisionsParams)) as PageRevisionsResult
     ).query.pages[0].revisions[0];
-}
-
-/**
- * Shows a diff edit preview for the given wikitext on a given page.
- * @param title The title of the page to edit.
- * @param text The resulting wikitext of the page.
- * @param summary The edit summary.
- */
-function showEditPreview(title: string, text: string, summary: string): void {
-    const baseUrl = mw.config.get('wgServer') + mw.config.get('wgScriptPath') + '/';
-
-    const form = document.createElement('form');
-    form.action = `${baseUrl}index.php?title=${encodeURIComponent(title)}&action=submit`;
-    form.method = 'POST';
-
-    const textboxInput = document.createElement('input');
-    textboxInput.type = 'hidden';
-    textboxInput.name = 'wpTextbox1';
-    textboxInput.value = text;
-    form.append(textboxInput);
-
-    const summaryInput = document.createElement('input');
-    summaryInput.type = 'hidden';
-    summaryInput.name = 'wpSummary';
-    summaryInput.value = summary;
-    form.append(summaryInput);
-
-    const previewInput = document.createElement('input');
-    previewInput.type = 'hidden';
-    previewInput.name = 'mode';
-    previewInput.value = 'preview';
-    form.append(previewInput);
-
-    const showChangesInput = document.createElement('input');
-    showChangesInput.type = 'hidden';
-    showChangesInput.name = 'wpDiff';
-    showChangesInput.value = 'Show changes';
-    form.append(showChangesInput);
-
-    const ultimateParameterInput = document.createElement('input');
-    ultimateParameterInput.type = 'hidden';
-    ultimateParameterInput.name = 'wpUltimateParam';
-    ultimateParameterInput.value = '1';
-    form.append(ultimateParameterInput);
-
-    document.body.append(form);
-    form.submit();
 }

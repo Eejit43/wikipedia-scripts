@@ -52,7 +52,7 @@ mw.loader.using(['mediawiki.util'], async () => {
                 summary: `Sync redirect with main page, to [[${destinationTalkNamespaceName}:${mainTargetText}]] (via [[User:Eejit43/scripts/sync-redirect|script]])`,
                 minor: true,
             }))
-            .catch(async (errorCode: string, errorInfo) => {
+            .catch(async (errorCode, errorInfo) => {
                 if (errorCode === 'nocreate-missing')
                     await new mw.Api()
                         .create(
@@ -62,7 +62,7 @@ mw.loader.using(['mediawiki.util'], async () => {
                             },
                             `#REDIRECT [[${destinationTalkNamespaceName}:${mainTargetText}]]${pageMove ? '\n\n{{Redirect category shell|\n{{R from move}}\n}}' : ''}`,
                         )
-                        .catch((errorCode: string, errorInfo) => {
+                        .catch((errorCode, errorInfo) => {
                             mw.notify(
                                 `Failed to redirect page: ${(errorInfo as MediaWikiDataError)?.error.info ?? 'Unknown error'} (${errorCode})`,
                                 {

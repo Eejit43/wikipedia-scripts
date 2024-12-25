@@ -99,7 +99,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui.styles.icons-editing
                 rvslots: 'main',
                 titles: mw.config.get('wgPageName'),
             } satisfies ApiQueryRevisionsParams)) as PageRevisionsResult
-        ).query.pages[0].revisions[0].slots.main.content;
+        ).query!.pages[0].revisions[0].slots.main.content;
 
         const foundMagicWords = pageContent.match(/{{\s*displaytitle\s*:\s*(.*?)\s*}}/gi);
         if (foundMagicWords) editBox.setValue(foundMagicWords.at(-1)!.replace(/{{\s*displaytitle\s*:\s*(.*?)\s*}}/i, '$1'));

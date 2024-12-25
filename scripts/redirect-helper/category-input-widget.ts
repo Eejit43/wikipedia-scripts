@@ -1,4 +1,4 @@
-import type { ApiQueryAllPagesGeneratorParameters } from '../../global-types';
+import type { ApiQueryAllPagesGeneratorParameters, CategoriesResult } from '../../global-types';
 import type { LookupElementConfig } from './redirect-target-input-widget';
 
 /**
@@ -33,8 +33,8 @@ export default class CategoryInputWidget extends OO.ui.TextInputWidget {
                 prop: 'categories',
             } satisfies ApiQueryAllPagesGeneratorParameters)
             .catch(() => null)
-            .then((result: { query: { pages: { title: string; categories?: { title: string }[] }[] } } | null) => {
-                if (result?.query.pages) {
+            .then((result: CategoriesResult | null) => {
+                if (result?.query?.pages) {
                     const pages = result.query.pages
                         .filter(
                             (page) =>

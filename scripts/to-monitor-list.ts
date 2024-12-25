@@ -74,7 +74,7 @@ class MonitoringListManager {
                         })) as SearchResult | null;
                     if (!data) return;
 
-                    return data.query.searchinfo.totalhits;
+                    return data.query!.searchinfo.totalhits;
                 });
 
             for (const check of this.toCheck.searches)
@@ -96,7 +96,7 @@ class MonitoringListManager {
                         })) as SearchResult | null;
                     if (!data) return;
 
-                    return data.query.searchinfo.totalhits;
+                    return data.query!.searchinfo.totalhits;
                 });
 
             for (const check of this.toCheck.whatLinksHere)
@@ -118,7 +118,7 @@ class MonitoringListManager {
                         })) as BacklinksResult | null;
                     if (!data) return;
 
-                    return data.query.backlinks.length;
+                    return data.query!.backlinks.length;
                 });
 
             for (const check of this.toCheck.transclusions)
@@ -140,7 +140,7 @@ class MonitoringListManager {
                         })) as EmbeddedinResult | null;
                     if (!data) return;
 
-                    return data.query.embeddedin.length;
+                    return data.query!.embeddedin.length;
                 });
         });
 
@@ -168,7 +168,7 @@ class MonitoringListManager {
                     rvslots: 'main',
                     titles: 'User:Eejit43/scripts/to-monitor-list.json',
                 } satisfies ApiQueryRevisionsParams)) as PageRevisionsResult
-            ).query.pages[0].revisions[0].slots.main.content,
+            ).query!.pages[0].revisions[0].slots.main.content,
         ) as SearchData;
 
         this.totalToCheck = Object.values(this.toCheck).flat().length;

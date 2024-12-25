@@ -37,7 +37,7 @@ export default class RedirectsDialog extends HelperDialog {
         } satisfies ApiQueryRevisionsParams)) as PageRevisionsResult;
 
         this.redirectTemplates = JSON.parse(
-            redirectTemplateResponse.query.pages[0]?.revisions?.[0]?.slots?.main?.content || '{}',
+            redirectTemplateResponse.query!.pages[0]?.revisions?.[0]?.slots?.main?.content || '{}',
         ) as RedirectTemplateData;
 
         void super.load();

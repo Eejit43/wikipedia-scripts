@@ -214,7 +214,7 @@ export default class RedirectHelperDialog {
                 titles: this.pageTitleParsed.getSubjectPage()!.getPrefixedText(),
             } satisfies ApiQueryInfoParams)) as PageInfoResult;
 
-            if (mainPageData.query.pages[0].redirect) await this.loadSyncWithMainButton();
+            if (mainPageData.query!.pages[0].redirect) await this.loadSyncWithMainButton();
         }
 
         this.loadInputElements();
@@ -576,7 +576,7 @@ export default class RedirectHelperDialog {
                 prop: 'info',
                 titles: this.pageTitleParsed.getTalkPage()!.getPrefixedText(),
             } satisfies ApiQueryInfoParams)) as PageInfoResult;
-            this.syncTalkCheckbox = new OO.ui.CheckboxInputWidget({ selected: !!this.talkData.query.pages[0].redirect });
+            this.syncTalkCheckbox = new OO.ui.CheckboxInputWidget({ selected: !!this.talkData.query!.pages[0].redirect });
 
             this.syncTalkCheckboxLayout = new OO.ui.Widget({
                 content: [new OO.ui.FieldLayout(this.syncTalkCheckbox, { label: 'Sync talk page', align: 'inline' })],
@@ -880,10 +880,10 @@ export default class RedirectHelperDialog {
         } satisfies ApiParseParams)) as PageParseResult;
 
         /* Double redirects */
-        if (destinationParseResult.parse.redirects.length > 0) {
+        if (destinationParseResult.parse!.redirects.length > 0) {
             const destinationRedirect =
-                destinationParseResult.parse.redirects[0].to +
-                (destinationParseResult.parse.redirects[0].tofragment ? `#${destinationParseResult.parse.redirects[0].tofragment}` : '');
+                destinationParseResult.parse!.redirects[0].to +
+                (destinationParseResult.parse!.redirects[0].tofragment ? `#${destinationParseResult.parse!.redirects[0].tofragment}` : '');
             errors.push({
                 title: destination,
                 message: `is a redirect to <a href="${mw.util.getUrl(
@@ -895,7 +895,7 @@ export default class RedirectHelperDialog {
 
         /* Nonexistent section */
         if (destination.split('#').length > 1) {
-            const validSection = destinationParseResult.parse.sections.find(
+            const validSection = destinationParseResult.parse!.sections.find(
                 (section) => section.line.replaceAll(/<\/?i>/g, '') === destination.split('#')[1],
             );
             if (validSection) {
@@ -922,7 +922,7 @@ export default class RedirectHelperDialog {
                         rvslots: 'main',
                         titles: this.parsedDestination!.getPrefixedText(),
                     } satisfies ApiQueryRevisionsParams)) as PageRevisionsResult
-                ).query.pages[0].revisions[0].slots.main.content;
+                ).query!.pages[0].revisions[0].slots.main.content;
 
                 const anchors = [
                     ...(destinationContent
@@ -976,9 +976,9 @@ export default class RedirectHelperDialog {
                     });
 
         const targetIsDisambiguationPage = !!(
-            destinationData!.query.pages[0].pageprops && 'disambiguation' in destinationData!.query.pages[0].pageprops
+            destinationData!.query!.pages[0].pageprops && 'disambiguation' in destinationData!.query!.pages[0].pageprops
         );
-        const targetIsSurnameList = !!destinationData!.query.pages[0].categories?.some(
+        const targetIsSurnameList = !!destinationData!.query!.pages[0].categories?.some(
             (category) => category.title === 'Category:Surnames',
         );
 
@@ -994,7 +994,7 @@ export default class RedirectHelperDialog {
                 message: 'is a redirect to a disambiguation page, but it is not tagged with a disambiguation categorization template!',
             });
 
-        if (destinationData!.query.pages[0].pageprops && !targetIsDisambiguationPage) {
+        if (destinationData!.query!.pages[0].pageprops && !targetIsDisambiguationPage) {
             /* Improperly tagged as redirect to disambiguation page */
             if (
                 (!targetIsSurnameList && (taggedAsRedirectToDisambiguationPage || taggedAsRedirectToSurnameList)) ||
@@ -1067,7 +1067,7 @@ export default class RedirectHelperDialog {
         }
 
         /* Syncing talk page but talk page exists and isn't a redirect */
-        if (this.syncTalkCheckbox?.isSelected() && !this.talkData!.query.pages[0].missing && !this.talkData!.query.pages[0].redirect)
+        if (this.syncTalkCheckbox?.isSelected() && !this.talkData!.query!.pages[0].missing && !this.talkData!.query!.pages[0].redirect)
             errors.push({
                 title: this.pageTitleParsed.getTalkPage()!.getPrefixedText(),
                 message: 'exists, but is not a redirect!',
@@ -1300,7 +1300,7 @@ export default class RedirectHelperDialog {
                 rvslots: 'main',
                 titles: title,
             } satisfies ApiQueryRevisionsParams)) as PageRevisionsResult
-        ).query.pages[0].revisions[0].slots.main.content.trim();
+        ).query!.pages[0].revisions[0].slots.main.content.trim();
     }
 
     /**

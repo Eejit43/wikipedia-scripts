@@ -403,5 +403,5 @@ async function getPageRevision() {
             rvslots: 'main',
             titles: mw.config.get('wgPageName'),
         } satisfies ApiQueryRevisionsParams)) as PageRevisionsResult
-    ).query.pages[0].revisions[0];
+    ).query!.pages[0].revisions[0];
 }

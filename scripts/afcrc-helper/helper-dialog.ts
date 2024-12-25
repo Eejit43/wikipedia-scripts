@@ -192,7 +192,7 @@ body.afcrc-helper-open #mw-teleport-target {
             titles: this.pageTitle,
         } satisfies ApiQueryRevisionsParams)) as PageRevisionsResult;
 
-        this.pageContent = pageRevision.query.pages[0].revisions[0].slots.main.content.trim();
+        this.pageContent = pageRevision.query!.pages[0].revisions[0].slots.main.content.trim();
 
         this.parseRequests();
         this.loadInputElements();
@@ -278,7 +278,7 @@ body.afcrc-helper-open #mw-teleport-target {
                 rvslots: 'main',
                 titles: this.pageTitle,
             } satisfies ApiQueryRevisionsParams)) as PageRevisionsResult
-        ).query.pages[0].revisions[0].slots.main.content.trim();
+        ).query!.pages[0].revisions[0].slots.main.content.trim();
 
         void this.performSubtypeActions(showActionsDialog, counts, newPageText);
     }

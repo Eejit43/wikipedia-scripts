@@ -68,7 +68,7 @@ export default class RedirectTargetInputWidget extends OO.ui.TextInputWidget {
                             query: { pages: { title: string; pageprops?: { disambiguation?: string }; redirect?: string }[] };
                         } | null,
                     ) => {
-                        if (result)
+                        if (result?.query)
                             deferred.resolve(
                                 result.query.pages
                                     .filter((page) => page.title !== this.pageTitleParsed.getPrefixedText())

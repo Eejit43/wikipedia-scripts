@@ -34,7 +34,7 @@ export default class RedirectTargetInputWidget extends OO.ui.TextInputWidget {
                 .catch(() => null)
                 .then((result: PageParseResult | null) => {
                     if (result) {
-                        const matchedSections = result.parse.sections.filter((section) =>
+                        const matchedSections = result.parse!.sections.filter((section) =>
                             section.line
                                 .toLowerCase()
                                 .replaceAll(/<\/?i>/g, '')
@@ -42,8 +42,8 @@ export default class RedirectTargetInputWidget extends OO.ui.TextInputWidget {
                         );
                         deferred.resolve(
                             matchedSections.map((section) => ({
-                                data: `${result.parse.title}#${section.line.replaceAll(/<\/?i>/g, '')}`,
-                                label: `${result.parse.title}#${section.line.replaceAll(/<\/?i>/g, '')}`,
+                                data: `${result.parse!.title}#${section.line.replaceAll(/<\/?i>/g, '')}`,
+                                label: `${result.parse!.title}#${section.line.replaceAll(/<\/?i>/g, '')}`,
                             })),
                         );
                     } else deferred.resolve([]);
@@ -65,7 +65,7 @@ export default class RedirectTargetInputWidget extends OO.ui.TextInputWidget {
                 .then(
                     (
                         result: {
-                            query: { pages: { title: string; pageprops: { disambiguation?: string }; redirect?: string }[] };
+                            query: { pages: { title: string; pageprops?: { disambiguation?: string }; redirect?: string }[] };
                         } | null,
                     ) => {
                         if (result)
@@ -75,7 +75,7 @@ export default class RedirectTargetInputWidget extends OO.ui.TextInputWidget {
                                     .map((page) => ({
                                         data: page.title,
                                         label: new OO.ui.HtmlSnippet(
-                                            `${page.title}${'disambiguation' in page.pageprops ? ' <i>(disambiguation)</i>' : ''}${'redirect' in page ? ' <i>(redirect)</i>' : ''}`,
+                                            `${page.title}${page.pageprops && 'disambiguation' in page.pageprops ? ' <i>(disambiguation)</i>' : ''}${'redirect' in page ? ' <i>(redirect)</i>' : ''}`,
                                         ),
                                     })),
                             );

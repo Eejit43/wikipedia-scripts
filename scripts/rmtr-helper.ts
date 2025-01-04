@@ -30,8 +30,8 @@ mw.loader.using(['mediawiki.util'], () => {
 
         const sections = [
             'Uncontroversial technical requests',
-            'Requests to revert undiscussed moves',
             'Contested technical requests',
+            'Requests to revert undiscussed moves',
             'Administrator needed',
         ];
 

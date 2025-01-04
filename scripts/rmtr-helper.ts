@@ -30,10 +30,13 @@ mw.loader.using(['mediawiki.util'], () => {
 
         const sections = [
             'Uncontroversial technical requests',
-            'Contested technical requests',
             'Requests to revert undiscussed moves',
+            'Contested technical requests',
             'Administrator needed',
         ];
+
+        const defaultMoveSection = sections[2];
+        const fallbackDefaultMoveSection = sections[3];
 
         interface Request {
             sig: string;
@@ -268,6 +271,8 @@ mw.loader.using(['mediawiki.util'], () => {
                         if (option === section) continue;
 
                         const optionElement = document.createElement('option');
+                        optionElement.selected =
+                            option === (section === defaultMoveSection ? fallbackDefaultMoveSection : defaultMoveSection);
                         optionElement.value = option;
                         optionElement.textContent = option;
 

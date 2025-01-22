@@ -62,6 +62,49 @@ mw.loader.using(['mediawiki.util'], () => {
 
         const allRequests: Record<string, Request[]> = {};
 
+        /**
+         * Parses the parameters of a given Wikitext template.
+         * @param template The template to parse.
+         */
+        function parseTemplateParameters(template: string) {
+            const rawParameters: string[] = [];
+
+            const ignoredStartSymbols = ['[', '{'];
+            const ignoredEndSymbols = [']', '}'];
+
+            let insideLinkOrTemplate = false;
+            let currentText = '';
+
+            for (let index = 0; index < template.length; index++) {
+                const character = template[index];
+                const nextCharacter: string | undefined = template[index + 1];
+
+                if ((character === '|' && !insideLinkOrTemplate) || index === template.length - 1) {
+                    rawParameters.push(currentText);
+                    currentText = '';
+
+                    continue;
+                }
+
+                currentText += character;
+
+                if (ignoredStartSymbols.some((symbol) => symbol === character && symbol === nextCharacter)) insideLinkOrTemplate = true;
+                else if (ignoredEndSymbols.some((symbol) => symbol === character && symbol === nextCharacter)) insideLinkOrTemplate = false;
+            }
+
+            const parameters: Record<string, string | undefined> = {};
+
+            for (const [index, parameter] of rawParameters.entries()) {
+                const splitParameter = parameter.split('=').map((value) => value.trim());
+
+                if (splitParameter.length === 1) splitParameter.unshift((index + 1).toString());
+
+                parameters[splitParameter.shift()!] = splitParameter.join('=');
+            }
+
+            return parameters;
+        }
+
         for (const section of sections) {
             const sectionContent = pageContent
                 .split(new RegExp(`={3,} ?${section} ?={3,}`))[1]
@@ -73,25 +116,20 @@ mw.loader.using(['mediawiki.util'], () => {
             if (matchedRequests)
                 allRequests[section] = matchedRequests.map((request) => {
                     request = request.trim();
-                    const full = request;
-                    const parameters = request
-                        .replaceAll(/(?:\* ?\n)?[ *:]*{{rmassist\/core \||}}.*/gis, '')
-                        .split(/\s*\|\s*/)
-                        .map((parameter) => parameter.trim());
 
-                    const finalParameters = Object.fromEntries(
-                        parameters.map((parameter) => parameter.split('=').map((value) => value.trim())),
-                    ) as Record<string, string | undefined>;
+                    const parameters = parseTemplateParameters(request.replaceAll(/(?:\* ?\n)?[ *:]*{{rmassist\/core\s*\||}}\n.*/gis, ''));
 
-                    finalParameters.full = full;
+                    parameters.full = request;
 
-                    finalParameters.original = finalParameters[1]?.replace(/^\[+/, '').replace(/]+$/, '') ?? 'UNKNOWN';
-                    finalParameters.destination = finalParameters[2]?.replace(/^\[+/, '').replace(/]+$/, '') ?? 'UNKNOWN';
+                    parameters.original = parameters[1]?.replace(/^\[+/, '').replace(/]+$/, '') ?? 'UNKNOWN';
+                    parameters.destination = parameters[2]?.replace(/^\[+/, '').replace(/]+$/, '') ?? 'UNKNOWN';
 
-                    delete finalParameters[1];
-                    delete finalParameters[2];
+                    if (!parameters.requester) parameters.requester = parameters.sig?.match(/\[\[User:(.*?)(\||]])/)?.[1].trim();
 
-                    return finalParameters as unknown as Request;
+                    delete parameters[1];
+                    delete parameters[2];
+
+                    return parameters as unknown as Request;
                 });
             else {
                 allRequests[section] = [];

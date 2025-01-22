@@ -263,6 +263,7 @@
         "short-description": "User script to help handle requests at [[WP:RM/TR]]",
         "description": "This user script helps handle requests at [[WP:RM/TR]] (technical move requests). A link is added to the \"More\"/\"Tools\" dropdown menu (or sidebar), which creates a UI at the top of the page, allowing requests to be removed and moved between sections with comments.\n\n'''The script does not currently actually move pages!'''",
         "changelog": {
+            "2025|01|22": "Improve request detection and parsing logic.",
             "2025|01|03": "Prioritize \"Contested technical requests\" section in move dropdown.",
             "2024|07|15": "Add very basic dark mode support.",
             "2024|06|02": "Automatically ping requester when moving requests.",

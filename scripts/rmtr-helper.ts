@@ -117,7 +117,9 @@ mw.loader.using(['mediawiki.util'], () => {
                 allRequests[section] = matchedRequests.map((request) => {
                     request = request.trim();
 
-                    const parameters = parseTemplateParameters(request.replaceAll(/(?:\* ?\n)?[ *:]*{{rmassist\/core\s*\||}}\n.*/gis, ''));
+                    const parameters = parseTemplateParameters(
+                        request.replaceAll(/(?:\* ?\n)?[ *:]*{{rmassist\/core\s*\||}}(?![^\n]*}}).*/gis, ''),
+                    );
 
                     parameters.full = request;
 

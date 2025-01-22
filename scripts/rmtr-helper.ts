@@ -80,7 +80,7 @@ mw.loader.using(['mediawiki.util'], () => {
                         .map((parameter) => parameter.trim());
 
                     const finalParameters = Object.fromEntries(
-                        parameters.map((parameter) => parameter.split(' = ').map((value) => value.trim())),
+                        parameters.map((parameter) => parameter.split('=').map((value) => value.trim())),
                     ) as Record<string, string | undefined>;
 
                     finalParameters.full = full;

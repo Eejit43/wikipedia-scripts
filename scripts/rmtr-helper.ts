@@ -80,6 +80,8 @@ mw.loader.using(['mediawiki.util'], () => {
                 const nextCharacter: string | undefined = template[index + 1];
 
                 if ((character === '|' && !insideLinkOrTemplate) || index === template.length - 1) {
+                    if (character !== '|') currentText += character;
+
                     rawParameters.push(currentText);
                     currentText = '';
 

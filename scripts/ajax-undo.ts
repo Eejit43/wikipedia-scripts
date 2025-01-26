@@ -1,9 +1,12 @@
 import type { MediaWikiDataError } from '../global-types';
+import cssContent from '../styles/ajax-undo.css' with { type: 'css' };
 
 mw.loader.using(['mediawiki.util'], () => {
     const isDiff = mw.config.get('wgDiffOldId');
 
     if (mw.config.get('wgAction') !== 'history' && !isDiff) return;
+
+    mw.util.addCSS(cssContent);
 
     const isMinerva = mw.config.get('skin') === 'minerva';
 
@@ -12,63 +15,6 @@ mw.loader.using(['mediawiki.util'], () => {
         awaitingConfirmation: 1,
         awaitingReload: 2,
     };
-
-    mw.util.addCSS(`
-#ajax-undo-loading {
-    display: none;
-    vertical-align: text-bottom;
-    height: 1.3em;
-    overflow: hidden;
-    line-height: 1.5em;
-}
-
-#ajax-undo-loading::after {
-    display: inline-table;
-    animation: ajax-undo-loading 0.8s steps(10) infinite;
-    content: "⠋\\A⠙\\A⠹\\A⠸\\A⠼\\A⠴\\A⠦\\A⠧\\A⠇\\A⠏";
-    color: gray;
-    text-align: left;
-    white-space: pre;
-}
-
-#ajax-undo-loading.is-diff {
-    height: 1.55em;
-}
-
-#ajax-undo-loading:not(.is-diff) {
-    margin: -0.3em 3px 0;
-}
-
-#ajax-undo-loading.is-minerva.is-diff {
-    margin: -0.2em 3px;
-}
-
-#ajax-undo-loading.is-minerva:not(.is-diff) {
-    float: right;
-    margin-top: 0;
-}
-
-@keyframes ajax-undo-loading {
-    to {
-        transform: translateY(-15em);
-    }
-}
-
-#ajax-undo-reason {
-    display: none;
-    margin-left: 3px;
-}
-
-#ajax-undo-reason.is-minerva {
-    border: revert;
-    background: revert;
-    padding: revert;
-}
-
-#ajax-undo-reason.is-minerva:not(.is-diff) {
-    float: right;
-    height: 26px;
-}`);
 
     for (const undoSpan of document.querySelectorAll('.mw-history-undo, .mw-diff-undo')) {
         const undoLink = undoSpan.querySelector('a');

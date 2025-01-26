@@ -1,0 +1,103 @@
+body.afcrc-helper-open #mw-teleport-target {
+    z-index: 500;
+}
+
+.afcrc-helper-request {
+    margin: 10px;
+    border-radius: 5px;
+    background-color: #eee;
+    padding: 5px;
+    color: #202122;
+
+    & summary {
+        cursor: pointer;
+    }
+}
+
+.afcrc-helper-target-editor {
+    min-width: 1ch;
+    max-width: calc(100% - 4ch);
+    font-family: monospace;
+}
+
+.afcrc-helper-external-link {
+    text-decoration: none !important;
+
+    & svg {
+        display: inline-block;
+        width: 1em;
+        height: 1em;
+        fill: currentcolor;
+    }
+}
+
+.afcrc-helper-request-info,
+.afcrc-helper-request-responder {
+    margin: 5px;
+
+    & > div {
+        margin-block: 8px;
+    }
+}
+
+.afcrc-helper-request-responder {
+    & > div:last-of-type {
+        margin-bottom: 0;
+    }
+
+    /* stylelint-disable-next-line selector-class-pattern */
+    & .oo-ui-fieldLayout {
+        margin-left: 8px;
+    }
+
+    /* stylelint-disable-next-line selector-class-pattern */
+    & .oo-ui-fieldLayout-header {
+        width: max-content;
+    }
+}
+
+.afcrc-helper-action-radio {
+    margin-top: 8px;
+
+    /* stylelint-disable-next-line selector-class-pattern */
+    & .oo-ui-radioOptionWidget {
+        display: inline;
+        padding: 8px;
+    }
+}
+
+.afcrc-closing-reason-input,
+.afcrc-comment-input {
+    max-width: 50%;
+}
+
+.afcrc-helper-template-parameters-container,
+.afcrc-helper-template-parameters-container details {
+    margin-block: 10px;
+    border: 1px solid #a2a9b1;
+    border-radius: 2px;
+    background-color: white;
+    padding: 5px;
+}
+
+.afcrc-helper-template-parameters-container {
+    margin-left: 8px;
+
+    & summary {
+        cursor: pointer;
+        font-weight: bold;
+    }
+
+    & details {
+        margin-block: 5px;
+        background-color: #e2e2e2;
+    }
+}
+
+#afcrc-helper-no-templates-message {
+    padding: 5px;
+}
+
+.afcrc-helper-actions-container div {
+    margin-block: 8px;
+}

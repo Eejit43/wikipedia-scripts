@@ -1,0 +1,57 @@
+#ajax-undo-loading {
+    display: none;
+    vertical-align: text-bottom;
+    height: 1.3em;
+    overflow: hidden;
+    line-height: 1.5em;
+
+    &::after {
+        display: inline-table;
+        animation: ajax-undo-loading 0.8s steps(10) infinite;
+        content: "⠋\\A⠙\\A⠹\\A⠸\\A⠼\\A⠴\\A⠦\\A⠧\\A⠇\\A⠏";
+        color: gray;
+        text-align: left;
+        white-space: pre;
+    }
+
+    &:not(.is-diff) {
+        margin: -0.3em 3px 0;
+    }
+
+    &.is-diff {
+        height: 1.55em;
+    }
+
+    &.is-minerva {
+        &:not(.is-diff) {
+            float: right;
+            margin-top: 0;
+        }
+
+        &.is-diff {
+            margin: -0.2em 3px;
+        }
+    }
+}
+
+@keyframes ajax-undo-loading {
+    to {
+        transform: translateY(-15em);
+    }
+}
+
+#ajax-undo-reason {
+    display: none;
+    margin-left: 3px;
+
+    &.is-minerva {
+        border: revert;
+        background: revert;
+        padding: revert;
+
+        &:not(.is-diff) {
+            float: right;
+            height: 26px;
+        }
+    }
+}

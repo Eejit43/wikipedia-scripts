@@ -1,10 +1,11 @@
 import type { ApiQueryRevisionsParams } from 'types-mediawiki/api_params';
 import type { PageRevisionsResult } from '../global-types';
+import cssContent from '../styles/rmtr-helper.css' with { type: 'css' };
 
 mw.loader.using(['mediawiki.util'], () => {
     if (mw.config.get('wgPageName') !== 'Wikipedia:Requested_moves/Technical_requests') return;
 
-    importStylesheet('User:Eejit43/scripts/rmtr-helper.css');
+    mw.util.addCSS(cssContent);
 
     const namespaces = mw.config.get('wgNamespaceIds');
 

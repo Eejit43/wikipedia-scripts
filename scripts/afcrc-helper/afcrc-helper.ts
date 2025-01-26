@@ -1,3 +1,5 @@
+import cssContent from '../../styles/afcrc-helper.css' with { type: 'css' };
+
 export type WatchMethod = 'nochange' | 'preferences' | 'unwatch' | 'watch';
 
 declare global {
@@ -28,6 +30,8 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
 
     link.addEventListener('click', (event) => {
         event.preventDefault();
+
+        mw.util.addCSS(cssContent);
 
         const windowManager = new OO.ui.WindowManager();
         document.body.append(windowManager.$element[0]);

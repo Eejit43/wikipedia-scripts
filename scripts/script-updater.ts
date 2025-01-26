@@ -18,7 +18,6 @@ interface Script {
     'source-multiple'?: true;
     'released': string;
     'updated': string;
-    'css'?: true;
 }
 
 mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-windows'], () => {
@@ -103,7 +102,6 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                         items: [
                             { id: 'documentation', name: 'Update script documentation' },
                             { id: 'script', name: 'Update script code' },
-                            { id: 'style', name: 'Update stylesheet' },
                             { id: 'talk', name: 'Create talk redirect', selectedDefault: false },
                         ].map(
                             ({ id, name, selectedDefault }) =>
@@ -206,12 +204,11 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
          * @param script The script to handle.
          */
         private async handleScript(script: Script) {
-            const actionsToTake = this.actionsMultiselect.findSelectedItemsData() as ('documentation' | 'script' | 'style' | 'talk')[];
+            const actionsToTake = this.actionsMultiselect.findSelectedItemsData() as ('documentation' | 'script' | 'talk')[];
 
             const subpageName = `User:Eejit43/scripts/${script.name}`;
             const subpageTalkName = `User talk:Eejit43/scripts/${script.name}`;
             const scriptName = `${subpageName}.js`;
-            const styleName = `${subpageName}.css`;
 
             const fullSubpageInfo = [
                 '{{User:Eejit43/script-documentation',
@@ -262,23 +259,6 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                     );
             }
 
-            let styleContent = null;
-            if (actionsToTake.includes('style') && script.css) {
-                const styleContentResponse = await fetch(
-                    `https://raw.githubusercontent.com/${this.repoOwner}/${this.repoName}/${this.latestCommitHash}/dist/styles/${script.name}.css`,
-                );
-
-                if (styleContentResponse.ok) styleContent = await styleContentResponse.text();
-                else
-                    mw.notify(
-                        `Failed to fetch "${script.name}.css" from GitHub: ${styleContentResponse.statusText} (${styleContentResponse.status})`,
-                        {
-                            type: 'error',
-                            tag: 'sync-scripts-notification',
-                        },
-                    );
-            }
-
             if (!script.personal) {
                 if (actionsToTake.includes('documentation'))
                     await this.editOrCreate(subpageName, fullSubpageInfo.join('\n'), 'Syncing script documentation from GitHub');
@@ -292,8 +272,6 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
             }
 
             if (scriptContent) await this.editOrCreate(scriptName, scriptContent, 'Syncing script from GitHub');
-
-            if (script.css && styleContent) await this.editOrCreate(styleName, styleContent, 'Syncing styles from GitHub');
         }
 
         /**

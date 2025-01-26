@@ -16,11 +16,6 @@ export default class ActionsDialog extends OO.ui.Dialog {
     initialize = () => {
         OO.ui.Dialog.prototype.initialize.apply(this);
 
-        mw.util.addCSS(`
-.afcrc-helper-actions-container div {
-margin-block: 8px;
-}`);
-
         this.contentLayout = new OO.ui.PanelLayout({ padded: true, expanded: false });
         (this as unknown as { $body: JQuery }).$body.append(this.contentLayout.$element);
 

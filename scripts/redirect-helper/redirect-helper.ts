@@ -1,5 +1,6 @@
 import type { ApiQueryInfoParams, ApiQueryRevisionsParams } from 'types-mediawiki/api_params';
 import type { PageInfoResult, PageRevisionsResult } from '../../global-types';
+import cssContent from '../../styles/redirect-helper.css' with { type: 'css' };
 import type { WatchMethod } from '../afcrc-helper/afcrc-helper';
 import type { RedirectTemplateData } from './redirect-helper-dialog';
 
@@ -94,7 +95,7 @@ mw.loader.using(dependencies, async () => {
                         rvslots: 'main',
                         titles: 'User:Eejit43/scripts/redirect-helper.json',
                     } satisfies ApiQueryRevisionsParams)) as PageRevisionsResult
-                ).query.pages[0]?.revisions?.[0]?.slots?.main?.content || '{}',
+                ).query!.pages[0]?.revisions?.[0]?.slots?.main?.content || '{}',
             ) as RedirectTemplateData;
         }
 
@@ -102,6 +103,8 @@ mw.loader.using(dependencies, async () => {
          * Checks a page's status and loads the helper appropriately.
          */
         private async checkPageAndLoad() {
+            mw.util.addCSS(cssContent);
+
             const pageInfo = (await this.api.get({
                 action: 'query',
                 formatversion: '2',
@@ -116,12 +119,7 @@ mw.loader.using(dependencies, async () => {
                 pageTitleParsed: this.pageTitleParsed,
             };
 
-            if (pageInfo.query.pages[0].missing) {
-                mw.util.addCSS(`
-#create-redirect-button {
-    margin-bottom: 20px;
-}`);
-
+            if (pageInfo.query!.pages[0].missing) {
                 const button = new OO.ui.ButtonWidget({
                     id: 'create-redirect-button',
                     label: 'Create redirect',
@@ -134,7 +132,7 @@ mw.loader.using(dependencies, async () => {
                 });
 
                 this.contentText.prepend(button.$element[0]);
-            } else if (pageInfo.query.pages[0].redirect) void new RedirectHelperDialog(dialogInfo, true, this.createdWatchMethod).load();
+            } else if (pageInfo.query!.pages[0].redirect) void new RedirectHelperDialog(dialogInfo, true, this.createdWatchMethod).load();
             else {
                 const portletLink = mw.util.addPortletLink(
                     mw.config.get('skin') === 'minerva' ? 'p-tb' : 'p-cactions',

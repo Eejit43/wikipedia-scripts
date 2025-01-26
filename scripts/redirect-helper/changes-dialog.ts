@@ -7,16 +7,25 @@ export default class ChangesDialog extends OO.ui.ProcessDialog {
     // Utility variables
     private api = new mw.Api();
 
+    // Tracking variables
+    private hasLoadedDiffStyles = false;
+
     constructor(config: OO.ui.ProcessDialog.ConfigOptions) {
         super(config);
 
-        ChangesDialog.static.name = 'ShowChangesDialog';
+        ChangesDialog.static.name = 'ChangesDialog';
         ChangesDialog.static.title = 'Changes to be made';
         ChangesDialog.static.actions = [{ action: 'cancel', label: 'Close', flags: ['safe', 'close'] }];
     }
 
     getSetupProcess = () => {
         return ChangesDialog.super.prototype.getSetupProcess.call(this).next(() => {
+            if (!this.hasLoadedDiffStyles) {
+                mw.loader.addLinkTag('https://www.mediawiki.org/w/load.php?modules=mediawiki.diff.styles&only=styles');
+
+                this.hasLoadedDiffStyles = true;
+            }
+
             const [oldText, newText] = this.getData() as string[];
 
             return this.api

@@ -1,0 +1,72 @@
+#create-redirect-button {
+    margin-bottom: 20px;
+}
+
+#redirect-helper-box {
+    margin-right: auto;
+    margin-bottom: 25px !important;
+    margin-left: auto;
+    background-color: whitesmoke;
+    width: 700px;
+    max-width: calc(100% - 50px);
+    color: #202122;
+}
+
+.redirect-input-layout label {
+    font-weight: bold;
+}
+
+.redirect-helper-redirect-possibilities::after {
+    content: " (redirect with possibilities)";
+    font-style: italic;
+}
+
+.redirect-helper-template-parameters-container,
+.redirect-helper-template-parameters-container details {
+    margin-block: 10px;
+    border-radius: 5px;
+    background-color: #e2e2e2;
+    padding: 5px;
+}
+
+.redirect-helper-template-parameters-container summary {
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.redirect-helper-template-parameters-container details {
+    margin-block: 5px;
+    background-color: #d1cece;
+}
+
+#redirect-helper-no-templates-message {
+    padding: 5px;
+}
+
+#redirect-helper-summary-layout {
+    margin-top: 15px;
+    border-top: 1px solid gray;
+    padding-top: 10px;
+}
+
+#redirect-helper-submit-layout {
+    margin-top: 10px;
+
+    & > * {
+        margin-bottom: 0;
+    }
+}
+
+.redirect-helper-warning {
+    margin-top: 8px;
+}
+
+.redirect-helper-autofix-button {
+    margin-left: 5px;
+    font-size: 12px;
+
+    & a {
+        padding: 3px 4px !important;
+        min-height: unset !important;
+    }
+}

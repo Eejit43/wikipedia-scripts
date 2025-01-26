@@ -9,7 +9,7 @@ const scripts = readdirSync('scripts')
     );
 
 for (const script of scripts)
-    build({
+    void build({
         entryPoints: [script],
         outdir: 'dist/scripts',
         minify: true,
@@ -24,7 +24,7 @@ for (const script of scripts)
 const styles = readdirSync('styles').map((file) => `styles/${file}`);
 
 for (const style of styles)
-    build({
+    void build({
         entryPoints: [style],
         outdir: 'dist/styles',
         minify: true,

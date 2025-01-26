@@ -31,7 +31,7 @@ const scripts = readdirSync('scripts')
 for (const script of scripts)
     void build({
         entryPoints: [script],
-        outdir: 'dist/scripts',
+        outdir: 'dist',
         minify: true,
         bundle: true,
         sourcemap: 'inline',

@@ -246,7 +246,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
 
             if (actionsToTake.includes('script')) {
                 const scriptContentResponse = await fetch(
-                    `https://raw.githubusercontent.com/${this.repoOwner}/${this.repoName}/${this.latestCommitHash}/dist/scripts/${script.name}.js`,
+                    `https://raw.githubusercontent.com/${this.repoOwner}/${this.repoName}/${this.latestCommitHash}/dist/${script.name}.js`,
                 );
                 if (scriptContentResponse.ok) scriptContent = await scriptContentResponse.text();
                 else

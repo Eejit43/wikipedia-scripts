@@ -138,9 +138,11 @@ export default class RedirectRequestHandler {
         });
         (tagSelect.getMenu() as OO.ui.MenuSelectWidget.ConfigOptions).filterMode = 'substring';
         tagSelect.on('change', () => {
-            const sortedTags = (tagSelect.getValue() as string[]).sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
+            const selectedTags = tagSelect.getValue() as string[];
 
-            if ((tagSelect.getValue() as string[]).join(';') !== sortedTags.join(';')) tagSelect.setValue(sortedTags);
+            const sortedTags = selectedTags.sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
+
+            if (selectedTags.join(';') !== sortedTags.join(';')) tagSelect.setValue(sortedTags);
 
             this.updateActionsToTake({ redirectTemplates: sortedTags });
 

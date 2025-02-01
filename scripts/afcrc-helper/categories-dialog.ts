@@ -239,9 +239,11 @@ export default class CategoriesDialog extends HelperDialog {
             inputWidget: pageSelectInput,
         });
         pageSelect.on('change', () => {
-            const sortedTags = (pageSelect.getValue() as string[]).sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
+            const selectedTags = pageSelect.getValue() as string[];
 
-            if ((pageSelect.getValue() as string[]).join(';') !== sortedTags.join(';')) pageSelect.setValue(sortedTags);
+            const sortedTags = selectedTags.sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
+
+            if (selectedTags.join(';') !== sortedTags.join(';')) pageSelect.setValue(sortedTags);
 
             this.actionsToTake[index].examples = sortedTags;
         });
@@ -272,9 +274,11 @@ export default class CategoriesDialog extends HelperDialog {
             inputWidget: categorySelectInput,
         });
         categorySelect.on('change', () => {
-            const sortedTags = (categorySelect.getValue() as string[]).sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
+            const selectedTags = categorySelect.getValue() as string[];
 
-            if ((categorySelect.getValue() as string[]).join(';') !== sortedTags.join(';')) categorySelect.setValue(sortedTags);
+            const sortedTags = selectedTags.sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
+
+            if (selectedTags.join(';') !== sortedTags.join(';')) categorySelect.setValue(sortedTags);
 
             this.actionsToTake[index].parents = sortedTags;
         });

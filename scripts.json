@@ -232,18 +232,18 @@
             "2024|02|07": "Fix redirects to categories adding category instead of linking to it.",
             "2024|01|30": "Ignore italic text in section names for redirect target.",
             "2024|01|29": [
-                "Added a check for {{tl|R with Wikidata item}} without being linked to a Wikidata item and vice versa.",
-                "Added \"Show changes\" button to show the diff of the current changes to the redirect.",
-                "Moved the preview templates button to a layout with the tag input element."
+                "Add a check for {{tl|R with Wikidata item}} without being linked to a Wikidata item and vice versa.",
+                "Add \"Show changes\" button to show the diff of the current changes to the redirect.",
+                "Move the preview templates button to a layout with the tag input element."
             ],
-            "2024|01|28": "Added a field for modifying redirect default sort key (DEFAULTSORT).",
-            "2024|01|27": "Added a field for modifying redirect categories.",
+            "2024|01|28": "Add a field for modifying redirect default sort key (DEFAULTSORT).",
+            "2024|01|27": "Add a field for modifying redirect categories.",
             "2024|01|26": [
-                "Changed background color to gray and switched styles to be applied through classes/ids so they can be customizable.",
-                "Added support for viewing categories in \"Preview templates\" menu."
+                "Change background color to gray and switch styles to be applied through classes/ids so they can be customizable.",
+                "Add support for viewing categories in \"Preview templates\" menu."
             ],
-            "2024|01|25": "Added \"Preview templates\" button to show how the selected redirect categorization templates would appear on the current page.",
-            "2024|01|24": "Added checks for using protection redirect categorization templates unnecessarily."
+            "2024|01|25": "Add \"Preview templates\" button to show how the selected redirect categorization templates would appear on the current page.",
+            "2024|01|24": "Add checks for using protection redirect categorization templates unnecessarily."
         },
         "skin-support": {
             "vector-2022": "yes",
@@ -263,14 +263,15 @@
         "short-description": "User script to help handle requests at [[WP:RM/TR]]",
         "description": "This user script helps handle requests at [[WP:RM/TR]] (technical move requests). A link is added to the \"More\"/\"Tools\" dropdown menu (or sidebar), which creates a UI at the top of the page, allowing requests to be removed and moved between sections with comments.\n\n'''The script does not currently actually move pages!'''",
         "changelog": {
+            "2025|01|31": "Add \"Stale\" removal reason.",
             "2025|01|22": "Improve request detection and parsing logic.",
             "2025|01|03": "Prioritize \"Contested technical requests\" section in move dropdown.",
             "2024|07|15": "Add very basic dark mode support.",
             "2024|06|02": "Automatically ping requester when moving requests.",
             "2024|05|27": "Account for lack of whitespace around pipe characters.",
             "2024|05|17": "Handle wikilinked title parameters.",
-            "2024|01|29": "Accounted for some edge cases in the way requests are added.",
-            "2023|12|13": "Added an alert if the page has been edited since the script has been loaded."
+            "2024|01|29": "Account for some edge cases in the way requests are added.",
+            "2023|12|13": "Add an alert if the page has been edited since the script has been loaded."
         },
         "skin-support": {
             "vector-2022": "yes",
@@ -282,7 +283,7 @@
             "cologne-blue": "yes"
         },
         "released": "2023|02|14",
-        "updated": "2025|01|26"
+        "updated": "2025|01|31"
     },
     {
         "name": "script-updater",

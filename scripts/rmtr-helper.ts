@@ -259,6 +259,7 @@ mw.loader.using(['mediawiki.util'], () => {
                         'Invalid page name',
                         'Incorrect venue',
                         'Withdrawn',
+                        'Stale',
                         'Not done',
                     ];
 

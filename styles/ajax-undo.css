@@ -8,7 +8,7 @@
     &::after {
         display: inline-table;
         animation: ajax-undo-loading 0.8s steps(10) infinite;
-        content: "⠋\\A⠙\\A⠹\\A⠸\\A⠼\\A⠴\\A⠦\\A⠧\\A⠇\\A⠏";
+        content: "⠋\a⠙\a⠹\a⠸\a⠼\a⠴\a⠦\a⠧\a⠇\a⠏";
         color: gray;
         text-align: left;
         white-space: pre;

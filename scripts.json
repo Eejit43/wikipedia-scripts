@@ -78,6 +78,7 @@
     },
     {
         "name": "aligner",
+        "use-instead": "article-cleaner",
         "image": false,
         "short-description": "User script to align infobox template parameters",
         "description": "This user script is a fork of [[User:Taavi/Aligner.js|Taavi's script]], and adds the ability to align infobox (and similar) templates parameters (using a link in the \"More\"/\"Tools\" menu).",
@@ -97,6 +98,25 @@
         },
         "released": "2023|01|02",
         "updated": "2024|12|25"
+    },
+    {
+        "name": "article-cleaner",
+        "in-development": true,
+        "image": false,
+        "short-description": "User script to fix stylistic and other minor issues in articles",
+        "description": "This user script adds the ability to fix stylistic and other issues in articles, such as aligning infobox (and similar) templates parameters (using a link in the \"More\"/\"Tools\" menu).",
+        "changelog": {},
+        "skin-support": {
+            "vector-2022": "yes",
+            "vector": "yes",
+            "timeless": "yes",
+            "monobook": "yes",
+            "modern": "yes",
+            "minerva": "yes",
+            "cologne-blue": "yes"
+        },
+        "released": "2025|02|10",
+        "updated": "2025|02|10"
     },
     {
         "name": "copy-search-results",

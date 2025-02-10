@@ -105,7 +105,6 @@
         "image": false,
         "short-description": "User script to fix stylistic and other minor issues in articles",
         "description": "This user script adds the ability to fix stylistic and other issues in articles, such as aligning infobox (and similar) templates parameters (using a link in the \"More\"/\"Tools\" menu).",
-        "changelog": {},
         "skin-support": {
             "vector-2022": "yes",
             "vector": "yes",

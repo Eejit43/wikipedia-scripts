@@ -447,7 +447,7 @@ export default class CategoriesDialog extends HelperDialog {
                     case 'close': {
                         sectionData = this.modifySectionData(sectionData, {
                             prepend: `{{AfC-c|${actionData.closingReason!.id}}}`,
-                            append: (actionData.comment ? `* {{AfC comment|1=${actionData.comment}}} ~~~~` : '') + '\n{{AfC-c|b}',
+                            append: (actionData.comment ? `* {{AfC comment|1=${actionData.comment}}} ~~~~` : '') + '\n{{AfC-c|b}}',
                         });
 
                         counts.closed++;

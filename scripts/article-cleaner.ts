@@ -30,8 +30,6 @@
 
             text = formatTemplates(text);
 
-            console.log(text);
-
             editBox.textSelection('setContents', text);
 
             editBox.textSelection('setSelection', { start: 0 });
@@ -63,6 +61,8 @@ function formatTemplates(content: string) {
         private parameters: { key: string | null; value: string }[] = [];
         public subTemplates: Template[] = [];
 
+        private placeholderStrings = ['\u{F0000}', '\u{10FFFF}'];
+
         private pipeEscapeRegexes = [/(\[\[[^\]]*?)\|(.*?]])/g, /(<!--.*?)\|(.*?-->)/g, /(<nowiki>.*?)\|(.*?<\/nowiki>)/g];
 
         private defaultTemplateStyles = {
@@ -88,16 +88,16 @@ function formatTemplates(content: string) {
             for (const subTemplate of this.subTemplates) {
                 subTemplate.parse();
 
-                this.fullTextEscaped = this.fullTextEscaped.replace(subTemplate.fullText!, '\u0002');
+                this.fullTextEscaped = this.fullTextEscaped.replace(subTemplate.fullText!, this.placeholderStrings[0]);
             }
 
             let trimmedInnerText = this.fullTextEscaped.slice(2, -2).trim();
 
             for (const pipeEscapeRegex of this.pipeEscapeRegexes)
                 while (pipeEscapeRegex.test(trimmedInnerText))
-                    trimmedInnerText = trimmedInnerText.replaceAll(pipeEscapeRegex, '$1\u0001$2');
+                    trimmedInnerText = trimmedInnerText.replaceAll(pipeEscapeRegex, `$1${this.placeholderStrings[1]}$2`);
 
-            const parameters = trimmedInnerText.split('|').map((parameter) => parameter.replaceAll('\u0001', '|').trim());
+            const parameters = trimmedInnerText.split('|').map((parameter) => parameter.replaceAll(this.placeholderStrings[1], '|').trim());
 
             this.name = parameters.shift();
 
@@ -161,10 +161,8 @@ function formatTemplates(content: string) {
                       : '',
             );
 
-            for (const subTemplate of this.subTemplates) {
-                console.log(joinedOutput, subTemplate.format());
-                joinedOutput = joinedOutput.replace('\u0002', subTemplate.format());
-            }
+            for (const subTemplate of this.subTemplates)
+                joinedOutput = joinedOutput.replace(this.placeholderStrings[0], subTemplate.format());
 
             return joinedOutput;
         }

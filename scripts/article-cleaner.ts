@@ -30,9 +30,13 @@
 
             text = formatTemplates(text);
 
+            console.log(text);
+
             editBox.textSelection('setContents', text);
 
             editBox.textSelection('setSelection', { start: 0 });
+
+            mw.notify('Article cleanup complete!', { type: 'success', autoHideSeconds: 'short' });
         });
     });
 })();

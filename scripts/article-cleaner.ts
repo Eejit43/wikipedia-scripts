@@ -161,7 +161,10 @@ function formatTemplates(content: string) {
                       : '',
             );
 
-            for (const subTemplate of this.subTemplates) joinedOutput = joinedOutput.replace('\u0002', subTemplate.format());
+            for (const subTemplate of this.subTemplates) {
+                console.log(joinedOutput, subTemplate.format());
+                joinedOutput = joinedOutput.replace('\u0002', subTemplate.format());
+            }
 
             return joinedOutput;
         }

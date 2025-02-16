@@ -29,6 +29,11 @@
             if (!text) return mw.notify('Edit box value not found!', { type: 'error', autoHideSeconds: 'short' });
 
             text = formatTemplates(text);
+            text = cleanupSectionHeaders(text);
+            text = cleanupMagicWords(text);
+            text = cleanupDisplaytitlesAndDefaultsorts(text);
+            text = cleanupCategories(text);
+            text = cleanupStrayMarkup(text);
 
             editBox.textSelection('setContents', text);
 
@@ -227,4 +232,129 @@ function formatTemplates(content: string) {
         }
 
     return newContent;
+}
+
+/**
+ * Cleans up section headers in an article's content.
+ * @param content The article content to clean up.
+ */
+function cleanupSectionHeaders(content: string) {
+    const commonReplacements = {
+        /* eslint-disable @typescript-eslint/naming-convention */
+        'References': ['reference', 'source', 'sources'],
+        'External links': ['external link', 'weblink', 'weblinks'],
+        'See also': ['also see'],
+        /* eslint-enable @typescript-eslint/naming-convention */
+    };
+
+    const commonMiscapitalizedWords = ['life', 'career'];
+
+    const reverseCommonReplacements = Object.fromEntries(
+        Object.entries(commonReplacements).flatMap(([key, values]) => values.map((value) => [value, key])),
+    );
+
+    const headers = content.matchAll(/(?<=\n)(?<startMarkup>=+) *(?<name>.*?) *(?<endMarkup>=+)(?=\n)/g);
+
+    const parsedHeaders = [...headers].map((header) => {
+        const { startMarkup, name, endMarkup } = header.groups!;
+
+        const depth = Math.max(startMarkup.length, endMarkup.length, 2);
+
+        return { name, depth, original: header[0] };
+    });
+
+    for (const header of parsedHeaders) {
+        const replacedName =
+            header.name.toLowerCase() in reverseCommonReplacements ? reverseCommonReplacements[header.name.toLowerCase()] : header.name;
+
+        let capitalizedName = replacedName;
+
+        for (const word of commonMiscapitalizedWords) capitalizedName = capitalizedName.replaceAll(new RegExp(`\\b${word}\\b`, 'gi'), word);
+
+        capitalizedName = capitalizedName.charAt(0).toUpperCase() + capitalizedName.slice(1);
+
+        const output = `${'='.repeat(header.depth)} ${capitalizedName} ${'='.repeat(header.depth)}`;
+
+        if (header.original !== output) content = content.replace(header.original, output);
+    }
+
+    return content;
+}
+
+/**
+ * Removes unnecessary magic words from an article's content.
+ * @param content The article content to clean up.
+ */
+function cleanupMagicWords(content: string) {
+    return content.replaceAll(/__(INDEX|NOINDEX|NEWSECTIONLINK|NONEWSECTIONLINK|NOEDITSECTION|DISAMBIG|STATICREDIRECT|FORCETOC)__\n*/g, '');
+}
+
+/**
+ * Cleans up DISPLAYTITLEs and DEFAULTSORTs in an article's content.
+ * @param content The article content to clean up.
+ */
+function cleanupDisplaytitlesAndDefaultsorts(content: string) {
+    const tags = content.matchAll(/{{(displaytitle|defaultsort)[:|](.*?)}}/gi);
+
+    const parsedTags = [...tags].map((tag) => {
+        const [fullTag, type, value] = tag;
+
+        return { type: type.toUpperCase(), value, original: fullTag };
+    });
+
+    const currentTitle = mw.Title.newFromText(mw.config.get('wgPageName'))!;
+
+    for (const tag of parsedTags) {
+        const originalTagRegex = new RegExp(`${tag.original.replaceAll(/[$()*+.?[\\\]^{|}]/g, '\\$&')}\n*`, 'g');
+
+        const title = mw.Title.makeTitle(currentTitle.getNamespaceId(), tag.value.includes(':') ? tag.value.split(':')[1] : tag.value)!;
+
+        if (currentTitle.toText() === title.toText()) {
+            content = content.replace(originalTagRegex, '');
+            continue;
+        }
+
+        const newText = `{{${tag.type}:${title.toText()}}}\n`;
+
+        content = content.replace(originalTagRegex, newText);
+    }
+
+    return content;
+}
+
+/**
+ * Cleans up categories in an article's content.
+ * @param content The article content to clean up.
+ */
+function cleanupCategories(content: string) {
+    return content.replaceAll(/(\[\[|}}):?category:(.*?)(]]|}})/gi, '[[Category:$2]]');
+}
+
+/**
+ * Removes stray markup in an article's content.
+ * @param content The article content to clean up.
+ */
+function cleanupStrayMarkup(content: string) {
+    const strayMarkupRegexes = [
+        /'+(Bold|Italic)( text)?'+\s*/g,
+        /(<big>)+Big( text)?(<\/big>)+\s*/g,
+        /(<small>)+Small( text)?(<\/small>)+\s*/g,
+        /(<sup>)+Superscript( text)?(<\/sup>)+\s*/g,
+        /(<sub>)+Subscript( text)?(<\/sub>)+\s*/g,
+        /(<s>)+Strikethrough(<\/s>)+\s*/g,
+        /(<u>)+Underline(<\/u>)+\s*/g,
+        /(<code>)+Computer code(<\/code>)+\s*/g,
+        /(<nowiki>)+Insert non-formatted text here(<\/nowiki>)+\s*/g,
+        /=+ Heading text =+\s*/g,
+        /\* Bulleted list item\s*/g,
+        /# Numbered list item\s*/g,
+        /<gallery>\nExample.jpg\|Caption1\nExample.jpg\|Caption2\n<\/gallery>\s*/g,
+        /#REDIRECT \[\[Target page name]]\s*/g,
+        /<!-- Invisible comment -->\s*/g,
+        /<noinclude>\s*<\/noinclude>\s*/g,
+    ];
+
+    for (const regex of strayMarkupRegexes) while (regex.test(content)) content = content.replace(regex, '');
+
+    return content;
 }

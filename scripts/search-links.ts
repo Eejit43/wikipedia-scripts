@@ -4,9 +4,11 @@ if (mw.config.get('wgCanonicalSpecialPageName') === 'Search')
         if (!link) continue;
 
         const links = ['edit', 'history'].map((action) => {
-            const url = new mw.Uri(link).extend({ action }).toString();
+            const url = new URL(link);
+            url.searchParams.set('action', action);
+
             const linkElement = document.createElement('a');
-            linkElement.href = url;
+            linkElement.href = url.toString();
             linkElement.textContent = action;
 
             return linkElement;

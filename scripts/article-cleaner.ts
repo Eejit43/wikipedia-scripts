@@ -260,7 +260,7 @@ function cleanupSectionHeaders(content: string) {
     const parsedHeaders = [...headers].map((header) => {
         const { startMarkup, name, endMarkup } = header.groups!;
 
-        const cleanedName = name.replaceAll(/'{3}| {2,}/g, '');
+        const cleanedName = name.replaceAll(/'{3}/g, '');
 
         const depth = Math.max(startMarkup.length, endMarkup.length, 2);
 

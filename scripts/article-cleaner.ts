@@ -403,17 +403,28 @@ function cleanupLinks(content: string) {
                 shouldFirstCharacterBeColon = true;
         }
 
+        let afterLinkText = '';
+
         if (link === altText) altText = '';
+        else if (new RegExp(`^${link.replaceAll(/[$()*+.?[\\\]^{|}]/g, '\\$&')}[a-z]+$`).test(altText)) {
+            afterLinkText = altText.slice(link.length);
+            altText = '';
+        }
+
         for (const newLink of [linkUppercaseStart, linkLowercaseStart])
             if (newLink === altText) {
-                altText = '';
                 link = newLink;
+                altText = '';
+            } else if (new RegExp(`^${newLink.replaceAll(/[$()*+.?[\\\]^{|}]/g, '\\$&')}[a-z]+$`).test(altText)) {
+                link = newLink;
+                afterLinkText = altText.slice(newLink.length);
+                altText = '';
             }
 
         if ((altText && link.includes(':')) || link.startsWith('file:') || link.startsWith('category:'))
             link = link.charAt(0).toUpperCase() + link.slice(1);
 
-        const output = `[[${shouldFirstCharacterBeColon ? ':' : ''}${link}${altText ? `|${altText}` : ''}]]`;
+        const output = `[[${shouldFirstCharacterBeColon ? ':' : ''}${link}${altText ? `|${altText}` : ''}]]${afterLinkText}`;
 
         newLinkContent.push([linkLocation, output]);
     }

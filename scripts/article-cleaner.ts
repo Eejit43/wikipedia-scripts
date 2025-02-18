@@ -33,6 +33,7 @@
             text = cleanupMagicWords(text);
             text = cleanupDisplaytitlesAndDefaultsorts(text);
             text = cleanupCategories(text);
+            text = cleanupLinks(text);
             text = cleanupStrayMarkup(text);
 
             editBox.textSelection('setContents', text);
@@ -241,9 +242,10 @@ function formatTemplates(content: string) {
 function cleanupSectionHeaders(content: string) {
     const commonReplacements = {
         /* eslint-disable @typescript-eslint/naming-convention */
-        'References': ['reference', 'source', 'sources'],
-        'External links': ['external link', 'weblink', 'weblinks'],
         'See also': ['also see'],
+        'References': ['reference', 'source', 'sources', 'citation', 'citations'],
+        'Further reading': ['further reading'],
+        'External links': ['external link', 'weblink', 'weblinks'],
         /* eslint-enable @typescript-eslint/naming-convention */
     };
 
@@ -258,9 +260,11 @@ function cleanupSectionHeaders(content: string) {
     const parsedHeaders = [...headers].map((header) => {
         const { startMarkup, name, endMarkup } = header.groups!;
 
+        const cleanedName = name.replaceAll(/'{3}| {2,}/g, '');
+
         const depth = Math.max(startMarkup.length, endMarkup.length, 2);
 
-        return { name, depth, original: header[0] };
+        return { name: cleanedName, depth, original: header[0] };
     });
 
     for (const header of parsedHeaders) {
@@ -328,6 +332,102 @@ function cleanupDisplaytitlesAndDefaultsorts(content: string) {
  */
 function cleanupCategories(content: string) {
     return content.replaceAll(/(\[\[|}}):?category:(.*?)(]]|}})/gi, '[[Category:$2]]');
+}
+
+interface LinkInformation {
+    start: number;
+    end: number;
+    isNested: boolean;
+}
+
+/**
+ * Cleans up links in an article's content.
+ * @param content The article content to clean up.
+ */
+function cleanupLinks(content: string) {
+    const closedLinks: LinkInformation[] = [];
+    const links: LinkInformation[] = [];
+
+    let currentLocation = 0;
+
+    /**
+     * Checks if the content following the current location matches the desired string.
+     * @param desiredString The string to search for.
+     * @param shouldIncrement Whether to increment the current location if the string is found.
+     */
+    function isAtString(desiredString: string, shouldIncrement = true) {
+        const isAtString = content.slice(currentLocation, currentLocation + desiredString.length) === desiredString;
+
+        if (isAtString && shouldIncrement) currentLocation += desiredString.length;
+
+        return isAtString;
+    }
+
+    while (currentLocation < content.length)
+        if (isAtString('[[')) links.push({ start: currentLocation - 2, end: -1, isNested: links.length > 0 });
+        else if (isAtString(']]')) {
+            const lastLink = links.pop();
+            if (!lastLink) continue;
+
+            lastLink.end = currentLocation;
+
+            closedLinks.push(lastLink);
+        } else currentLocation++;
+
+    const newLinkContent: [LinkInformation, string][] = [];
+
+    for (const linkLocation of closedLinks) {
+        const innerLink = content.slice(linkLocation.start + 2, linkLocation.end - 2);
+
+        const [unparsedLink, ...parameters] = innerLink.split('|');
+
+        let link = unparsedLink.replaceAll('_', ' ').trim();
+        let altText = parameters.join('|').trim();
+
+        const isFirstCharacterColon = link.startsWith(':');
+        if (isFirstCharacterColon) link = link.slice(1);
+
+        let shouldFirstCharacterBeColon = false;
+
+        const linkUppercaseStart = link.charAt(0).toUpperCase() + link.slice(1);
+        const linkLowercaseStart = link.charAt(0).toLowerCase() + link.slice(1);
+
+        if (link.includes(':')) {
+            if (linkUppercaseStart.startsWith('Image:')) {
+                const shouldStartUppercase = link.startsWith('Image:');
+
+                link = `${shouldStartUppercase ? 'F' : 'f'}ile:${link.slice(6)}`;
+            }
+
+            if (isFirstCharacterColon && ['Image', 'File', 'Category'].includes(linkUppercaseStart.split(':')[0]))
+                shouldFirstCharacterBeColon = true;
+        }
+
+        if (link === altText) altText = '';
+        for (const newLink of [linkUppercaseStart, linkLowercaseStart])
+            if (newLink === altText) {
+                altText = '';
+                link = newLink;
+            }
+
+        if ((altText && link.includes(':')) || link.startsWith('file:') || link.startsWith('category:'))
+            link = link.charAt(0).toUpperCase() + link.slice(1);
+
+        const output = `[[${shouldFirstCharacterBeColon ? ':' : ''}${link}${altText ? `|${altText}` : ''}]]`;
+
+        newLinkContent.push([linkLocation, output]);
+    }
+
+    for (let loopCounter = 0; loopCounter < 2; loopCounter++)
+        for (const [linkData, linkContent] of newLinkContent) {
+            if (loopCounter === 0 && linkData.isNested) continue;
+            else if (loopCounter === 1 && !linkData.isNested) continue;
+
+            content =
+                content.slice(0, linkData.start) + linkContent.padStart(linkData.end - linkData.start, '\0') + content.slice(linkData.end);
+        }
+
+    return content.replaceAll('\0', '');
 }
 
 /**

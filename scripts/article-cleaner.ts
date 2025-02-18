@@ -28,6 +28,7 @@
             let text = editBox.textSelection('getContents');
             if (!text) return mw.notify('Edit box value not found!', { type: 'error', autoHideSeconds: 'short' });
 
+            text = cleanupSpacing(text);
             text = formatTemplates(text);
             text = cleanupSectionHeaders(text);
             text = cleanupMagicWords(text);
@@ -44,6 +45,20 @@
         });
     });
 })();
+
+/**
+ * Cleans up spacing in an article's content.
+ * @param content The article content to clean up.
+ */
+function cleanupSpacing(content: string) {
+    content = content.replaceAll(/(\b) {2,}(\b)/g, '$1 $2'); // Remove extra spaces between words
+    content = content.replaceAll(/(\n|^) +| +(\n|$)/g, '$1'); // Remove extra spaces at the start or end of lines
+    content = content.replaceAll(/\n{3,}/g, '\n\n'); // Remove extra newlines
+    content = content.replace(/\s*({{[^}]*stub}})/i, '\n\n\n$1'); // Ensure there are three newlines before the first stub template
+    content = content.replaceAll(/\s+$/g, ''); // Remove trailing spaces
+
+    return content;
+}
 
 /**
  * Formats template spacing in an article's content.

@@ -53,6 +53,22 @@ export {};
             'article-cleaner',
         )!;
 
+        let shouldAddScriptMessage = false;
+
+        const scriptMessage = 'Cleaned up article content (via [[User:Eejit43/scripts/article-cleaner|article-cleaner]])';
+
+        mw.hook('ve.saveDialog.stateChanged').add(() => {
+            if (shouldAddScriptMessage) {
+                const summaryInput = document.querySelector<HTMLTextAreaElement>('.ve-ui-mwSaveDialog-summary textarea')!;
+
+                if (!summaryInput.value.includes(scriptMessage.slice(1)))
+                    if (summaryInput.value) summaryInput.value += `; ${scriptMessage.charAt(0).toLowerCase() + scriptMessage.slice(1)}`;
+                    else summaryInput.value = scriptMessage;
+
+                shouldAddScriptMessage = false;
+            }
+        });
+
         link.addEventListener('click', (event) => {
             event.preventDefault();
 
@@ -87,15 +103,12 @@ export {};
 
                 mw.notify('Article cleanup complete!', { type: 'success', autoHideSeconds: 'short' });
 
-                const summaryInput =
-                    document.querySelector<HTMLInputElement>('#wpSummary') ??
-                    document.querySelector<HTMLTextAreaElement>('.ve-ui-mwSaveDialog-summary textarea')!;
-
-                const scriptMessage = 'Cleaned up article content (via [[User:Eejit43/scripts/article-cleaner|article-cleaner]])';
-
-                if (!summaryInput.value.includes(scriptMessage.slice(1)))
-                    if (summaryInput.value) summaryInput.value += `; ${scriptMessage.charAt(0).toLowerCase() + scriptMessage.slice(1)}`;
-                    else summaryInput.value = scriptMessage;
+                const summaryInput = document.querySelector<HTMLInputElement>('#wpSummary');
+                if (summaryInput) {
+                    if (!summaryInput.value.includes(scriptMessage.slice(1)))
+                        if (summaryInput.value) summaryInput.value += `; ${scriptMessage.charAt(0).toLowerCase() + scriptMessage.slice(1)}`;
+                        else summaryInput.value = scriptMessage;
+                } else shouldAddScriptMessage = true;
             }
         });
     });

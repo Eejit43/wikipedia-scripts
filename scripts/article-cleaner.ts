@@ -1,3 +1,37 @@
+declare global {
+    // eslint-disable-next-line @typescript-eslint/no-extraneous-class
+    class VeRange {
+        constructor(start: number, end: number);
+    }
+
+    class VeFragment {
+        insertContent(content: string): void;
+    }
+
+    class VeSurfaceModel {
+        getLinearFragment(range: VeRange): VeFragment;
+        getRangeFromSourceOffsets(start: number, end: number): VeRange;
+        setSelection(selection: VeLinearSelection): void;
+    }
+
+    class VeTarget {
+        getSurface(): { getModel(): VeSurfaceModel };
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-extraneous-class
+    class VeLinearSelection {
+        constructor(range: VeRange);
+    }
+
+    const ve: {
+        Range: typeof VeRange; // eslint-disable-line @typescript-eslint/naming-convention
+        dm: { LinearSelection: typeof VeLinearSelection }; // eslint-disable-line @typescript-eslint/naming-convention
+        init?: { target: VeTarget };
+    };
+}
+
+export {};
+
 (() => {
     if (mw.config.get('wgNamespaceNumber') < 0) return; // Don't run in virtual namespaces
     if (!mw.config.get('wgIsProbablyEditable')) return; // Don't run if user can't edit page
@@ -25,230 +59,47 @@
             const editBox = $('#wpTextbox1');
             if (editBox.length === 0) return mw.notify('Edit box not found!', { type: 'error', autoHideSeconds: 'short' });
 
-            let text = editBox.textSelection('getContents');
-            if (!text) return mw.notify('Edit box value not found!', { type: 'error', autoHideSeconds: 'short' });
+            const originalText = editBox.textSelection('getContents');
 
-            text = cleanupSpacing(text);
-            text = formatTemplates(text);
-            text = cleanupSectionHeaders(text);
-            text = cleanupMagicWords(text);
-            text = cleanupDisplaytitlesAndDefaultsorts(text);
-            text = cleanupCategories(text);
-            text = cleanupLinks(text);
-            text = cleanupStrayMarkup(text);
+            let finalText = originalText;
 
-            editBox.textSelection('setContents', text);
+            finalText = cleanupSectionHeaders(finalText);
+            finalText = cleanupMagicWords(finalText);
+            finalText = cleanupDisplaytitlesAndDefaultsorts(finalText);
+            finalText = cleanupCategories(finalText);
+            finalText = cleanupLinks(finalText);
+            finalText = cleanupStrayMarkup(finalText);
+            finalText = cleanupSpacing(finalText);
+            finalText = formatTemplates(finalText);
 
-            editBox.textSelection('setSelection', { start: 0 });
+            if (originalText === finalText) mw.notify('No changes to be made to the article!', { type: 'warn', autoHideSeconds: 'short' });
+            else {
+                if (ve.init) {
+                    const surfaceModel = ve.init.target.getSurface().getModel();
+                    const fragment = surfaceModel.getLinearFragment(surfaceModel.getRangeFromSourceOffsets(0, originalText.length));
+                    fragment.insertContent(finalText);
+                    surfaceModel.setSelection(new ve.dm.LinearSelection(new ve.Range(0, 0)));
+                } else {
+                    editBox.textSelection('setContents', finalText);
 
-            mw.notify('Article cleanup complete!', { type: 'success', autoHideSeconds: 'short' });
+                    editBox.textSelection('setSelection', { start: 0 });
+                }
+
+                mw.notify('Article cleanup complete!', { type: 'success', autoHideSeconds: 'short' });
+
+                const summaryInput =
+                    document.querySelector<HTMLInputElement>('#wpSummary') ??
+                    document.querySelector<HTMLTextAreaElement>('.ve-ui-mwSaveDialog-summary textarea')!;
+
+                const scriptMessage = 'Cleaned up article content (via [[User:Eejit43/scripts/article-cleaner|article-cleaner]])';
+
+                if (!summaryInput.value.includes(scriptMessage.slice(1)))
+                    if (summaryInput.value) summaryInput.value += `; ${scriptMessage.charAt(0).toLowerCase() + scriptMessage.slice(1)}`;
+                    else summaryInput.value = scriptMessage;
+            }
         });
     });
 })();
-
-/**
- * Cleans up spacing in an article's content.
- * @param content The article content to clean up.
- */
-function cleanupSpacing(content: string) {
-    content = content.replaceAll(/(\b) {2,}(\b)/g, '$1 $2'); // Remove extra spaces between words
-    content = content.replaceAll(/(\n|^) +| +(\n|$)/g, '$1'); // Remove extra spaces at the start or end of lines
-    content = content.replaceAll(/\n{3,}/g, '\n\n'); // Remove extra newlines
-    content = content.replace(/\s*({{[^}]*stub}})/i, '\n\n\n$1'); // Ensure there are three newlines before the first stub template
-    content = content.replaceAll(/\s+$/g, ''); // Remove trailing spaces
-
-    return content;
-}
-
-/**
- * Formats template spacing in an article's content.
- * @param content The article content to format.
- */
-function formatTemplates(content: string) {
-    enum FormatStyle {
-        Expanded,
-        ExpandedAligned,
-        Minimized,
-        MinimizedSpaced,
-    }
-
-    class Template {
-        public location: { start: number; end?: number };
-        public isNested = false;
-
-        public fullText?: string;
-        private fullTextEscaped?: string;
-        private name?: string;
-        private parameters: { key: string | null; value: string }[] = [];
-        public subTemplates: Template[] = [];
-
-        private placeholderStrings = ['\u{F0000}', '\u{10FFFF}'];
-
-        private pipeEscapeRegexes = [/(\[\[[^\]]*?)\|(.*?]])/g, /(<!--.*?)\|(.*?-->)/g, /(<nowiki>.*?)\|(.*?<\/nowiki>)/g];
-
-        private defaultTemplateStyles = {
-            [FormatStyle.ExpandedAligned]: [
-                'infobox',
-                'speciesbox',
-                'taxobox',
-                'automatic taxobox',
-                'osm location map',
-                'motorsport season',
-            ],
-            [FormatStyle.Minimized]: ['coord', 'start date', 'end date'],
-        };
-
-        constructor(startLocation: number) {
-            this.location = { start: startLocation };
-        }
-
-        public parse() {
-            this.fullText = content.slice(this.location.start, this.location.end);
-            this.fullTextEscaped = this.fullText;
-
-            for (const subTemplate of this.subTemplates) {
-                subTemplate.parse();
-
-                this.fullTextEscaped = this.fullTextEscaped.replace(subTemplate.fullText!, this.placeholderStrings[0]);
-            }
-
-            let trimmedInnerText = this.fullTextEscaped.slice(2, -2).trim();
-
-            for (const pipeEscapeRegex of this.pipeEscapeRegexes)
-                while (pipeEscapeRegex.test(trimmedInnerText))
-                    trimmedInnerText = trimmedInnerText.replaceAll(pipeEscapeRegex, `$1${this.placeholderStrings[1]}$2`);
-
-            const parameters = trimmedInnerText.split('|').map((parameter) => parameter.replaceAll(this.placeholderStrings[1], '|').trim());
-
-            this.name = parameters.shift();
-
-            const splitParameters = parameters.map((parameters) => {
-                const equalsLocation = parameters.indexOf('=');
-
-                if (equalsLocation === -1) return { key: null, value: parameters.trim() };
-
-                return {
-                    key: parameters.slice(0, equalsLocation).trim(),
-                    value: parameters.slice(equalsLocation + 1).trim(),
-                };
-            });
-
-            this.parameters = splitParameters;
-        }
-
-        private getStyle() {
-            for (const [formatStyle, templatePrefixes] of Object.entries(this.defaultTemplateStyles))
-                for (const templatePrefix of templatePrefixes)
-                    if (this.name!.toLowerCase().startsWith(templatePrefix)) return Number.parseInt(formatStyle) as FormatStyle;
-        }
-
-        public format() {
-            if (!this.fullText) this.parse();
-
-            const style = this.getStyle();
-            if (style === undefined) return this.fullText!;
-
-            const output = [`{{${this.name}`];
-
-            if (style === FormatStyle.Expanded || style === FormatStyle.ExpandedAligned) {
-                let requiredKeyLength = 0;
-
-                if (style === FormatStyle.ExpandedAligned)
-                    requiredKeyLength = Math.max(...this.parameters.map((parameter) => parameter.key?.length ?? 0));
-
-                for (const parameter of this.parameters)
-                    output.push(`| ${parameter.key ? `${parameter.key.padEnd(requiredKeyLength)} = ` : ''}${parameter.value}`);
-            } else
-                for (const parameter of this.parameters)
-                    if (parameter.value) output.push(`|${parameter.key ? `${parameter.key}=` : ''}${parameter.value}`);
-
-            output.push('}}');
-
-            if (output.length === 2) {
-                output[0] += '}}';
-
-                output.pop();
-            } else if (style === FormatStyle.MinimizedSpaced) {
-                output[output.length - 2] += '}}';
-
-                output.pop();
-            }
-
-            let joinedOutput = output.join(
-                style === FormatStyle.Expanded || style === FormatStyle.ExpandedAligned
-                    ? '\n'
-                    : style === FormatStyle.MinimizedSpaced
-                      ? ' '
-                      : '',
-            );
-
-            for (const subTemplate of this.subTemplates)
-                joinedOutput = joinedOutput.replace(this.placeholderStrings[0], subTemplate.format());
-
-            return joinedOutput;
-        }
-    }
-
-    const allTemplates: Template[] = [];
-
-    const insideTemplates: Template[] = [];
-    let isInsideLink = false;
-    let isInsideNowiki = false;
-    let isInsideComment = false;
-
-    let currentLocation = 0;
-
-    /**
-     * Checks if the content following the current location matches the desired string.
-     * @param desiredString The string to search for.
-     * @param shouldIncrement Whether to increment the current location if the string is found.
-     */
-    function isAtString(desiredString: string, shouldIncrement = true) {
-        const isAtString = content.slice(currentLocation, currentLocation + desiredString.length) === desiredString;
-
-        if (isAtString && shouldIncrement) currentLocation += desiredString.length;
-
-        return isAtString;
-    }
-
-    while (currentLocation < content.length)
-        if (isAtString('<nowiki>')) isInsideNowiki = true;
-        else if (isAtString('</nowiki>')) isInsideNowiki = false;
-        else if (isAtString('<!--')) isInsideComment = true;
-        else if (isAtString('-->')) isInsideComment = false;
-        else if (!isInsideNowiki && !isInsideComment)
-            if (isAtString('[[')) isInsideLink = true;
-            else if (isInsideLink && isAtString(']]')) isInsideLink = false;
-            else if (isAtString('{{')) {
-                const template = new Template(currentLocation - 2);
-
-                if (insideTemplates.length > 0) {
-                    template.isNested = true;
-                    insideTemplates.at(-1)?.subTemplates.push(template);
-                }
-
-                insideTemplates.push(template);
-            } else if (isAtString('}}')) {
-                const lastTemplate = insideTemplates.pop();
-                if (!lastTemplate) continue;
-
-                lastTemplate.location.end = currentLocation;
-
-                allTemplates.push(lastTemplate);
-            } else currentLocation++;
-        else currentLocation++;
-
-    let newContent = content;
-
-    for (const template of allTemplates)
-        if (!template.isNested) {
-            template.parse();
-
-            newContent = newContent.replace(template.fullText!, template.format());
-        }
-
-    return newContent;
-}
 
 /**
  * Cleans up section headers in an article's content.
@@ -462,25 +313,229 @@ function cleanupLinks(content: string) {
  */
 function cleanupStrayMarkup(content: string) {
     const strayMarkupRegexes = [
-        /'+(Bold|Italic)( text)?'+\s*/g,
-        /(<big>)+Big( text)?(<\/big>)+\s*/g,
-        /(<small>)+Small( text)?(<\/small>)+\s*/g,
-        /(<sup>)+Superscript( text)?(<\/sup>)+\s*/g,
-        /(<sub>)+Subscript( text)?(<\/sub>)+\s*/g,
-        /(<s>)+Strikethrough(<\/s>)+\s*/g,
-        /(<u>)+Underline(<\/u>)+\s*/g,
-        /(<code>)+Computer code(<\/code>)+\s*/g,
-        /(<nowiki>)+Insert non-formatted text here(<\/nowiki>)+\s*/g,
-        /=+ Heading text =+\s*/g,
-        /\* Bulleted list item\s*/g,
-        /# Numbered list item\s*/g,
-        /<gallery>\nExample.jpg\|Caption1\nExample.jpg\|Caption2\n<\/gallery>\s*/g,
-        /#REDIRECT \[\[Target page name]]\s*/g,
-        /<!-- Invisible comment -->\s*/g,
-        /<noinclude>\s*<\/noinclude>\s*/g,
+        /'+(Bold|Italic)( text)?'+ */g,
+        /(<big>)+Big( text)?(<\/big>)+ */g,
+        /(<small>)+Small( text)?(<\/small>)+ */g,
+        /(<sup>)+Superscript( text)?(<\/sup>)+ */g,
+        /(<sub>)+Subscript( text)?(<\/sub>)+ */g,
+        /(<s>)+Strikethrough(<\/s>)+ */g,
+        /(<u>)+Underline(<\/u>)+ */g,
+        /(<code>)+Computer code(<\/code>)+ */g,
+        /(<nowiki>)+Insert non-formatted text here(<\/nowiki>)+ */g,
+        /=+ Heading text =+ */g,
+        /\* Bulleted list item */g,
+        /# Numbered list item */g,
+        /<gallery>\nExample.jpg\|Caption1\nExample.jpg\|Caption2\n<\/gallery> */g,
+        /#REDIRECT \[\[Target page name]] */g,
+        /<!-- Invisible comment --> */g,
+        /<noinclude>\s*<\/noinclude> */g,
     ];
 
     for (const regex of strayMarkupRegexes) while (regex.test(content)) content = content.replace(regex, '');
 
     return content;
+}
+
+/**
+ * Cleans up spacing in an article's content.
+ * @param content The article content to clean up.
+ */
+function cleanupSpacing(content: string) {
+    content = content.replaceAll(/(\b) {2,}(\b)/g, '$1 $2'); // Remove extra spaces between words
+    content = content.replaceAll(/(\n|^) +| +(\n|$)/g, '$1$2'); // Remove extra spaces at the start or end of lines
+    content = content.replaceAll(/\n{3,}/g, '\n\n'); // Remove extra newlines
+    content = content.replace(/\s*({{[^}]*stub}})/i, '\n\n\n$1'); // Ensure there are three newlines before the first stub template
+    content = content.replaceAll(/\s+$/g, ''); // Remove trailing spaces
+
+    return content;
+}
+
+/**
+ * Formats template spacing in an article's content.
+ * @param content The article content to format.
+ */
+function formatTemplates(content: string) {
+    enum FormatStyle {
+        Expanded,
+        ExpandedAligned,
+        Minimized,
+        MinimizedSpaced,
+    }
+
+    class Template {
+        public location: { start: number; end?: number };
+        public isNested = false;
+
+        public fullText?: string;
+        private fullTextEscaped?: string;
+        private name?: string;
+        private parameters: { key: string | null; value: string }[] = [];
+        public subTemplates: Template[] = [];
+
+        private placeholderStrings = ['\u{F0000}', '\u{10FFFF}'];
+
+        private pipeEscapeRegexes = [/(\[\[[^\]]*?)\|(.*?]])/g, /(<!--.*?)\|(.*?-->)/g, /(<nowiki>.*?)\|(.*?<\/nowiki>)/g];
+
+        private defaultTemplateStyles = {
+            [FormatStyle.ExpandedAligned]: [
+                'infobox',
+                'speciesbox',
+                'taxobox',
+                'automatic taxobox',
+                'osm location map',
+                'motorsport season',
+            ],
+            [FormatStyle.Minimized]: ['coord', 'start date', 'end date'],
+        };
+
+        constructor(startLocation: number) {
+            this.location = { start: startLocation };
+        }
+
+        public parse() {
+            this.fullText = content.slice(this.location.start, this.location.end);
+            this.fullTextEscaped = this.fullText;
+
+            for (const subTemplate of this.subTemplates) {
+                subTemplate.parse();
+
+                this.fullTextEscaped = this.fullTextEscaped.replace(subTemplate.fullText!, this.placeholderStrings[0]);
+            }
+
+            let trimmedInnerText = this.fullTextEscaped.slice(2, -2).trim();
+
+            for (const pipeEscapeRegex of this.pipeEscapeRegexes)
+                while (pipeEscapeRegex.test(trimmedInnerText))
+                    trimmedInnerText = trimmedInnerText.replaceAll(pipeEscapeRegex, `$1${this.placeholderStrings[1]}$2`);
+
+            const parameters = trimmedInnerText.split('|').map((parameter) => parameter.replaceAll(this.placeholderStrings[1], '|').trim());
+
+            this.name = parameters.shift();
+
+            const splitParameters = parameters.map((parameters) => {
+                const equalsLocation = parameters.indexOf('=');
+
+                if (equalsLocation === -1) return { key: null, value: parameters.trim() };
+
+                return {
+                    key: parameters.slice(0, equalsLocation).trim(),
+                    value: parameters.slice(equalsLocation + 1).trim(),
+                };
+            });
+
+            this.parameters = splitParameters;
+        }
+
+        private getStyle() {
+            for (const [formatStyle, templatePrefixes] of Object.entries(this.defaultTemplateStyles))
+                for (const templatePrefix of templatePrefixes)
+                    if (this.name!.toLowerCase().startsWith(templatePrefix)) return Number.parseInt(formatStyle) as FormatStyle;
+        }
+
+        public format() {
+            if (!this.fullText) this.parse();
+
+            const style = this.getStyle();
+            if (style === undefined) return this.fullText!;
+
+            const output = [`{{${this.name}`];
+
+            if (style === FormatStyle.Expanded || style === FormatStyle.ExpandedAligned) {
+                let requiredKeyLength = 0;
+
+                if (style === FormatStyle.ExpandedAligned)
+                    requiredKeyLength = Math.max(...this.parameters.map((parameter) => parameter.key?.length ?? 0));
+
+                for (const parameter of this.parameters)
+                    output.push(`| ${parameter.key ? `${parameter.key.padEnd(requiredKeyLength)} = ` : ''}${parameter.value}`);
+            } else
+                for (const parameter of this.parameters)
+                    if (parameter.value) output.push(`|${parameter.key ? `${parameter.key}=` : ''}${parameter.value}`);
+
+            output.push('}}');
+
+            if (output.length === 2) {
+                output[0] += '}}';
+
+                output.pop();
+            } else if (style === FormatStyle.MinimizedSpaced) {
+                output[output.length - 2] += '}}';
+
+                output.pop();
+            }
+
+            let joinedOutput = output.join(
+                style === FormatStyle.Expanded || style === FormatStyle.ExpandedAligned
+                    ? '\n'
+                    : style === FormatStyle.MinimizedSpaced
+                      ? ' '
+                      : '',
+            );
+
+            for (const subTemplate of this.subTemplates)
+                joinedOutput = joinedOutput.replace(this.placeholderStrings[0], subTemplate.format());
+
+            return joinedOutput;
+        }
+    }
+
+    const allTemplates: Template[] = [];
+
+    const insideTemplates: Template[] = [];
+    let isInsideLink = false;
+    let isInsideNowiki = false;
+    let isInsideComment = false;
+
+    let currentLocation = 0;
+
+    /**
+     * Checks if the content following the current location matches the desired string.
+     * @param desiredString The string to search for.
+     * @param shouldIncrement Whether to increment the current location if the string is found.
+     */
+    function isAtString(desiredString: string, shouldIncrement = true) {
+        const isAtString = content.slice(currentLocation, currentLocation + desiredString.length) === desiredString;
+
+        if (isAtString && shouldIncrement) currentLocation += desiredString.length;
+
+        return isAtString;
+    }
+
+    while (currentLocation < content.length)
+        if (isAtString('<nowiki>')) isInsideNowiki = true;
+        else if (isAtString('</nowiki>')) isInsideNowiki = false;
+        else if (isAtString('<!--')) isInsideComment = true;
+        else if (isAtString('-->')) isInsideComment = false;
+        else if (!isInsideNowiki && !isInsideComment)
+            if (isAtString('[[')) isInsideLink = true;
+            else if (isInsideLink && isAtString(']]')) isInsideLink = false;
+            else if (isAtString('{{')) {
+                const template = new Template(currentLocation - 2);
+
+                if (insideTemplates.length > 0) {
+                    template.isNested = true;
+                    insideTemplates.at(-1)?.subTemplates.push(template);
+                }
+
+                insideTemplates.push(template);
+            } else if (isAtString('}}')) {
+                const lastTemplate = insideTemplates.pop();
+                if (!lastTemplate) continue;
+
+                lastTemplate.location.end = currentLocation;
+
+                allTemplates.push(lastTemplate);
+            } else currentLocation++;
+        else currentLocation++;
+
+    let newContent = content;
+
+    for (const template of allTemplates)
+        if (!template.isNested) {
+            template.parse();
+
+            newContent = newContent.replace(template.fullText!, template.format());
+        }
+
+    return newContent;
 }

@@ -263,7 +263,8 @@ function cleanupLinks(content: string) {
         const [unparsedLink, ...parameters] = innerLink.split('|');
 
         let link = unparsedLink.replaceAll('_', ' ').trim();
-        let altText = parameters.join('|').trim();
+        let altText = parameters.join('|');
+        altText = altText === ' ' ? ' ' : altText.trim();
 
         const isFirstCharacterColon = link.startsWith(':');
         if (isFirstCharacterColon) link = link.slice(1);
@@ -368,6 +369,7 @@ function cleanupSpacing(content: string) {
     content = content.replaceAll(/\n{3,}/g, '\n\n'); // Remove extra newlines
     content = content.replace(/\s*({{[^}]*stub}})/i, '\n\n\n$1'); // Ensure there are three newlines before the first stub template
     content = content.replaceAll(/\s+$/g, ''); // Remove trailing spaces
+    content = content.replaceAll(/(\n|^)([#*]) */g, '$1$2 '); // Ensure there is a space after a bullet or hash in a list item
 
     return content;
 }

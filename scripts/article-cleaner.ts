@@ -430,9 +430,11 @@ function formatTemplates(content: string) {
 
                 if (equalsLocation === -1) return { key: null, value: parameters.trim() };
 
+                const value = parameters.slice(equalsLocation + 1);
+
                 return {
                     key: parameters.slice(0, equalsLocation).trim(),
-                    value: parameters.slice(equalsLocation + 1).trim(),
+                    value: `${value.startsWith('\n') ? '\n' : ''}${value.trim()}`,
                 };
             });
 

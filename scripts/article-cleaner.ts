@@ -255,6 +255,8 @@ function cleanupLinks(content: string) {
 
     const newLinkContent: [LinkInformation, string][] = [];
 
+    const namespaceNames = Object.values(mw.config.get('wgFormattedNamespaces'));
+
     for (const linkLocation of closedLinks) {
         const innerLink = content.slice(linkLocation.start + 2, linkLocation.end - 2);
 
@@ -300,7 +302,14 @@ function cleanupLinks(content: string) {
                 altText = '';
             }
 
-        if ((altText && link.includes(':')) || link.startsWith('file:') || link.startsWith('category:'))
+        let namespace = link.split(':')[0];
+        namespace = namespace.charAt(0).toUpperCase() + namespace.slice(1);
+
+        if (
+            (altText && link.includes(':') && namespaceNames.includes(namespace)) ||
+            link.startsWith('file:') ||
+            link.startsWith('category:')
+        )
             link = link.charAt(0).toUpperCase() + link.slice(1);
 
         const output = `[[${shouldFirstCharacterBeColon ? ':' : ''}${link}${altText ? `|${altText}` : ''}]]${afterLinkText}`;

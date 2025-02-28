@@ -16,7 +16,6 @@ export interface SearchResult {
 }
 
 // Generators (modified from their ApiQueryParams counterparts)
-
 export interface ApiQueryAllPagesGeneratorParameters extends ApiQueryParams {
     gapfrom?: string;
     gapcontinue?: string;

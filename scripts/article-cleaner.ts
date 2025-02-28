@@ -134,17 +134,24 @@ function cleanupSectionHeaders(content: string) {
         Object.entries(commonReplacements).flatMap(([key, values]) => values.map((value) => [value, key])),
     );
 
-    const headers = content.matchAll(/(?<=\n)(?<startMarkup>=+) *(?<name>.*?) *(?<endMarkup>=+)(?=\n)/g);
+    const headers = content.matchAll(/\n+(?<startMarkup>=+) *(?<name>.*?) *(?<endMarkup>=+)\n+/g);
 
     const parsedHeaders = [...headers].map((header) => {
-        const { startMarkup, name, endMarkup } = header.groups!;
+        let { name } = header.groups!;
+        const { startMarkup, endMarkup } = header.groups!;
 
-        const cleanedName = name.replaceAll(/'{3}/g, '');
+        name = name.replaceAll(/'{3}/g, '');
+
+        const links = name.matchAll(/\[\[(.+?)]]/g).toArray();
+
+        for (const link of links) name = name.replace(link[0], link[1].split('|').at(-1)!);
 
         const depth = Math.max(startMarkup.length, endMarkup.length, 2);
 
-        return { name: cleanedName, depth, original: header[0] };
+        return { name, depth, original: header[0] };
     });
+
+    const titleSpacer = /^=+ | =+$/.test(parsedHeaders[0].original) ? ' ' : '';
 
     for (const header of parsedHeaders) {
         const replacedName =
@@ -156,9 +163,9 @@ function cleanupSectionHeaders(content: string) {
 
         capitalizedName = capitalizedName.charAt(0).toUpperCase() + capitalizedName.slice(1);
 
-        const output = `${'='.repeat(header.depth)} ${capitalizedName} ${'='.repeat(header.depth)}`;
+        const output = `${'='.repeat(header.depth)}${titleSpacer}${capitalizedName}${titleSpacer}${'='.repeat(header.depth)}`;
 
-        if (header.original !== output) content = content.replace(header.original, output);
+        if (header.original !== output) content = content.replace(header.original, `\n\n${output}\n`);
     }
 
     return content;
@@ -364,7 +371,7 @@ function cleanupStrayMarkup(content: string) {
  * @param content The article content to clean up.
  */
 function cleanupSpacing(content: string) {
-    content = content.replaceAll(/(\b) {2,}(\b)/g, '$1 $2'); // Remove extra spaces between words
+    content = content.replaceAll(/(\b|\p{Punctuation}) {2,}(\b)/gu, '$1 $2'); // Remove extra spaces between words and sentences
     content = content.replaceAll(/(\n|^) +| +(\n|$)/g, '$1$2'); // Remove extra spaces at the start or end of lines
     content = content.replaceAll(/\n{3,}/g, '\n\n'); // Remove extra newlines
     content = content.replace(/\s*({{[^}]*stub}})/i, '\n\n\n$1'); // Ensure there are three newlines before the first stub template
@@ -408,8 +415,10 @@ function formatTemplates(content: string) {
                 'automatic taxobox',
                 'osm location map',
                 'motorsport season',
+                'blockquote',
+                'quote box',
             ],
-            [FormatStyle.Minimized]: ['coord', 'start date', 'end date'],
+            [FormatStyle.Minimized]: ['coord', 'start date', 'end date', 'lang', 'langx'],
         };
 
         constructor(startLocation: number) {

@@ -115,6 +115,14 @@ export {};
 })();
 
 /**
+ * Escapes regex characters in a string.
+ * @param string The string to escape regex characters in.
+ */
+function escapeRegexCharacters(string: string) {
+    return string.replaceAll(/[$()*+.?[\\\]^{|}]/g, '\\$&');
+}
+
+/**
  * Cleans up section headers in an article's content.
  * @param content The article content to clean up.
  */
@@ -151,7 +159,7 @@ function cleanupSectionHeaders(content: string) {
         return { name, depth, original: header[0] };
     });
 
-    const titleSpacer = /^=+ | =+$/.test(parsedHeaders[0].original) ? ' ' : '';
+    const titleSpacer = /^\n+=+ | =+\n+$/.test(parsedHeaders[0].original) ? ' ' : '';
 
     for (const header of parsedHeaders) {
         const replacedName =
@@ -195,7 +203,7 @@ function cleanupDisplaytitlesAndDefaultsorts(content: string) {
     const currentTitle = mw.Title.newFromText(mw.config.get('wgPageName'))!;
 
     for (const tag of parsedTags) {
-        const originalTagRegex = new RegExp(`${tag.original.replaceAll(/[$()*+.?[\\\]^{|}]/g, '\\$&')}\n*`, 'g');
+        const originalTagRegex = new RegExp(`${escapeRegexCharacters(tag.original)}\n*`, 'g');
 
         const title = mw.Title.makeTitle(currentTitle.getNamespaceId(), tag.value.includes(':') ? tag.value.split(':')[1] : tag.value)!;
 
@@ -295,7 +303,7 @@ function cleanupLinks(content: string) {
         let afterLinkText = '';
 
         if (link === altText) altText = '';
-        else if (new RegExp(`^${link.replaceAll(/[$()*+.?[\\\]^{|}]/g, '\\$&')}[a-z]+$`).test(altText)) {
+        else if (new RegExp(`^${escapeRegexCharacters(link)}[a-z]+$`).test(altText)) {
             afterLinkText = altText.slice(link.length);
             altText = '';
         }
@@ -304,7 +312,7 @@ function cleanupLinks(content: string) {
             if (newLink === altText) {
                 link = newLink;
                 altText = '';
-            } else if (new RegExp(`^${newLink.replaceAll(/[$()*+.?[\\\]^{|}]/g, '\\$&')}[a-z]+$`).test(altText)) {
+            } else if (new RegExp(`^${escapeRegexCharacters(newLink)}[a-z]+$`).test(altText)) {
                 link = newLink;
                 afterLinkText = altText.slice(newLink.length);
                 altText = '';
@@ -372,11 +380,13 @@ function cleanupStrayMarkup(content: string) {
  */
 function cleanupSpacing(content: string) {
     content = content.replaceAll(/(\b|\p{Punctuation}) {2,}(\b)/gu, '$1 $2'); // Remove extra spaces between words and sentences
-    content = content.replaceAll(/(\n|^) +| +(\n|$)/g, '$1$2'); // Remove extra spaces at the start or end of lines
+    content = content.replaceAll(/^ +| +$/gm, ''); // Remove extra spaces at the start or end of lines
     content = content.replaceAll(/\n{3,}/g, '\n\n'); // Remove extra newlines
     content = content.replace(/\s*({{[^}]*stub}})/i, '\n\n\n$1'); // Ensure there are three newlines before the first stub template
     content = content.replaceAll(/\s+$/g, ''); // Remove trailing spaces
-    content = content.replaceAll(/(\n|^)([#*]) */g, '$1$2 '); // Ensure there is a space after a bullet or hash in a list item
+    content = content.replaceAll(/^([#*]) */gm, '$2 '); // Ensure there is a space after a bullet or hash in a list item
+    content = content.replaceAll(/^(\* .*)\n+(?=\* )/gm, '$1\n'); // Remove newlines between list items
+    content = content.replaceAll(/ +(?=<ref)/g, ''); // Remove spaces before references
 
     return content;
 }

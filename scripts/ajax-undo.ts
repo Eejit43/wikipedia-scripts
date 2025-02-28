@@ -20,7 +20,7 @@ mw.loader.using(['mediawiki.util'], () => {
         const undoLink = undoSpan.querySelector('a');
 
         if (!undoLink?.href) {
-            mw.notify('Could not find undo link!', { type: 'error' });
+            mw.notify('ajax-undo: Could not find undo link for a diff!', { type: 'error' });
             continue;
         }
 

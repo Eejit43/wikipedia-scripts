@@ -10,7 +10,7 @@ mw.loader.using(['mediawiki.util'], async () => {
 
     const titleElement = document.querySelector('#firstHeading');
 
-    if (!titleElement) return mw.notify('Could not find title element', { type: 'error' });
+    if (!titleElement) return mw.notify('deletion-finder: Could not find title element!', { type: 'error' });
 
     const deletionResult = (await new mw.Api().get({
         action: 'query',

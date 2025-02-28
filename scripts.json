@@ -74,7 +74,7 @@
             "cologne-blue": "yes"
         },
         "released": "2023|02|16",
-        "updated": "2025|02|05"
+        "updated": "2025|02|28"
     },
     {
         "name": "aligner",
@@ -147,7 +147,7 @@
             "cologne-blue": "yes"
         },
         "released": "2023|05|10",
-        "updated": "2025|01|26"
+        "updated": "2025|02|28"
     },
     {
         "name": "displaytitle-editor",
@@ -181,7 +181,7 @@
             "cologne-blue": "yes"
         },
         "released": "2023|05|09",
-        "updated": "2023|06|15"
+        "updated": "2025|02|28"
     },
     {
         "name": "null-edit",
@@ -275,7 +275,7 @@
         },
         "source-multiple": true,
         "released": "2023|05|17",
-        "updated": "2025|02|01"
+        "updated": "2025|02|28"
     },
     {
         "name": "rmtr-helper",
@@ -302,7 +302,7 @@
             "cologne-blue": "yes"
         },
         "released": "2023|02|14",
-        "updated": "2025|01|31"
+        "updated": "2025|02|28"
     },
     {
         "name": "script-updater",

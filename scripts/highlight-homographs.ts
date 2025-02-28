@@ -1,7 +1,7 @@
 (() => {
     const title = document.querySelector('#firstHeading');
 
-    if (!title) return mw.notify('Could not find title element!', { type: 'error' });
+    if (!title) return mw.notify('highlight-homographs: Could not find title element!', { type: 'error' });
 
     for (const element of title.children) {
         if (!element.textContent) continue;

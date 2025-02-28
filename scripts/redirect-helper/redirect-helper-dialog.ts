@@ -734,7 +734,7 @@ export default class RedirectHelperDialog {
             .join('\n');
 
         if (this.oldRedirectTarget) this.redirectInput.setValue(this.oldRedirectTarget.replaceAll('_', ' '));
-        else mw.notify('Could not find redirect target!', { type: 'error' });
+        else mw.notify('redirect-helper: Could not find redirect target!', { type: 'error' });
 
         this.tagSelect.setValue(this.oldRedirectTags);
 

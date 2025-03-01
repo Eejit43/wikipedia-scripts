@@ -83,7 +83,7 @@ export {};
             finalText = cleanupMagicWords(finalText);
             finalText = cleanupDisplaytitlesAndDefaultsorts(finalText);
             finalText = cleanupCategories(finalText);
-            finalText = cleanupLinks(finalText);
+            finalText = cleanupLinks(finalText, [cleanupImproperCharacters]);
             finalText = cleanupStrayMarkup(finalText);
             finalText = cleanupSpacing(finalText);
             finalText = cleanupReferences(finalText);
@@ -241,8 +241,9 @@ interface LinkInformation {
 /**
  * Cleans up links in an article's content.
  * @param content The article content to clean up.
+ * @param functionsCalledWhileEscaped The functions called while the links are escaped.
  */
-function cleanupLinks(content: string) {
+function cleanupLinks(content: string, functionsCalledWhileEscaped: ((content: string, run: 1 | 2) => string)[]) {
     const closedLinks: LinkInformation[] = [];
     const links: LinkInformation[] = [];
 
@@ -280,6 +281,12 @@ function cleanupLinks(content: string) {
         const innerLink = content.slice(linkLocation.start + 2, linkLocation.end - 2);
 
         const [unparsedLink, ...parameters] = innerLink.split('|');
+
+        // Replace link names so these won't be affected by functions called while escaped
+        content =
+            content.slice(0, linkLocation.start + 2) +
+            '\0'.repeat(unparsedLink.length) +
+            content.slice(linkLocation.start + 2 + unparsedLink.length);
 
         let link = unparsedLink.replaceAll('_', ' ').trim();
         let altText = parameters.join('|');
@@ -337,6 +344,8 @@ function cleanupLinks(content: string) {
         newLinkContent.push([linkLocation, output]);
     }
 
+    for (const functionToCall of functionsCalledWhileEscaped) content = functionToCall(content, 1);
+
     for (let loopCounter = 0; loopCounter < 2; loopCounter++)
         for (const [linkData, linkContent] of newLinkContent) {
             if (loopCounter === 0 && linkData.isNested) continue;
@@ -346,7 +355,31 @@ function cleanupLinks(content: string) {
                 content.slice(0, linkData.start) + linkContent.padStart(linkData.end - linkData.start, '\0') + content.slice(linkData.end);
         }
 
+    for (const functionToCall of functionsCalledWhileEscaped) content = functionToCall(content, 2);
+
     return content.replaceAll('\0', '');
+}
+
+/**
+ * Cleans up improper characters in an article's content.
+ * @param content The article content to clean up.
+ * @param run The run number of the function.
+ */
+function cleanupImproperCharacters(content: string, run: 1 | 2) {
+    const elipsisPlaceholder = '\u007F';
+    const nbspPlaceholder = '\u009F';
+
+    if (run === 1) {
+        content = content.replaceAll(/[“”]/g, '"');
+        content = content.replaceAll(/[‘’]/g, "'");
+        content = content.replaceAll('…', elipsisPlaceholder);
+        content = content.replaceAll(' ', nbspPlaceholder);
+    } else {
+        content = content.replaceAll(elipsisPlaceholder, '...');
+        content = content.replaceAll(nbspPlaceholder, '&nbsp;');
+    }
+
+    return content;
 }
 
 /**

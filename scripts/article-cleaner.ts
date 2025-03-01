@@ -457,9 +457,12 @@ function cleanupReferences(content: string) {
 
         let output = parsedTag.outerHTML;
 
-        output = reference.isSelfClosing
-            ? output.replace(/><\/ref>/, ' />')
-            : `${output.slice(0, -6)}${originalText.slice(startTag.length, -6).trim()}</ref>`;
+        const tagContent = originalText.slice(startTag.length, -6).trim();
+
+        output =
+            reference.isSelfClosing || tagContent.length === 0
+                ? output.replace(/>\s*<\/ref>/, ' />')
+                : `${output.slice(0, -6)}${tagContent}</ref>`;
 
         if (originalText !== output) replacements.push([originalText, output]);
     }

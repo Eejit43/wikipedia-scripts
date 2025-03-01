@@ -86,6 +86,7 @@ export {};
             finalText = cleanupLinks(finalText);
             finalText = cleanupStrayMarkup(finalText);
             finalText = cleanupSpacing(finalText);
+            finalText = cleanupReferences(finalText);
             finalText = formatTemplates(finalText);
 
             if (originalText === finalText) mw.notify('No changes to be made to the article!', { type: 'warn', autoHideSeconds: 'short' });
@@ -225,7 +226,10 @@ function cleanupDisplaytitlesAndDefaultsorts(content: string) {
  * @param content The article content to clean up.
  */
 function cleanupCategories(content: string) {
-    return content.replaceAll(/(\[\[|}}):?category:(.*?)(]]|}})/gi, '[[Category:$2]]');
+    return content.replaceAll(
+        /(\[\[|}}):?category:(.*?)(]]|}})/gi,
+        `[[${mw.config.get('wgCanonicalNamespace') === 'Draft' ? ':' : ''}Category:$2]]`,
+    );
 }
 
 interface LinkInformation {
@@ -379,14 +383,88 @@ function cleanupStrayMarkup(content: string) {
  * @param content The article content to clean up.
  */
 function cleanupSpacing(content: string) {
-    content = content.replaceAll(/(\b|\p{Punctuation}) {2,}(\b)/gu, '$1 $2'); // Remove extra spaces between words and sentences
+    content = content.replaceAll(/(\b|\p{Punctuation}|\]\]|\}\}) {2,}(\b|\[\[|\{\{)/gu, '$1 $2'); // Remove extra spaces between words and sentences
     content = content.replaceAll(/^ +| +$/gm, ''); // Remove extra spaces at the start or end of lines
     content = content.replaceAll(/\n{3,}/g, '\n\n'); // Remove extra newlines
     content = content.replace(/\s*({{[^}]*stub}})/i, '\n\n\n$1'); // Ensure there are three newlines before the first stub template
     content = content.replaceAll(/\s+$/g, ''); // Remove trailing spaces
     content = content.replaceAll(/^([#*]) */gm, '$1 '); // Ensure there is a space after a bullet or hash in a list item
     content = content.replaceAll(/^(\* .*)\n+(?=\* )/gm, '$1\n'); // Remove newlines between list items
-    content = content.replaceAll(/ +(?=<ref)/g, ''); // Remove spaces before references
+    content = content.replaceAll(/\s+(?=<ref)/g, ''); // Remove spaces before references
+
+    return content;
+}
+
+/**
+ * Cleans up references in an article's content.
+ * @param content The article content to clean up.
+ */
+function cleanupReferences(content: string) {
+    content = content.replaceAll(/((?:<ref.*?>.*?<\/ref>)+)([!,.?])/g, '$2$1'); // Fix punctuation following references
+
+    const references: { start: number; end: number; isSelfClosing?: true }[] = [];
+
+    let currentLocation = 0;
+
+    /**
+     * Checks if the content following the current location matches the desired string.
+     * @param desiredString The string to search for.
+     */
+    function isAtString(desiredString: string) {
+        const isAtString = content.slice(currentLocation, currentLocation + desiredString.length) === desiredString;
+
+        if (isAtString) currentLocation += desiredString.length;
+
+        return isAtString;
+    }
+
+    /**
+     * Proceeds through the content until the desired string is found.
+     * @param desiredString The string to search for.
+     */
+    function proceedUntilString(desiredString: string) {
+        while (currentLocation < content.length && !isAtString(desiredString)) currentLocation++;
+    }
+
+    while (currentLocation < content.length)
+        if (isAtString('<ref')) {
+            const start = currentLocation - 4;
+
+            proceedUntilString('>');
+
+            const isSelfClosing = content
+                .slice(start, currentLocation - 1)
+                .trim()
+                .endsWith('/');
+
+            references.push(isSelfClosing ? { start, end: currentLocation, isSelfClosing } : { start, end: -1 });
+        } else if (isAtString('</ref>')) references.at(-1)!.end = currentLocation;
+        else currentLocation++;
+
+    const parser = new DOMParser();
+
+    const replacements: [string, string][] = [];
+
+    for (const reference of references) {
+        const originalText = content.slice(reference.start, reference.end);
+
+        const startTag = /<ref.*?>/i.exec(originalText)![0];
+
+        const parsedTag = parser.parseFromString(
+            reference.isSelfClosing ? startTag.replace(/ *\/ *>/, ' />') : startTag + '</ref>',
+            'text/html',
+        ).body.firstChild as HTMLUnknownElement;
+
+        let output = parsedTag.outerHTML;
+
+        output = reference.isSelfClosing
+            ? output.replace(/><\/ref>/, ' />')
+            : `${output.slice(0, -6)}${originalText.slice(startTag.length, -6).trim()}</ref>`;
+
+        if (originalText !== output) replacements.push([originalText, output]);
+    }
+
+    for (const [originalText, output] of replacements) content = content.replace(originalText, output);
 
     return content;
 }
@@ -536,12 +614,11 @@ function formatTemplates(content: string) {
     /**
      * Checks if the content following the current location matches the desired string.
      * @param desiredString The string to search for.
-     * @param shouldIncrement Whether to increment the current location if the string is found.
      */
-    function isAtString(desiredString: string, shouldIncrement = true) {
+    function isAtString(desiredString: string) {
         const isAtString = content.slice(currentLocation, currentLocation + desiredString.length) === desiredString;
 
-        if (isAtString && shouldIncrement) currentLocation += desiredString.length;
+        if (isAtString) currentLocation += desiredString.length;
 
         return isAtString;
     }

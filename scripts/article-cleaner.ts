@@ -421,7 +421,7 @@ function cleanupSpacing(content: string) {
     content = content.replaceAll(/\n{3,}/g, '\n\n'); // Remove extra newlines
     content = content.replace(/\s*({{[^}]*stub}})/i, '\n\n\n$1'); // Ensure there are three newlines before the first stub template
     content = content.replaceAll(/\s+$/g, ''); // Remove trailing spaces
-    content = content.replaceAll(/^([#*])+ */gm, '$1 '); // Ensure there is a space after a bullet or hash in a list item
+    content = content.replaceAll(/^([#*]+) */gm, '$1 '); // Ensure there is a space after a bullet or hash in a list item
     content = content.replaceAll(/^([#*] .*)\n+(?=[#*] )/gm, '$1\n'); // Remove newlines between list items
     content = content.replaceAll(/\s+(?=<ref)/g, ''); // Remove spaces before references
 

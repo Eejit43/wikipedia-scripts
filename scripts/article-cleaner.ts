@@ -424,6 +424,7 @@ function cleanupSpacing(content: string) {
     content = content.replaceAll(/^([#*]+) */gm, '$1 '); // Ensure there is a space after a bullet or hash in a list item
     content = content.replaceAll(/^([#*] .*)\n+(?=[#*] )/gm, '$1\n'); // Remove newlines between list items
     content = content.replaceAll(/\s+(?=<ref)/g, ''); // Remove spaces before references
+    content = content.replaceAll(/^(=+.*?=+)$\n{2,}^(=+.*?=+)$/gm, '$1\n\n$2'); // Remove extra newlines between empty section and following section
 
     return content;
 }

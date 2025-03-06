@@ -160,7 +160,7 @@ function cleanupSectionHeaders(content: string) {
         return { name, depth, original: header[0] };
     });
 
-    const titleSpacer = /^\n+=+ | =+\n+$/.test(parsedHeaders[0].original) ? ' ' : '';
+    const titleSpacer = parsedHeaders.length > 0 ? (/^\n+=+ | =+\n+$/.test(parsedHeaders[0].original) ? ' ' : '') : '';
 
     for (const header of parsedHeaders) {
         const replacedName =
@@ -339,7 +339,11 @@ function cleanupLinks(content: string, functionsCalledWhileEscaped: ((content: s
         )
             link = link.charAt(0).toUpperCase() + link.slice(1);
 
-        const output = `[[${shouldFirstCharacterBeColon ? ':' : ''}${link}${altText ? `|${altText}` : ''}]]${afterLinkText}`;
+        link = `${shouldFirstCharacterBeColon ? ':' : ''}${link}`;
+
+        link = link.padStart(unparsedLink.length, '\0');
+
+        const output = `[[${link}${altText ? `|${altText}` : ''}]]${afterLinkText}`;
 
         newLinkContent.push([linkLocation, output]);
     }
@@ -352,7 +356,7 @@ function cleanupLinks(content: string, functionsCalledWhileEscaped: ((content: s
             else if (loopCounter === 1 && !linkData.isNested) continue;
 
             content =
-                content.slice(0, linkData.start) + linkContent.padStart(linkData.end - linkData.start, '\0') + content.slice(linkData.end);
+                content.slice(0, linkData.start) + linkContent.padEnd(linkData.end - linkData.start, '\0') + content.slice(linkData.end);
         }
 
     for (const functionToCall of functionsCalledWhileEscaped) content = functionToCall(content, 2);

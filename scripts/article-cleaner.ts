@@ -143,7 +143,7 @@ function cleanupSectionHeaders(content: string) {
         Object.entries(commonReplacements).flatMap(([key, values]) => values.map((value) => [value, key])),
     );
 
-    const headers = content.matchAll(/\n+(?<startMarkup>=+) *(?<name>.*?) *(?<endMarkup>=+)\n+/g);
+    const headers = content.matchAll(/\n*(?<startMarkup>=+) *(?<name>.*?) *(?<endMarkup>=+)\n+/g);
 
     const parsedHeaders = [...headers].map((header) => {
         let { name } = header.groups!;
@@ -160,7 +160,7 @@ function cleanupSectionHeaders(content: string) {
         return { name, depth, original: header[0] };
     });
 
-    const titleSpacer = parsedHeaders.length > 0 ? (/^\n+=+ | =+\n+$/.test(parsedHeaders[0].original) ? ' ' : '') : '';
+    const titleSpacer = parsedHeaders.length > 0 ? (/^\n*=+ | =+\n+$/.test(parsedHeaders[0].original) ? ' ' : '') : '';
 
     for (const header of parsedHeaders) {
         const replacedName =
@@ -431,7 +431,8 @@ function cleanupSpacing(content: string) {
     content = content.replaceAll(/^([#*]+) */gm, '$1 '); // Ensure there is a space after a bullet or hash in a list item
     content = content.replaceAll(/^([#*] .*)\n+(?=[#*] )/gm, '$1\n'); // Remove newlines between list items
     content = content.replaceAll(/\s+(?=<ref)/g, ''); // Remove spaces before references
-    content = content.replaceAll(/^(=+.*?=+)$\n{2,}^(=+.*?=+)$/gm, '$1\n\n$2'); // Remove extra newlines between empty section and following section
+    content = content.replaceAll(/^(=+.*?=+)$\n{2,}^(=+.*?=+)$/gm, '$1\n$2'); // Remove extra newlines between empty section and following section
+    content = content.trim(); // Remove extra newlines at the start or end of the content
 
     return content;
 }

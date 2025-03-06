@@ -199,6 +199,7 @@ export default class CategoriesDialog extends HelperDialog {
 
             pageSelectLayout.$element.hide();
             categoryAddSelectLayout.$element.hide();
+            categoryRemoveSelectLayout.$element.hide();
             denyReasonLayout.$element.hide();
             closingReasonLayout.$element.hide();
 
@@ -206,6 +207,7 @@ export default class CategoriesDialog extends HelperDialog {
                 case 'accept': {
                     pageSelectLayout.$element.show();
                     categoryAddSelectLayout.$element.show();
+                    categoryRemoveSelectLayout.$element.show();
 
                     break;
                 }

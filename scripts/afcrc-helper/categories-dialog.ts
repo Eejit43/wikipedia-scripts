@@ -10,9 +10,9 @@ interface CategoryRequestData {
     requester: RequestRequester;
 }
 
-export type CategoryAction = RequestAction & { category: string; examples: string[]; parents: string[] };
+type CategoryAction = RequestAction & { category: string; categorizedPages: string[]; parents: string[]; categoriesToRemove: string[] };
 
-export type CategoryActions = CategoryAction[];
+type CategoryActions = CategoryAction[];
 
 export default class CategoriesDialog extends HelperDialog {
     protected parsedRequests: CategoryRequestData[] = [];
@@ -67,8 +67,9 @@ export default class CategoriesDialog extends HelperDialog {
 
         this.actionsToTake.push({
             category: parsedData.category,
-            examples: parsedData.examples,
+            categorizedPages: parsedData.examples,
             parents: parsedData.parents,
+            categoriesToRemove: parsedData.parents,
             originalText: { fullSectionText: sectionText, sectionText: sectionText.replace(/^==.*?==$/m, '').trim() },
             action: 'none',
         });
@@ -197,14 +198,14 @@ export default class CategoriesDialog extends HelperDialog {
             this.updateRequestColor(detailsElement, index);
 
             pageSelectLayout.$element.hide();
-            categorySelectLayout.$element.hide();
+            categoryAddSelectLayout.$element.hide();
             denyReasonLayout.$element.hide();
             closingReasonLayout.$element.hide();
 
             switch (option) {
                 case 'accept': {
                     pageSelectLayout.$element.show();
-                    categorySelectLayout.$element.show();
+                    categoryAddSelectLayout.$element.show();
 
                     break;
                 }
@@ -245,51 +246,84 @@ export default class CategoriesDialog extends HelperDialog {
 
             if (selectedTags.join(';') !== sortedTags.join(';')) pageSelect.setValue(sortedTags);
 
-            this.actionsToTake[index].examples = sortedTags;
+            this.actionsToTake[index].categorizedPages = sortedTags;
         });
 
-        const { examples } = this.actionsToTake[index];
+        const { categorizedPages } = this.actionsToTake[index];
 
-        for (const example of examples) pageSelect.addAllowedValue(example);
-        pageSelect.setValue(examples);
+        for (const page of categorizedPages) pageSelect.addAllowedValue(page);
+        pageSelect.setValue(categorizedPages);
 
         const pageSelectLayout = new OO.ui.FieldLayout(pageSelect, { align: 'inline', label: 'Pages to categorize:' });
         pageSelectLayout.$element.hide();
 
-        const categorySelectInput = new CategoryInputWidget({ placeholder: 'Add categories here' });
-        categorySelectInput.on('change', () => {
-            let value = categorySelectInput.getValue();
+        const categoryAddSelectInput = new CategoryInputWidget({ placeholder: 'Add categories here' });
+        categoryAddSelectInput.on('change', () => {
+            let value = categoryAddSelectInput.getValue();
             value = value.replace(new RegExp(`^(https?:)?/{2}?${mw.config.get('wgServer').replace(/^\/{2}/, '')}/wiki/`), '');
             value = value.replace(/^Category:/, '');
 
-            if (value.length > 0) categorySelectInput.setValue(value[0].toUpperCase() + value.slice(1).replaceAll('_', ' '));
+            if (value.length > 0) categoryAddSelectInput.setValue(value[0].toUpperCase() + value.slice(1).replaceAll('_', ' '));
         });
-        categorySelectInput.on('showing-values', (pages: { data: string; label: string }[]) => {
-            for (const page of pages) categorySelect.addAllowedValue(page.data);
+        categoryAddSelectInput.on('showing-values', (pages: { data: string; label: string }[]) => {
+            for (const page of pages) categoryAddSelect.addAllowedValue(page.data);
         });
 
-        const categorySelect = new OO.ui.TagMultiselectWidget({
+        const categoryAddSelect = new OO.ui.TagMultiselectWidget({
             allowReordering: false,
             inputPosition: 'outline',
-            inputWidget: categorySelectInput,
+            inputWidget: categoryAddSelectInput,
         });
-        categorySelect.on('change', () => {
-            const selectedTags = categorySelect.getValue() as string[];
+        categoryAddSelect.on('change', () => {
+            const selectedTags = categoryAddSelect.getValue() as string[];
 
             const sortedTags = selectedTags.sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
 
-            if (selectedTags.join(';') !== sortedTags.join(';')) categorySelect.setValue(sortedTags);
+            if (selectedTags.join(';') !== sortedTags.join(';')) categoryAddSelect.setValue(sortedTags);
 
             this.actionsToTake[index].parents = sortedTags;
         });
 
-        const { parents } = this.actionsToTake[index];
+        const { parents: parentCategories } = this.actionsToTake[index];
 
-        for (const parent of parents) categorySelect.addAllowedValue(parent);
-        categorySelect.setValue(parents);
+        for (const parent of parentCategories) categoryAddSelect.addAllowedValue(parent);
+        categoryAddSelect.setValue(parentCategories);
 
-        const categorySelectLayout = new OO.ui.FieldLayout(categorySelect, { align: 'inline', label: 'Categories:' });
-        categorySelectLayout.$element.hide();
+        const categoryAddSelectLayout = new OO.ui.FieldLayout(categoryAddSelect, { align: 'inline', label: 'Categories to add:' });
+        categoryAddSelectLayout.$element.hide();
+
+        const categoryRemoveSelectInput = new CategoryInputWidget({ placeholder: 'Add categories here' });
+        categoryRemoveSelectInput.on('change', () => {
+            let value = categoryRemoveSelectInput.getValue();
+            value = value.replace(new RegExp(`^(https?:)?/{2}?${mw.config.get('wgServer').replace(/^\/{2}/, '')}/wiki/`), '');
+            value = value.replace(/^Category:/, '');
+
+            if (value.length > 0) categoryRemoveSelectInput.setValue(value[0].toUpperCase() + value.slice(1).replaceAll('_', ' '));
+        });
+        categoryRemoveSelectInput.on('showing-values', (pages: { data: string; label: string }[]) => {
+            for (const page of pages) categoryAddSelect.addAllowedValue(page.data);
+        });
+
+        const categoryRemoveSelect = new OO.ui.TagMultiselectWidget({
+            allowReordering: false,
+            inputPosition: 'outline',
+            inputWidget: categoryRemoveSelectInput,
+        });
+        categoryRemoveSelect.on('change', () => {
+            const selectedTags = categoryRemoveSelect.getValue() as string[];
+
+            const sortedTags = selectedTags.sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
+
+            if (selectedTags.join(';') !== sortedTags.join(';')) categoryRemoveSelect.setValue(sortedTags);
+
+            this.actionsToTake[index].categoriesToRemove = sortedTags;
+        });
+
+        for (const parent of parentCategories) categoryRemoveSelect.addAllowedValue(parent);
+        categoryAddSelect.setValue(parentCategories);
+
+        const categoryRemoveSelectLayout = new OO.ui.FieldLayout(categoryRemoveSelect, { align: 'inline', label: 'Categories to remove:' });
+        categoryRemoveSelectLayout.$element.hide();
 
         const denyReason = new OO.ui.ComboBoxInputWidget({
             classes: ['afcrc-closing-reason-input'],
@@ -359,7 +393,8 @@ export default class CategoriesDialog extends HelperDialog {
         requestResponderElement.append(
             actionRadioInput.$element[0],
             pageSelectLayout.$element[0],
-            categorySelectLayout.$element[0],
+            categoryAddSelectLayout.$element[0],
+            categoryRemoveSelectLayout.$element[0],
             denyReasonLayout.$element[0],
             closingReasonLayout.$element[0],
             commentInputLayout.$element[0],
@@ -507,13 +542,20 @@ export default class CategoriesDialog extends HelperDialog {
                 text: `{{WikiProject banner shell|\n{{WikiProject Articles for creation|ts={{subst:LOCALTIMESTAMP}}|reviewer=${mw.config.get('wgUserName')}}}\n}}`,
                 summary: `Adding [[Wikipedia:WikiProject Articles for creation|WikiProject Articles for creation]] banner${this.scriptMessage}`,
             },
-            ...data.examples.map((example) => ({
+            ...data.categorizedPages.map((example) => ({
                 type: 'edit' as const,
                 title: example,
-                transform: ({ content }: { content: string }) => ({
-                    text: `${content}\n[[Category:${data.category}]]`,
-                    summary: `Adding page to [[:Category:${data.category}]] as requested at [[WP:AFC/C]]${this.scriptMessage}`,
-                }),
+                transform: ({ content }: { content: string }) => {
+                    for (const category of data.categoriesToRemove)
+                        content = content.replaceAll(new RegExp(`\\[\\[:?[Cc]ategory:${category}\\]\\]\n?`, 'gi'), '');
+
+                    content = content.replace(/((\[\[:?[Cc]ategory:.+?]]\n?)+)/, `$1[[Category:${data.category}]]`);
+
+                    return {
+                        text: content,
+                        summary: `Adding page to [[:Category:${data.category}]] as requested at [[WP:AFC/C]]${this.scriptMessage}`,
+                    };
+                },
             })),
         );
     }

@@ -549,6 +549,7 @@ function formatTemplates(content: string) {
                 'motorsport season',
                 'blockquote',
                 'quote box',
+                'multiple image',
             ],
             [FormatStyle.Minimized]: ['coord', 'start date', 'end date', 'lang', 'langx'],
         };

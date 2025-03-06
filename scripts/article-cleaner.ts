@@ -300,6 +300,9 @@ function cleanupLinks(content: string, functionsCalledWhileEscaped: ((content: s
         const linkUppercaseStart = link.charAt(0).toUpperCase() + link.slice(1);
         const linkLowercaseStart = link.charAt(0).toLowerCase() + link.slice(1);
 
+        let namespace = link.split(':')[0];
+        namespace = namespace.charAt(0).toUpperCase() + namespace.slice(1);
+
         if (link.includes(':')) {
             if (linkUppercaseStart.startsWith('Image:')) {
                 const shouldStartUppercase = link.startsWith('Image:');
@@ -307,7 +310,10 @@ function cleanupLinks(content: string, functionsCalledWhileEscaped: ((content: s
                 link = `${shouldStartUppercase ? 'F' : 'f'}ile:${link.slice(6)}`;
             }
 
-            if (isFirstCharacterColon && ['Image', 'File', 'Category'].includes(linkUppercaseStart.split(':')[0]))
+            if (
+                isFirstCharacterColon &&
+                (['Image', 'File', 'Category'].includes(linkUppercaseStart.split(':')[0]) || !namespaceNames.includes(namespace))
+            )
                 shouldFirstCharacterBeColon = true;
         }
 
@@ -328,9 +334,6 @@ function cleanupLinks(content: string, functionsCalledWhileEscaped: ((content: s
                 afterLinkText = altText.slice(newLink.length);
                 altText = '';
             }
-
-        let namespace = link.split(':')[0];
-        namespace = namespace.charAt(0).toUpperCase() + namespace.slice(1);
 
         if (
             (altText && link.includes(':') && namespaceNames.includes(namespace)) ||

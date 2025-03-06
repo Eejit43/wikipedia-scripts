@@ -322,7 +322,7 @@ export default class CategoriesDialog extends HelperDialog {
         });
 
         for (const parent of parentCategories) categoryRemoveSelect.addAllowedValue(parent);
-        categoryAddSelect.setValue(parentCategories);
+        categoryRemoveSelect.setValue(parentCategories);
 
         const categoryRemoveSelectLayout = new OO.ui.FieldLayout(categoryRemoveSelect, { align: 'inline', label: 'Categories to remove:' });
         categoryRemoveSelectLayout.$element.hide();

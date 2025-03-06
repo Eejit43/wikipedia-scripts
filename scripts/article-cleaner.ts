@@ -247,6 +247,9 @@ function cleanupLinks(content: string, functionsCalledWhileEscaped: ((content: s
     const closedLinks: LinkInformation[] = [];
     const links: LinkInformation[] = [];
 
+    let isInsideNowiki = false;
+    let isInsideComment = false;
+
     let currentLocation = 0;
 
     /**
@@ -263,15 +266,21 @@ function cleanupLinks(content: string, functionsCalledWhileEscaped: ((content: s
     }
 
     while (currentLocation < content.length)
-        if (isAtString('[[')) links.push({ start: currentLocation - 2, end: -1, isNested: links.length > 0 });
-        else if (isAtString(']]')) {
-            const lastLink = links.pop();
-            if (!lastLink) continue;
+        if (isAtString('<nowiki>')) isInsideNowiki = true;
+        else if (isAtString('</nowiki>')) isInsideNowiki = false;
+        else if (isAtString('<!--')) isInsideComment = true;
+        else if (isAtString('-->')) isInsideComment = false;
+        else if (!isInsideNowiki && !isInsideComment)
+            if (isAtString('[[')) links.push({ start: currentLocation - 2, end: -1, isNested: links.length > 0 });
+            else if (isAtString(']]')) {
+                const lastLink = links.pop();
+                if (!lastLink) continue;
 
-            lastLink.end = currentLocation;
+                lastLink.end = currentLocation;
 
-            closedLinks.push(lastLink);
-        } else currentLocation++;
+                closedLinks.push(lastLink);
+            } else currentLocation++;
+        else currentLocation++;
 
     const newLinkContent: [LinkInformation, string][] = [];
 
@@ -446,6 +455,9 @@ function cleanupReferences(content: string) {
 
     const references: { start: number; end: number; isSelfClosing?: true }[] = [];
 
+    let isInsideNowiki = false;
+    let isInsideComment = false;
+
     let currentLocation = 0;
 
     /**
@@ -469,18 +481,24 @@ function cleanupReferences(content: string) {
     }
 
     while (currentLocation < content.length)
-        if (isAtString('<ref')) {
-            const start = currentLocation - 4;
+        if (isAtString('<nowiki>')) isInsideNowiki = true;
+        else if (isAtString('</nowiki>')) isInsideNowiki = false;
+        else if (isAtString('<!--')) isInsideComment = true;
+        else if (isAtString('-->')) isInsideComment = false;
+        else if (!isInsideNowiki && !isInsideComment)
+            if (isAtString('<ref')) {
+                const start = currentLocation - 4;
 
-            proceedUntilString('>');
+                proceedUntilString('>');
 
-            const isSelfClosing = content
-                .slice(start, currentLocation - 1)
-                .trim()
-                .endsWith('/');
+                const isSelfClosing = content
+                    .slice(start, currentLocation - 1)
+                    .trim()
+                    .endsWith('/');
 
-            references.push(isSelfClosing ? { start, end: currentLocation, isSelfClosing } : { start, end: -1 });
-        } else if (isAtString('</ref>')) references.at(-1)!.end = currentLocation;
+                references.push(isSelfClosing ? { start, end: currentLocation, isSelfClosing } : { start, end: -1 });
+            } else if (isAtString('</ref>')) references.at(-1)!.end = currentLocation;
+            else currentLocation++;
         else currentLocation++;
 
     const parser = new DOMParser();

@@ -71,6 +71,11 @@ body.afcrc-helper-open #mw-teleport-target {
     max-width: 50%;
 }
 
+.afcrc-helper-redirect-possibilities::after {
+    content: " (redirect with possibilities)";
+    font-style: italic;
+}
+
 .afcrc-helper-template-parameters-container,
 .afcrc-helper-template-parameters-container details {
     margin-block: 10px;

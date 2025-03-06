@@ -131,7 +131,7 @@ export default class RedirectRequestHandler {
             options: Object.entries(this.dialog.redirectTemplates).map(([tag, { redirect }]) => {
                 if (!redirect) return { data: tag, label: tag };
 
-                const label = new OO.ui.HtmlSnippet(`${tag} <i>(redirect with possibilities)</i>`);
+                const label = new OO.ui.HtmlSnippet(`<span class="afcrc-helper-redirect-possibilities">${tag}</span>`);
 
                 return { data: tag, label };
             }),

@@ -198,16 +198,16 @@ export default class CategoriesDialog extends HelperDialog {
             this.updateRequestColor(detailsElement, index);
 
             pageSelectLayout.$element.hide();
-            categoryAddSelectLayout.$element.hide();
             categoryRemoveSelectLayout.$element.hide();
+            parentCategorySelectLayout.$element.hide();
             denyReasonLayout.$element.hide();
             closingReasonLayout.$element.hide();
 
             switch (option) {
                 case 'accept': {
                     pageSelectLayout.$element.show();
-                    categoryAddSelectLayout.$element.show();
                     categoryRemoveSelectLayout.$element.show();
+                    parentCategorySelectLayout.$element.show();
 
                     break;
                 }
@@ -259,41 +259,6 @@ export default class CategoriesDialog extends HelperDialog {
         const pageSelectLayout = new OO.ui.FieldLayout(pageSelect, { align: 'inline', label: 'Pages to categorize:' });
         pageSelectLayout.$element.hide();
 
-        const categoryAddSelectInput = new CategoryInputWidget({ placeholder: 'Add categories here' });
-        categoryAddSelectInput.on('change', () => {
-            let value = categoryAddSelectInput.getValue();
-            value = value.replace(new RegExp(`^(https?:)?/{2}?${mw.config.get('wgServer').replace(/^\/{2}/, '')}/wiki/`), '');
-            value = value.replace(/^Category:/, '');
-
-            if (value.length > 0) categoryAddSelectInput.setValue(value[0].toUpperCase() + value.slice(1).replaceAll('_', ' '));
-        });
-        categoryAddSelectInput.on('showing-values', (pages: { data: string; label: string }[]) => {
-            for (const page of pages) categoryAddSelect.addAllowedValue(page.data);
-        });
-
-        const categoryAddSelect = new OO.ui.TagMultiselectWidget({
-            allowReordering: false,
-            inputPosition: 'outline',
-            inputWidget: categoryAddSelectInput,
-        });
-        categoryAddSelect.on('change', () => {
-            const selectedTags = categoryAddSelect.getValue() as string[];
-
-            const sortedTags = selectedTags.sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
-
-            if (selectedTags.join(';') !== sortedTags.join(';')) categoryAddSelect.setValue(sortedTags);
-
-            this.actionsToTake[index].parents = sortedTags;
-        });
-
-        const { parents: parentCategories } = this.actionsToTake[index];
-
-        for (const parent of parentCategories) categoryAddSelect.addAllowedValue(parent);
-        categoryAddSelect.setValue(parentCategories);
-
-        const categoryAddSelectLayout = new OO.ui.FieldLayout(categoryAddSelect, { align: 'inline', label: 'Categories to add:' });
-        categoryAddSelectLayout.$element.hide();
-
         const categoryRemoveSelectInput = new CategoryInputWidget({ placeholder: 'Add categories here' });
         categoryRemoveSelectInput.on('change', () => {
             let value = categoryRemoveSelectInput.getValue();
@@ -303,7 +268,7 @@ export default class CategoriesDialog extends HelperDialog {
             if (value.length > 0) categoryRemoveSelectInput.setValue(value[0].toUpperCase() + value.slice(1).replaceAll('_', ' '));
         });
         categoryRemoveSelectInput.on('showing-values', (pages: { data: string; label: string }[]) => {
-            for (const page of pages) categoryAddSelect.addAllowedValue(page.data);
+            for (const page of pages) parentCategorySelect.addAllowedValue(page.data);
         });
 
         const categoryRemoveSelect = new OO.ui.TagMultiselectWidget({
@@ -321,11 +286,49 @@ export default class CategoriesDialog extends HelperDialog {
             this.actionsToTake[index].categoriesToRemove = sortedTags;
         });
 
+        const { parents: parentCategories } = this.actionsToTake[index];
+
         for (const parent of parentCategories) categoryRemoveSelect.addAllowedValue(parent);
         categoryRemoveSelect.setValue(parentCategories);
 
-        const categoryRemoveSelectLayout = new OO.ui.FieldLayout(categoryRemoveSelect, { align: 'inline', label: 'Categories to remove:' });
+        const categoryRemoveSelectLayout = new OO.ui.FieldLayout(categoryRemoveSelect, {
+            align: 'inline',
+            label: 'Categories to remove from pages to categorize:',
+        });
         categoryRemoveSelectLayout.$element.hide();
+
+        const parentCategorySelectInput = new CategoryInputWidget({ placeholder: 'Add categories here' });
+        parentCategorySelectInput.on('change', () => {
+            let value = parentCategorySelectInput.getValue();
+            value = value.replace(new RegExp(`^(https?:)?/{2}?${mw.config.get('wgServer').replace(/^\/{2}/, '')}/wiki/`), '');
+            value = value.replace(/^Category:/, '');
+
+            if (value.length > 0) parentCategorySelectInput.setValue(value[0].toUpperCase() + value.slice(1).replaceAll('_', ' '));
+        });
+        parentCategorySelectInput.on('showing-values', (pages: { data: string; label: string }[]) => {
+            for (const page of pages) parentCategorySelect.addAllowedValue(page.data);
+        });
+
+        const parentCategorySelect = new OO.ui.TagMultiselectWidget({
+            allowReordering: false,
+            inputPosition: 'outline',
+            inputWidget: parentCategorySelectInput,
+        });
+        parentCategorySelect.on('change', () => {
+            const selectedTags = parentCategorySelect.getValue() as string[];
+
+            const sortedTags = selectedTags.sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
+
+            if (selectedTags.join(';') !== sortedTags.join(';')) parentCategorySelect.setValue(sortedTags);
+
+            this.actionsToTake[index].parents = sortedTags;
+        });
+
+        for (const parentCategory of parentCategories) parentCategorySelect.addAllowedValue(parentCategory);
+        parentCategorySelect.setValue(parentCategories);
+
+        const parentCategorySelectLayout = new OO.ui.FieldLayout(parentCategorySelect, { align: 'inline', label: 'Parent categories:' });
+        parentCategorySelectLayout.$element.hide();
 
         const denyReason = new OO.ui.ComboBoxInputWidget({
             classes: ['afcrc-closing-reason-input'],
@@ -395,8 +398,8 @@ export default class CategoriesDialog extends HelperDialog {
         requestResponderElement.append(
             actionRadioInput.$element[0],
             pageSelectLayout.$element[0],
-            categoryAddSelectLayout.$element[0],
             categoryRemoveSelectLayout.$element[0],
+            parentCategorySelectLayout.$element[0],
             denyReasonLayout.$element[0],
             closingReasonLayout.$element[0],
             commentInputLayout.$element[0],

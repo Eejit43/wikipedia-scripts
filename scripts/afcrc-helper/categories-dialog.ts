@@ -564,7 +564,7 @@ export default class CategoriesDialog extends HelperDialog {
                     if (!didReplaceCategory) content += `\n[[Category:${data.category}]]`; // eslint-disable-line @typescript-eslint/no-unnecessary-condition
 
                     for (const category of data.categoriesToRemove)
-                        content = content.replaceAll(new RegExp(`\\[\\[:?[Cc]ategory:${category}\\]\\]\n?`, 'gi'), '');
+                        content = content.replaceAll(new RegExp(`\\[\\[:?[Cc]ategory:${category}(\\|.*?)\\]\\]\n?`, 'gi'), '');
 
                     return {
                         text: content,

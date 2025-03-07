@@ -279,7 +279,7 @@ export default class HelperDialog extends OO.ui.ProcessDialog {
      * @param showActionsDialog The dialog to log the results to.
      */
     protected async makeAllEditsCreations(showActionsDialog: ActionsDialog) {
-        for (const action of this.editsCreationsToMake) {
+        for (const [index, action] of this.editsCreationsToMake.entries()) {
             const apiFunction =
                 action.type === 'edit'
                     ? this.api.edit(action.title, action.transform)
@@ -290,31 +290,54 @@ export default class HelperDialog extends OO.ui.ProcessDialog {
             linkElement.href = mw.util.getUrl(action.title, 'isRedirect' in action && action.isRedirect ? { redirect: 'no' } : undefined);
             linkElement.textContent = action.title;
 
-            showActionsDialog.addLogEntry(`${action.type === 'edit' ? 'Editing' : 'Creating'} ${linkElement.outerHTML}...`);
+            const actionResultElementId = `afcrc-helper-action-result-${index}`;
+
+            showActionsDialog.addLogEntry(
+                `${action.type === 'edit' ? 'Editing' : 'Creating'} ${linkElement.outerHTML}... <span id="${actionResultElementId}"></span>`,
+            );
 
             // eslint-disable-next-line no-await-in-loop
-            await apiFunction.catch(async (errorCode, errorInfo) => {
-                if (errorCode === 'ratelimited') {
-                    showActionsDialog.addLogEntry(
-                        `Rate limited. Waiting for 70 seconds... (resuming at ${new Date(Date.now() + 70_000).toLocaleTimeString()})`,
-                        'warning',
-                    );
-                    await new Promise((resolve) => setTimeout(resolve, 70_000));
+            await apiFunction
+                .then((result) => {
+                    if (result.result === 'Success') {
+                        let linkElement: HTMLAnchorElement | undefined;
+                        if (!('nochange' in result)) {
+                            linkElement = document.createElement('a');
+                            linkElement.target = '_blank';
+                            linkElement.href = mw.util.getUrl(
+                                `Special:Diff/${result.oldrevid ? `${result.oldrevid}/` : ''}${result.newrevid}`, // oldrevid is 0 on page creations, and is thus unneeded
+                            );
+                            linkElement.textContent = 'diff';
+                        }
 
-                    showActionsDialog.addLogEntry('Continuing...', 'success');
+                        const actionResultElement = document.querySelector(`#${actionResultElementId}`)!;
 
-                    await apiFunction.catch((errorCode, errorInfo) => {
+                        if (linkElement) actionResultElement.append('(done, see ', linkElement, ')');
+                        else actionResultElement.textContent = '(done, no changes)';
+                    }
+                })
+                .catch(async (errorCode, errorInfo) => {
+                    if (errorCode === 'ratelimited') {
+                        showActionsDialog.addLogEntry(
+                            `Rate limited. Waiting for 70 seconds... (resuming at ${new Date(Date.now() + 70_000).toLocaleTimeString()})`,
+                            'warning',
+                        );
+                        await new Promise((resolve) => setTimeout(resolve, 70_000));
+
+                        showActionsDialog.addLogEntry('Continuing...', 'success');
+
+                        await apiFunction.catch((errorCode, errorInfo) => {
+                            showActionsDialog.addLogEntry(
+                                `Error ${action.type === 'edit' ? 'editing' : 'creating'} ${linkElement.outerHTML}: ${(errorInfo as MediaWikiDataError)?.error.info ?? 'Unknown error'} (${errorCode}).`,
+                                'error',
+                            );
+                        });
+                    } else
                         showActionsDialog.addLogEntry(
                             `Error ${action.type === 'edit' ? 'editing' : 'creating'} ${linkElement.outerHTML}: ${(errorInfo as MediaWikiDataError)?.error.info ?? 'Unknown error'} (${errorCode}).`,
                             'error',
                         );
-                    });
-                } else
-                    showActionsDialog.addLogEntry(
-                        `Error ${action.type === 'edit' ? 'editing' : 'creating'} ${linkElement.outerHTML}: ${(errorInfo as MediaWikiDataError)?.error.info ?? 'Unknown error'} (${errorCode}).`,
-                        'error',
-                    );
-            });
+                });
         }
     }
 

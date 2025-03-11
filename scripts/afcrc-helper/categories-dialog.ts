@@ -69,7 +69,7 @@ export default class CategoriesDialog extends HelperDialog {
             category: parsedData.category,
             categorizedPages: parsedData.examples,
             parents: parsedData.parents,
-            categoriesToRemove: parsedData.parents,
+            categoriesToRemove: [...parsedData.parents],
             originalText: { fullSectionText: sectionText, sectionText: sectionText.replace(/^==.*?==$/m, '').trim() },
             action: 'none',
         });

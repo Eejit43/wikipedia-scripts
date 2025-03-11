@@ -753,7 +753,10 @@ export default class RedirectHelperDialog {
 
         if (this.oldDefaultSort) this.defaultSortInput.setValue(this.oldDefaultSort);
 
-        for (const category of this.oldCategories) this.categorySelect.addAllowedValue(category);
+        for (const category of this.oldCategories) {
+            this.categorySelect.addAllowedValue(category);
+            this.categorySelectInput.validCategories.add(category);
+        }
         this.categorySelect.setValue(this.oldCategories.map((category) => ({ data: category, label: category })));
 
         this.updateSummary();

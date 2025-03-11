@@ -20,13 +20,13 @@ export default class CategoryInputWidget extends OO.ui.TextInputWidget {
     }
 
     getLookupRequest = () => {
-        const value = super.getValue().split('|')[0];
+        const value = this.getValue().split('|')[0];
         const deferred = $.Deferred();
 
         if (!value) deferred.resolve([]);
 
         if (this.supportsSortKey) {
-            const sortKey = super.getValue().split('|')[1];
+            const sortKey = this.getValue().split('|')[1];
 
             if (sortKey && this.validCategories.has(value)) {
                 const response = [{ data: `${value}|${sortKey}`, label: `${value} (with sort key "${sortKey}")` }];

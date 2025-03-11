@@ -8,16 +8,34 @@ export default class CategoryInputWidget extends OO.ui.TextInputWidget {
     // Utility variables
     private api = new mw.Api();
 
-    constructor(config: LookupElementConfig) {
+    private supportsSortKey: boolean;
+
+    public validCategories = new Set<string>();
+
+    constructor(config: LookupElementConfig, supportsSortKey = false) {
         super(config);
         OO.ui.mixin.LookupElement.call(this as unknown as OO.ui.mixin.LookupElement, config);
+
+        this.supportsSortKey = supportsSortKey;
     }
 
     getLookupRequest = () => {
-        const value = this.getValue();
+        const value = super.getValue().split('|')[0];
         const deferred = $.Deferred();
 
         if (!value) deferred.resolve([]);
+
+        if (this.supportsSortKey) {
+            const sortKey = super.getValue().split('|')[1];
+
+            if (sortKey && this.validCategories.has(value)) {
+                const response = [{ data: `${value}|${sortKey}`, label: `${value} (with sort key "${sortKey}")` }];
+
+                deferred.resolve(response);
+
+                this.emit('showing-values', response);
+            }
+        }
 
         const parsedTitle = mw.Title.newFromText(value);
 
@@ -41,6 +59,8 @@ export default class CategoryInputWidget extends OO.ui.TextInputWidget {
                         )
                         .map((page) => {
                             const titleWithoutNamespace = page.title.split(':')[1];
+
+                            if (this.supportsSortKey) this.validCategories.add(titleWithoutNamespace);
 
                             return { data: titleWithoutNamespace, label: titleWithoutNamespace };
                         });

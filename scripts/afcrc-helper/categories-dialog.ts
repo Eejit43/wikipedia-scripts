@@ -297,7 +297,7 @@ export default class CategoriesDialog extends HelperDialog {
         });
         categoryRemoveSelectLayout.$element.hide();
 
-        const parentCategorySelectInput = new CategoryInputWidget({ placeholder: 'Add categories here' });
+        const parentCategorySelectInput = new CategoryInputWidget({ placeholder: 'Add categories here' }, true);
         parentCategorySelectInput.on('change', () => {
             let value = parentCategorySelectInput.getValue();
             value = value.replace(new RegExp(`^(https?:)?/{2}?${mw.config.get('wgServer').replace(/^\/{2}/, '')}/wiki/`), '');
@@ -324,7 +324,10 @@ export default class CategoriesDialog extends HelperDialog {
             this.actionsToTake[index].parents = sortedTags;
         });
 
-        for (const parentCategory of parentCategories) parentCategorySelect.addAllowedValue(parentCategory);
+        for (const parentCategory of parentCategories) {
+            parentCategorySelect.addAllowedValue(parentCategory);
+            parentCategorySelectInput.validCategories.add(parentCategory);
+        }
         parentCategorySelect.setValue(parentCategories);
 
         const parentCategorySelectLayout = new OO.ui.FieldLayout(parentCategorySelect, { align: 'inline', label: 'Parent categories:' });
@@ -547,9 +550,9 @@ export default class CategoriesDialog extends HelperDialog {
                 text: `{{WikiProject banner shell|\n{{WikiProject Articles for creation|ts={{subst:LOCALTIMESTAMP}}|reviewer=${mw.config.get('wgUserName')}}}\n}}`,
                 summary: `Adding [[Wikipedia:WikiProject Articles for creation|WikiProject Articles for creation]] banner${this.scriptMessage}`,
             },
-            ...data.categorizedPages.map((example) => ({
+            ...data.categorizedPages.map((page) => ({
                 type: 'edit' as const,
-                title: example,
+                title: page,
                 transform: ({ content }: { content: string }) => {
                     let didReplaceCategory = false;
 

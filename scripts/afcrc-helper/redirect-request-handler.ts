@@ -137,12 +137,16 @@ export default class RedirectRequestHandler {
             }),
         });
         (tagSelect.getMenu() as OO.ui.MenuSelectWidget.ConfigOptions).filterMode = 'substring';
-        tagSelect.on('change', () => {
-            const selectedTags = tagSelect.getValue() as string[];
+        tagSelect.on('change', (selectedElements) => {
+            const selectedTags = selectedElements.map((element) => element.getData() as string);
 
-            const sortedTags = selectedTags.sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
+            const sortedTags = selectedTags.toSorted((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
 
-            if (selectedTags.join(';') !== sortedTags.join(';')) tagSelect.setValue(sortedTags);
+            if (selectedTags.join(';') !== sortedTags.join(';')) {
+                const lastElement = selectedElements.at(-1) as unknown as OO.ui.mixin.DraggableElement & OO.ui.Element;
+
+                tagSelect.reorder(lastElement, sortedTags.indexOf(lastElement.getData() as string));
+            }
 
             this.updateActionsToTake({ redirectTemplates: sortedTags });
 

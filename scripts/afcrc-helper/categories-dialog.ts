@@ -241,14 +241,18 @@ export default class CategoriesDialog extends HelperDialog {
             inputPosition: 'outline',
             inputWidget: pageSelectInput,
         });
-        pageSelect.on('change', () => {
-            const selectedTags = pageSelect.getValue() as string[];
+        pageSelect.on('change', (selectedElements) => {
+            const selectedPages = selectedElements.map((element) => element.getData() as string);
 
-            const sortedTags = selectedTags.sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
+            const sortedPages = selectedPages.toSorted((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
 
-            if (selectedTags.join(';') !== sortedTags.join(';')) pageSelect.setValue(sortedTags);
+            if (selectedPages.join(';') !== sortedPages.join(';')) {
+                const lastElement = selectedElements.at(-1) as unknown as OO.ui.mixin.DraggableElement & OO.ui.Element;
 
-            this.actionsToTake[index].categorizedPages = sortedTags;
+                pageSelect.reorder(lastElement, sortedPages.indexOf(lastElement.getData() as string));
+            }
+
+            this.actionsToTake[index].categorizedPages = sortedPages;
         });
 
         const { categorizedPages } = this.actionsToTake[index];
@@ -276,14 +280,18 @@ export default class CategoriesDialog extends HelperDialog {
             inputPosition: 'outline',
             inputWidget: categoryRemoveSelectInput,
         });
-        categoryRemoveSelect.on('change', () => {
-            const selectedTags = categoryRemoveSelect.getValue() as string[];
+        categoryRemoveSelect.on('change', (selectedElements) => {
+            const selectedCategories = selectedElements.map((element) => element.getData() as string);
 
-            const sortedTags = selectedTags.sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
+            const sortedCategories = selectedCategories.toSorted((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
 
-            if (selectedTags.join(';') !== sortedTags.join(';')) categoryRemoveSelect.setValue(sortedTags);
+            if (selectedCategories.join(';') !== sortedCategories.join(';')) {
+                const lastElement = selectedElements.at(-1) as unknown as OO.ui.mixin.DraggableElement & OO.ui.Element;
 
-            this.actionsToTake[index].categoriesToRemove = sortedTags;
+                categoryRemoveSelect.reorder(lastElement, sortedCategories.indexOf(lastElement.getData() as string));
+            }
+
+            this.actionsToTake[index].categoriesToRemove = sortedCategories;
         });
 
         const { parents: parentCategories } = this.actionsToTake[index];
@@ -314,14 +322,18 @@ export default class CategoriesDialog extends HelperDialog {
             inputPosition: 'outline',
             inputWidget: parentCategorySelectInput,
         });
-        parentCategorySelect.on('change', () => {
-            const selectedTags = parentCategorySelect.getValue() as string[];
+        parentCategorySelect.on('change', (selectedElements) => {
+            const selectedCategories = selectedElements.map((element) => element.getData() as string);
 
-            const sortedTags = selectedTags.sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
+            const sortedCategories = selectedCategories.toSorted((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
 
-            if (selectedTags.join(';') !== sortedTags.join(';')) parentCategorySelect.setValue(sortedTags);
+            if (selectedCategories.join(';') !== sortedCategories.join(';')) {
+                const lastElement = selectedElements.at(-1) as unknown as OO.ui.mixin.DraggableElement & OO.ui.Element;
 
-            this.actionsToTake[index].parents = sortedTags;
+                parentCategorySelect.reorder(lastElement, sortedCategories.indexOf(lastElement.getData() as string));
+            }
+
+            this.actionsToTake[index].parents = sortedCategories;
         });
 
         for (const parentCategory of parentCategories) {

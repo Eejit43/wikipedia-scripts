@@ -232,12 +232,16 @@ export default class RedirectHelperDialog {
             }),
         });
         (this.tagSelect.getMenu() as OO.ui.MenuSelectWidget.ConfigOptions).filterMode = 'substring';
-        this.tagSelect.on('change', () => {
-            const selectedTags = this.tagSelect.getValue() as string[];
+        this.tagSelect.on('change', (selectedElements) => {
+            const selectedTags = selectedElements.map((element) => element.getData() as string);
 
-            const sortedTags = selectedTags.sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
+            const sortedTags = selectedTags.toSorted((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
 
-            if (selectedTags.join(';') !== sortedTags.join(';')) this.tagSelect.setValue(sortedTags);
+            if (selectedTags.join(';') !== sortedTags.join(';')) {
+                const lastElement = selectedElements.at(-1) as unknown as OO.ui.mixin.DraggableElement & OO.ui.Element;
+
+                this.tagSelect.reorder(lastElement, sortedTags.indexOf(lastElement.getData() as string));
+            }
 
             this.updateSummary();
             this.submitButton.setLabel('Submit');
@@ -411,12 +415,16 @@ export default class RedirectHelperDialog {
             inputPosition: 'outline',
             inputWidget: this.categorySelectInput,
         });
-        this.categorySelect.on('change', () => {
-            const selectedTags = this.categorySelect.getValue() as string[];
+        this.categorySelect.on('change', (selectedElements) => {
+            const selectedCategories = selectedElements.map((element) => element.getData() as string);
 
-            const sortedTags = selectedTags.sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
+            const sortedCategories = selectedCategories.toSorted((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
 
-            if (selectedTags.join(';') !== sortedTags.join(';')) this.categorySelect.setValue(sortedTags);
+            if (selectedCategories.join(';') !== sortedCategories.join(';')) {
+                const lastElement = selectedElements.at(-1) as unknown as OO.ui.mixin.DraggableElement & OO.ui.Element;
+
+                this.categorySelect.reorder(lastElement, sortedCategories.indexOf(lastElement.getData() as string));
+            }
 
             this.updateSummary();
             this.submitButton.setLabel('Submit');
@@ -721,7 +729,11 @@ export default class RedirectHelperDialog {
                 ?.slice(14, -2)
                 .trim() ?? '';
 
-        this.oldCategories = this.pageContent.match(/\[\[[Cc]ategory:.+?]]/g)?.map((category) => category.slice(11, -2)) ?? [];
+        this.oldCategories =
+            this.pageContent
+                .match(/\[\[[Cc]ategory:.+?]]/g)
+                ?.map((category) => category.slice(11, -2))
+                .sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase())) ?? [];
 
         this.oldStrayText = [
             /{{short description\|.*?}}/i.exec(this.pageContent)?.[0],

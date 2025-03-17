@@ -83,7 +83,7 @@ export {};
             finalText = cleanupMagicWords(finalText);
             finalText = cleanupDisplaytitlesAndDefaultsorts(finalText);
             finalText = cleanupCategories(finalText);
-            finalText = cleanupLinks(finalText, [cleanupImproperCharacters]);
+            finalText = cleanupLinks(finalText, [cleanupImproperCharacters, cleanupYearRanges]);
             finalText = cleanupStrayMarkup(finalText);
             finalText = cleanupSpacing(finalText);
             finalText = cleanupReferences(finalText);
@@ -386,14 +386,28 @@ function cleanupImproperCharacters(content: string, run: 1 | 2) {
     const nbspPlaceholder = '\u009F';
 
     if (run === 1) {
-        content = content.replaceAll(/[“”]/g, '"');
-        content = content.replaceAll(/[‘’]/g, "'");
+        content = content.replaceAll(/[«»“”„‟「」]/g, '"');
+        content = content.replaceAll(/[‘’‚‛‹›]/g, "'");
         content = content.replaceAll('…', elipsisPlaceholder);
         content = content.replaceAll(' ', nbspPlaceholder);
     } else {
         content = content.replaceAll(elipsisPlaceholder, '...');
         content = content.replaceAll(nbspPlaceholder, '&nbsp;');
     }
+
+    return content;
+}
+
+/**
+ * Cleans up year ranges in an article's content.
+ * @param content The article content to clean up.
+ * @param run The run number of the function.
+ */
+function cleanupYearRanges(content: string, run: 1 | 2) {
+    if (run === 1)
+        content = content.replaceAll(/(\(\d{3,4}) ?[‒–−-] ?(\d{3,4}\))/g, (original, start, end) =>
+            `${start}–${end}`.padEnd(original.length, '\0'),
+        );
 
     return content;
 }

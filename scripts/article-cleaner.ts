@@ -585,6 +585,7 @@ function formatTemplates(content: string) {
                 'multiple image',
             ],
             [FormatStyle.Minimized]: ['coord', 'start date', 'end date', 'lang', 'langx'],
+            [FormatStyle.MinimizedSpaced]: ['infobox mapframe'],
         };
 
         constructor(startLocation: number) {
@@ -628,9 +629,20 @@ function formatTemplates(content: string) {
         }
 
         private getStyle() {
+            let mostSpecificDefaultStylePrefixLength = 0;
+            let mostSpecificDefaultStyleFormatStyle: FormatStyle | undefined;
+
             for (const [formatStyle, templatePrefixes] of Object.entries(this.defaultTemplateStyles))
                 for (const templatePrefix of templatePrefixes)
-                    if (this.name!.toLowerCase().startsWith(templatePrefix)) return Number.parseInt(formatStyle) as FormatStyle;
+                    if (
+                        this.name!.toLowerCase().startsWith(templatePrefix) &&
+                        templatePrefix.length >= mostSpecificDefaultStylePrefixLength
+                    ) {
+                        mostSpecificDefaultStylePrefixLength = templatePrefix.length;
+                        mostSpecificDefaultStyleFormatStyle = Number.parseInt(formatStyle) as FormatStyle;
+                    }
+
+            return mostSpecificDefaultStyleFormatStyle;
         }
 
         public format() {

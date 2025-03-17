@@ -433,7 +433,7 @@ function cleanupStrayMarkup(content: string) {
         /<gallery>\nExample.jpg\|Caption1\nExample.jpg\|Caption2\n<\/gallery> */g,
         /#REDIRECT \[\[Target page name]] */g,
         /<!-- Invisible comment --> */g,
-        /<noinclude>\s*<\/noinclude> */g,
+        /<\s*(big|small|sup|sub|s|u|code|nowiki|noinclude|onlyinclude|includeonly|center|blockquote|gallery)\s*(\s+[^<>]*)?>\s*<\s*\/\s*\1\s*>/gi,
     ];
 
     for (const regex of strayMarkupRegexes) while (regex.test(content)) content = content.replace(regex, '');

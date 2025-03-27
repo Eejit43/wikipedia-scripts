@@ -453,7 +453,7 @@ function cleanupSpacing(content: string) {
     content = content.replaceAll(/\s+$/g, ''); // Remove trailing spaces
     content = content.replaceAll(/^([#*]+) */gm, '$1 '); // Ensure there is a space after a bullet or hash in a list item
     content = content.replaceAll(/^([#*] .*)\n+(?=[#*] )/gm, '$1\n'); // Remove newlines between list items
-    content = content.replaceAll(/\s+(?=<ref)/g, ''); // Remove spaces before references
+    content = content.replaceAll(/\s+(?=<ref(?!erences))/g, ''); // Remove spaces before references
     content = content.replaceAll(/^(=+.*?=+)$\n{2,}^(=+.*?=+)$/gm, '$1\n$2'); // Remove extra newlines between empty section and following section
     content = content.trim(); // Remove extra newlines at the start or end of the content
 
@@ -465,7 +465,7 @@ function cleanupSpacing(content: string) {
  * @param content The article content to clean up.
  */
 function cleanupReferences(content: string) {
-    content = content.replaceAll(/((?:<ref.*?>.*?<\/ref>)+)([!,.?])/g, '$2$1'); // Fix punctuation following references
+    content = content.replaceAll(/((?:<ref(?!erences).*?>.*?<\/ref>)+)([!,.?])/g, '$2$1'); // Fix punctuation following references
 
     const references: { start: number; end: number; isSelfClosing?: true }[] = [];
 
@@ -500,7 +500,7 @@ function cleanupReferences(content: string) {
         else if (isAtString('<!--')) isInsideComment = true;
         else if (isAtString('-->')) isInsideComment = false;
         else if (!isInsideNowiki && !isInsideComment)
-            if (isAtString('<ref')) {
+            if (!isAtString('<references') && isAtString('<ref')) {
                 const start = currentLocation - 4;
 
                 proceedUntilString('>');
@@ -522,7 +522,7 @@ function cleanupReferences(content: string) {
     for (const reference of references) {
         const originalText = content.slice(reference.start, reference.end);
 
-        const startTag = /<ref.*?>/i.exec(originalText)![0];
+        const startTag = /<ref(?!erences).*?>/i.exec(originalText)![0];
 
         const parsedTag = parser.parseFromString(
             reference.isSelfClosing ? startTag.replace(/ *\/ *>/, ' />') : startTag + '</ref>',

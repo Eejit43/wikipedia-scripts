@@ -137,7 +137,7 @@ function cleanupSectionHeaders(content: string) {
         /* eslint-enable @typescript-eslint/naming-convention */
     };
 
-    const commonMiscapitalizedWords = ['life', 'career'];
+    const commonMiscapitalizedWords = ['and', 'birth', 'career', 'death', 'education', 'life', 'or'];
 
     const reverseCommonReplacements = Object.fromEntries(
         Object.entries(commonReplacements).flatMap(([key, values]) => values.map((value) => [value, key])),
@@ -160,11 +160,17 @@ function cleanupSectionHeaders(content: string) {
         return { name, depth, original: header[0] };
     });
 
+    const headersSet = new Set(parsedHeaders.map((header) => header.name.toLowerCase()));
+
     const titleSpacer = parsedHeaders.length > 0 ? (/^\n*=+ | =+\n+$/.test(parsedHeaders[0].original) ? ' ' : '') : '';
 
     for (const header of parsedHeaders) {
+        const lowercaseName = header.name.toLowerCase();
+
         const replacedName =
-            header.name.toLowerCase() in reverseCommonReplacements ? reverseCommonReplacements[header.name.toLowerCase()] : header.name;
+            lowercaseName in reverseCommonReplacements && !headersSet.has(reverseCommonReplacements[lowercaseName].toLowerCase())
+                ? reverseCommonReplacements[lowercaseName]
+                : header.name;
 
         let capitalizedName = replacedName;
 

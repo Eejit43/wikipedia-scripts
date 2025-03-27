@@ -568,7 +568,7 @@ function formatTemplates(content: string) {
         private parameters: { key: string | null; value: string }[] = [];
         public subTemplates: Template[] = [];
 
-        private placeholderStrings = ['\u{F0000}', '\u{10FFFF}'];
+        private placeholderStrings = ['\u{F0000}', '\u{10FFFF}', '\u{FFFFE}'];
 
         private pipeEscapeRegexes = [/(\[\[[^\]]*?)\|(.*?]])/g, /(<!--.*?)\|(.*?-->)/g, /(<nowiki>.*?)\|(.*?<\/nowiki>)/g];
 
@@ -608,6 +608,13 @@ function formatTemplates(content: string) {
                 while (pipeEscapeRegex.test(trimmedInnerText))
                     trimmedInnerText = trimmedInnerText.replaceAll(pipeEscapeRegex, `$1${this.placeholderStrings[1]}$2`);
 
+            const tagEqualsEscapeRegexes = [/<(\w+)( [^<>]*?)?(?<!\/)>.*?<\/\1>/g, /<(\w+)( [^<>]*?)?\/>/g];
+
+            for (const tagEqualsEscapeRegex of tagEqualsEscapeRegexes)
+                trimmedInnerText = trimmedInnerText.replaceAll(tagEqualsEscapeRegex, (fullText, tagName, attributes: string) => {
+                    return fullText.replace(attributes, attributes.replaceAll('=', this.placeholderStrings[2]));
+                });
+
             const parameters = trimmedInnerText.split('|').map((parameter) => parameter.replaceAll(this.placeholderStrings[1], '|').trim());
 
             this.name = parameters.shift();
@@ -615,9 +622,9 @@ function formatTemplates(content: string) {
             const splitParameters = parameters.map((parameters) => {
                 const equalsLocation = parameters.indexOf('=');
 
-                if (equalsLocation === -1) return { key: null, value: parameters.trim() };
+                if (equalsLocation === -1) return { key: null, value: parameters.replaceAll(this.placeholderStrings[2], '=').trim() };
 
-                const value = parameters.slice(equalsLocation + 1);
+                const value = parameters.slice(equalsLocation + 1).replaceAll(this.placeholderStrings[2], '=');
 
                 return {
                     key: parameters.slice(0, equalsLocation).trim(),

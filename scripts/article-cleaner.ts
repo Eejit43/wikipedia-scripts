@@ -614,10 +614,10 @@ function formatTemplates(content: string) {
                 while (pipeEscapeRegex.test(trimmedInnerText))
                     trimmedInnerText = trimmedInnerText.replaceAll(pipeEscapeRegex, `$1${this.placeholderStrings[1]}$2`);
 
-            const tagEqualsEscapeRegexes = [/<(\w+)( [^<>]*?)?(?<!\/)>.*?<\/\1>/g, /<(\w+)( [^<>]*?)?\/>/g];
+            const tagEqualsEscapeRegexes = [/<(\w+)( [^<>]+?)(?<!\/)>.*?<\/\1>/g, /<(\w+)( [^<>]+?)\/>/g];
 
             for (const tagEqualsEscapeRegex of tagEqualsEscapeRegexes)
-                trimmedInnerText = trimmedInnerText.replaceAll(tagEqualsEscapeRegex, (fullText, tagName, attributes: string) => {
+                trimmedInnerText = trimmedInnerText.replaceAll(tagEqualsEscapeRegex, (fullText, tagName: string, attributes: string) => {
                     return fullText.replace(attributes, attributes.replaceAll('=', this.placeholderStrings[2]));
                 });
 

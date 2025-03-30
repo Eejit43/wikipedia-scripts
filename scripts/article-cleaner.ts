@@ -535,7 +535,7 @@ function cleanupReferences(content: string) {
             'text/html',
         ).body.firstChild as HTMLUnknownElement;
 
-        let output = parsedTag.outerHTML;
+        let output = parsedTag.outerHTML.replaceAll('&amp;', '&');
 
         const tagContent = originalText.slice(startTag.length, -6).trim();
 

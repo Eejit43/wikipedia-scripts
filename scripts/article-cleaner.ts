@@ -528,7 +528,7 @@ function cleanupReferences(content: string) {
     for (const reference of references) {
         const originalText = content.slice(reference.start, reference.end);
 
-        const startTag = /<ref(?!erences).*?>/i.exec(originalText)![0];
+        const startTag = /<ref(?!erences).*?>/is.exec(originalText)![0];
 
         const parsedTag = parser.parseFromString(
             reference.isSelfClosing ? startTag.replace(/ *\/ *>/, ' />') : startTag + '</ref>',

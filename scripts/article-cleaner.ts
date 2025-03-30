@@ -580,17 +580,19 @@ function formatTemplates(content: string) {
 
         private defaultTemplateStyles = {
             [FormatStyle.ExpandedAligned]: [
+                'automatic taxobox',
+                'blockquote',
                 'infobox',
+                'listen',
+                'location map many',
+                'motorsport season',
+                'multiple image',
+                'osm location map',
+                'quote box',
                 'speciesbox',
                 'taxobox',
-                'automatic taxobox',
-                'osm location map',
-                'motorsport season',
-                'blockquote',
-                'quote box',
-                'multiple image',
             ],
-            [FormatStyle.Minimized]: ['coord', 'start date', 'end date', 'lang', 'langx'],
+            [FormatStyle.Minimized]: ['coord', 'end date', 'lang', 'langx', 'start date'],
             [FormatStyle.MinimizedSpaced]: ['infobox mapframe'],
         };
 

@@ -212,7 +212,9 @@ function cleanupDisplaytitlesAndDefaultsorts(content: string) {
     for (const tag of parsedTags) {
         const originalTagRegex = new RegExp(`${escapeRegexCharacters(tag.original)}\n*`, 'g');
 
-        const title = mw.Title.makeTitle(currentTitle.getNamespaceId(), tag.value.includes(':') ? tag.value.split(':')[1] : tag.value)!;
+        const title = mw.Title.makeTitle(currentTitle.getNamespaceId(), tag.value.includes(':') ? tag.value.split(':')[1] : tag.value);
+
+        if (!title) continue;
 
         if (currentTitle.toText() === title.toText()) {
             content = content.replace(originalTagRegex, '');

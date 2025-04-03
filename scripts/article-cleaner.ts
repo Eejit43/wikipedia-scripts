@@ -394,8 +394,8 @@ function cleanupImproperCharacters(content: string, run: 1 | 2) {
     const nbspPlaceholder = '\u009F';
 
     if (run === 1) {
-        content = content.replaceAll(/[«»“”„‟「」]/g, '"');
-        content = content.replaceAll(/[‘’‚‛‹›]/g, "'");
+        content = content.replaceAll(/[“”„‟]/g, '"');
+        content = content.replaceAll(/[‘’‚‛]/g, "'");
         content = content.replaceAll('…', elipsisPlaceholder);
         content = content.replaceAll(' ', nbspPlaceholder);
     } else {

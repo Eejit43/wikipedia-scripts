@@ -272,7 +272,7 @@ export default class CategoriesDialog extends HelperDialog {
             if (value.length > 0) categoryRemoveSelectInput.setValue(value[0].toUpperCase() + value.slice(1).replaceAll('_', ' '));
         });
         categoryRemoveSelectInput.on('showing-values', (pages: { data: string; label: string }[]) => {
-            for (const page of pages) parentCategorySelect.addAllowedValue(page.data);
+            for (const page of pages) categoryRemoveSelect.addAllowedValue(page.data);
         });
 
         const categoryRemoveSelect = new OO.ui.TagMultiselectWidget({

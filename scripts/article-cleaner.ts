@@ -143,7 +143,7 @@ function cleanupSectionHeaders(content: string) {
         Object.entries(commonReplacements).flatMap(([key, values]) => values.map((value) => [value, key])),
     );
 
-    const headers = content.matchAll(/\n*(?<startMarkup>=+) *(?<name>.*?) *(?<endMarkup>=+)\n+/g);
+    const headers = content.matchAll(/(?<=^|\n)\n*(?<startMarkup>=+) *(?<name>.*?) *(?<endMarkup>=+)(\n+|$)/g);
 
     const parsedHeaders = [...headers].map((header) => {
         let { name } = header.groups!;

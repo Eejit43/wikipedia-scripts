@@ -60,4 +60,4 @@ export interface PageTriageListResponse {
     pagetriagelist: { pages: { user_name: string; patrol_status: string }[]; result: string }; // eslint-disable-line @typescript-eslint/naming-convention
 }
 
-export type MediaWikiDataError = { error: { code: string; info: string } } | undefined;
+export type MediaWikiDataError = { error?: { code: string; info: string } } | undefined;

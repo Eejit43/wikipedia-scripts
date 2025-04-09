@@ -79,7 +79,7 @@ mw.loader.using(['mediawiki.util'], () => {
                     })
                     .catch((errorCode, errorInfo) => {
                         mw.notify(
-                            `Error undoing revision: ${(errorInfo as MediaWikiDataError)?.error.code ?? 'Unknown error'} (${errorCode})`,
+                            `Error undoing revision: ${(errorInfo as MediaWikiDataError)?.error?.code ?? 'Unknown error'} (${errorCode})`,
                             {
                                 type: 'error',
                             },

@@ -304,7 +304,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                     if (errorCode === 'nocreate-missing')
                         await new mw.Api().create(title, { summary, watchlist: 'watch' }, text).catch((errorCode, errorInfo) => {
                             mw.notify(
-                                `Error creating ${title}: ${(errorInfo as MediaWikiDataError)?.error.info ?? 'Unknown error'} (${errorCode})`,
+                                `Error creating ${title}: ${(errorInfo as MediaWikiDataError)?.error?.info ?? 'Unknown error'} (${errorCode})`,
                                 {
                                     type: 'error',
                                 },
@@ -313,7 +313,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                         });
                     else {
                         mw.notify(
-                            `Error editing or creating ${title}: ${(errorInfo as MediaWikiDataError)?.error.info ?? 'Unknown error'} (${errorCode})`,
+                            `Error editing or creating ${title}: ${(errorInfo as MediaWikiDataError)?.error?.info ?? 'Unknown error'} (${errorCode})`,
                             {
                                 type: 'error',
                             },

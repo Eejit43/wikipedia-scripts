@@ -40,7 +40,7 @@
         },
         "source-multiple": true,
         "released": "2024|02|15",
-        "updated": "2025|04|08"
+        "updated": "2025|04|09"
     },
     {
         "name": "AFCRHS",
@@ -77,7 +77,7 @@
             "cologne-blue": "yes"
         },
         "released": "2023|02|16",
-        "updated": "2025|02|28"
+        "updated": "2025|04|09"
     },
     {
         "name": "aligner",
@@ -279,7 +279,7 @@
         },
         "source-multiple": true,
         "released": "2023|05|17",
-        "updated": "2025|03|11"
+        "updated": "2025|04|09"
     },
     {
         "name": "rmtr-helper",
@@ -324,7 +324,7 @@
             "cologne-blue": "yes"
         },
         "released": "2023|04|05",
-        "updated": "2025|01|26"
+        "updated": "2025|04|09"
     },
     {
         "name": "search-links",
@@ -359,7 +359,7 @@
             "cologne-blue": "yes"
         },
         "released": "2023|02|09",
-        "updated": "2024|01|26"
+        "updated": "2025|04|09"
     },
     {
         "name": "to-monitor-list",
@@ -377,6 +377,6 @@
             "cologne-blue": "yes"
         },
         "released": "2023|03|05",
-        "updated": "2024|10|06"
+        "updated": "2025|04|09"
     }
 ]

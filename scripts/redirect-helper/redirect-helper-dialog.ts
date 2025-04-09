@@ -1150,7 +1150,7 @@ export default class RedirectHelperDialog {
                     .postWithToken('patrol', { action: 'patrol', rcid: new URL(patrolLink.href).searchParams.get('rcid')! })
                     .catch((errorCode, errorInfo) => {
                         mw.notify(
-                            `Error patrolling ${this.pageTitle} via API: ${(errorInfo as MediaWikiDataError)?.error.info ?? 'Unknown error'} (${errorCode})`,
+                            `Error patrolling ${this.pageTitle} via API: ${(errorInfo as MediaWikiDataError)?.error?.info ?? 'Unknown error'} (${errorCode})`,
                             { type: 'error' },
                         );
 
@@ -1266,7 +1266,7 @@ export default class RedirectHelperDialog {
                 if (errorCode === 'nocreate-missing')
                     return this.api.create(title, { summary, watchlist }, text).catch((errorCode, errorInfo) => {
                         mw.notify(
-                            `Error creating ${title}: ${(errorInfo as MediaWikiDataError)?.error.info ?? 'Unknown error'} (${errorCode})`,
+                            `Error creating ${title}: ${(errorInfo as MediaWikiDataError)?.error?.info ?? 'Unknown error'} (${errorCode})`,
                             {
                                 type: 'error',
                             },
@@ -1275,7 +1275,7 @@ export default class RedirectHelperDialog {
                     });
                 else {
                     mw.notify(
-                        `Error editing or creating ${title}: ${(errorInfo as MediaWikiDataError)?.error.info ?? 'Unknown error'} (${errorCode})`,
+                        `Error editing or creating ${title}: ${(errorInfo as MediaWikiDataError)?.error?.info ?? 'Unknown error'} (${errorCode})`,
                         {
                             type: 'error',
                         },

@@ -328,13 +328,13 @@ export default class HelperDialog extends OO.ui.ProcessDialog {
 
                         await apiFunction.catch((errorCode, errorInfo) => {
                             showActionsDialog.addLogEntry(
-                                `Error ${action.type === 'edit' ? 'editing' : 'creating'} ${linkElement.outerHTML}: ${(errorInfo as MediaWikiDataError)?.error.info ?? 'Unknown error'} (${errorCode}).`,
+                                `Error ${action.type === 'edit' ? 'editing' : 'creating'} ${linkElement.outerHTML}: ${(errorInfo as MediaWikiDataError)?.error?.info ?? 'Unknown error'} (${errorCode}).`,
                                 'error',
                             );
                         });
                     } else
                         showActionsDialog.addLogEntry(
-                            `Error ${action.type === 'edit' ? 'editing' : 'creating'} ${linkElement.outerHTML}: ${(errorInfo as MediaWikiDataError)?.error.info ?? 'Unknown error'} (${errorCode}).`,
+                            `Error ${action.type === 'edit' ? 'editing' : 'creating'} ${linkElement.outerHTML}: ${(errorInfo as MediaWikiDataError)?.error?.info ?? 'Unknown error'} (${errorCode as string}).`,
                             'error',
                         );
                 });

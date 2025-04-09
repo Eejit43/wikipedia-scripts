@@ -67,7 +67,7 @@ class MonitoringListManager {
                         } satisfies ApiQuerySearchParams)
                         .catch((errorCode, errorInfo) => {
                             mw.notify(
-                                `An error occurred while trying to get category members: ${(errorInfo as MediaWikiDataError)?.error.info ?? 'Unknown error'} (${errorCode})`,
+                                `An error occurred while trying to get category members: ${(errorInfo as MediaWikiDataError)?.error?.info ?? 'Unknown error'} (${errorCode})`,
                                 { type: 'error' },
                             );
                             return null;
@@ -89,7 +89,7 @@ class MonitoringListManager {
                         } satisfies ApiQuerySearchParams)
                         .catch((errorCode, errorInfo) => {
                             mw.notify(
-                                `An error occurred while trying to get search results: ${(errorInfo as MediaWikiDataError)?.error.info ?? 'Unknown error'} (${errorCode})`,
+                                `An error occurred while trying to get search results: ${(errorInfo as MediaWikiDataError)?.error?.info ?? 'Unknown error'} (${errorCode})`,
                                 { type: 'error' },
                             );
                             return null;
@@ -111,7 +111,7 @@ class MonitoringListManager {
                         } satisfies ApiQueryBacklinksParams)
                         .catch((errorCode, errorInfo) => {
                             mw.notify(
-                                `An error occurred while trying to get backlinks: ${(errorInfo as MediaWikiDataError)?.error.info ?? 'Unknown error'} (${errorCode})`,
+                                `An error occurred while trying to get backlinks: ${(errorInfo as MediaWikiDataError)?.error?.info ?? 'Unknown error'} (${errorCode})`,
                                 { type: 'error' },
                             );
                             return null;
@@ -133,7 +133,7 @@ class MonitoringListManager {
                         } satisfies ApiQueryBacklinksParams)
                         .catch((errorCode, errorInfo) => {
                             mw.notify(
-                                `An error occurred while trying to get transclusions: ${(errorInfo as MediaWikiDataError)?.error.info ?? 'Unknown error'} (${errorCode})`,
+                                `An error occurred while trying to get transclusions: ${(errorInfo as MediaWikiDataError)?.error?.info ?? 'Unknown error'} (${errorCode})`,
                                 { type: 'error' },
                             );
                             return null;

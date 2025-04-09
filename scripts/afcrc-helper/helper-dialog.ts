@@ -282,8 +282,8 @@ export default class HelperDialog extends OO.ui.ProcessDialog {
         for (const [index, action] of this.editsCreationsToMake.entries()) {
             const apiFunction =
                 action.type === 'edit'
-                    ? this.api.edit(action.title, action.transform)
-                    : this.api.create(action.title, { summary: action.summary, watchlist: this.createdPageWatchMethod }, action.text);
+                    ? () => this.api.edit(action.title, action.transform)
+                    : () => this.api.create(action.title, { summary: action.summary, watchlist: this.createdPageWatchMethod }, action.text);
 
             const linkElement = document.createElement('a');
             linkElement.target = '_blank';
@@ -297,7 +297,7 @@ export default class HelperDialog extends OO.ui.ProcessDialog {
             );
 
             // eslint-disable-next-line no-await-in-loop
-            await apiFunction
+            await apiFunction()
                 .then((result) => {
                     if (result.result === 'Success') {
                         let linkElement: HTMLAnchorElement | undefined;
@@ -326,7 +326,7 @@ export default class HelperDialog extends OO.ui.ProcessDialog {
 
                         showActionsDialog.addLogEntry('Continuing...', 'success');
 
-                        await apiFunction.catch((errorCode, errorInfo) => {
+                        await apiFunction().catch((errorCode, errorInfo) => {
                             showActionsDialog.addLogEntry(
                                 `Error ${action.type === 'edit' ? 'editing' : 'creating'} ${linkElement.outerHTML}: ${(errorInfo as MediaWikiDataError)?.error?.info ?? 'Unknown error'} (${errorCode}).`,
                                 'error',

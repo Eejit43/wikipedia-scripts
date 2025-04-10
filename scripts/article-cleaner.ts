@@ -635,7 +635,7 @@ function formatTemplates(content: string) {
 
             const parameters = trimmedInnerText.split('|').map((parameter) => parameter.replaceAll(this.placeholderStrings[1], '|').trim());
 
-            this.name = parameters.shift();
+            this.name = parameters.shift()?.replaceAll('_', ' ');
 
             const splitParameters = parameters.map((parameters) => {
                 const equalsLocation = parameters.indexOf('=');

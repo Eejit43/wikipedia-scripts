@@ -122,6 +122,7 @@
     },
     {
         "name": "copy-search-results",
+        "image": false,
         "short-description": "User script to copy search results on [[Special:Search]]",
         "description": "This user script adds a link to the \"More\"/\"Tools\" menu on [[Special:Search]] which, when clicked, copies the titles of all visible search results (separated by newlines) to the clipboard.",
         "skin-support": {

@@ -597,6 +597,7 @@ function formatTemplates(content: string) {
                 'oobox',
                 'osm location map',
                 'quote box',
+                'sidebar',
                 'speciesbox',
                 'succession box',
                 'taxobox',

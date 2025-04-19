@@ -539,7 +539,11 @@ function cleanupReferences(content: string) {
 
         let output = parsedTag.outerHTML.replaceAll('&amp;', '&');
 
-        const tagContent = originalText.slice(startTag.length, -6).trim();
+        const tagContent = originalText
+            .slice(startTag.length, -6)
+            .trim()
+            .replaceAll(/^\[ *([^\]]*) *]$/gm, '$1')
+            .trim();
 
         output =
             reference.isSelfClosing || tagContent.length === 0

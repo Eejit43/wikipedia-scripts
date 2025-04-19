@@ -675,6 +675,24 @@ function formatTemplates(content: string) {
             return mostSpecificDefaultStyleFormatStyle;
         }
 
+        private cleanupParameters() {
+            const imageParameters = new Set(['image', 'logo', 'cover']);
+
+            for (let number = 1; number <= 10; number++) imageParameters.add(`image${number}`);
+
+            this.parameters = this.parameters.map(({ key, value }) => {
+                if (key && imageParameters.has(key)) {
+                    value = value.trim();
+
+                    if (value.startsWith('[[') && value.endsWith(']]')) value = /\[\[(.*?)]]/g.exec(value)![1].split('|')[0];
+
+                    value = value.replace(/^(File|Image):/, '').replaceAll('_', ' ');
+                }
+
+                return { key, value };
+            });
+        }
+
         public format() {
             if (!this.fullText) this.parse();
 
@@ -682,6 +700,8 @@ function formatTemplates(content: string) {
             if (style === undefined) return this.fullText!;
 
             const output = [`{{${this.name}`];
+
+            this.cleanupParameters();
 
             if (style === FormatStyle.Expanded || style === FormatStyle.ExpandedAligned) {
                 let requiredKeyLength = 0;

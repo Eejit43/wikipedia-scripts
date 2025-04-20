@@ -75,14 +75,15 @@ export default class RedirectRequestHandler {
             case 'accept': {
                 this.tagSelect.setValue(action.redirectTemplates ?? []);
 
-                for (const [editorIndex, template] of action.redirectTemplateParameters!.entries()) {
-                    if (!action.redirectTemplates!.includes(template.name)) continue;
+                if (action.redirectTemplates)
+                    for (const [editorIndex, template] of action.redirectTemplateParameters!.entries()) {
+                        if (!action.redirectTemplates.includes(template.name)) continue;
 
-                    const currentParameters = this.templateEditorsInfo[editorIndex].parameters;
+                        const currentParameters = this.templateEditorsInfo[editorIndex].parameters;
 
-                    for (const [parameterIndex, newParameter] of template.parameters.entries())
-                        currentParameters[parameterIndex].editor.setValue(newParameter.editor.getValue());
-                }
+                        for (const [parameterIndex, newParameter] of template.parameters.entries())
+                            currentParameters[parameterIndex].editor.setValue(newParameter.editor.getValue());
+                    }
 
                 break;
             }

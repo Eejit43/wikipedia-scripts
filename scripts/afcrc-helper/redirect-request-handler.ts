@@ -11,9 +11,12 @@ export default class RedirectRequestHandler {
     private dialog: RedirectsDialog;
 
     private templateParametersEditor?: HTMLDetailsElement;
-
     private templateEditorsInfo: TemplateEditorElementInfo[] = [];
 
+    private actionRadioInput!: OO.ui.RadioSelectWidget;
+    private tagSelect!: OO.ui.MenuTagMultiselectWidget;
+    private denyReasonInput!: OO.ui.ComboBoxInputWidget;
+    private closingReasonDropdown!: OO.ui.DropdownWidget;
     private commentInput!: OO.ui.TextInputWidget;
 
     private tagSelectLayout?: OO.ui.FieldLayout;
@@ -45,22 +48,62 @@ export default class RedirectRequestHandler {
         label.textContent = this.title;
         requestedTitleDiv.append(label);
 
-        const actionRadioInput = new OO.ui.RadioSelectWidget({
+        this.actionRadioInput = new OO.ui.RadioSelectWidget({
             classes: ['afcrc-helper-action-radio'],
-            items: ['Accept', 'Deny', 'Comment', 'Close', 'None'].map((label) => new OO.ui.RadioOptionWidget({ data: label, label })),
+            items: ['Accept', 'Deny', 'Comment', 'Close', 'None'].map(
+                (label) => new OO.ui.RadioOptionWidget({ data: label.toLowerCase(), label }),
+            ),
         });
 
-        actionRadioInput.selectItemByLabel('None');
+        this.actionRadioInput.selectItemByData('none');
 
-        actionRadioInput.on('choose', (selected) => {
+        this.actionRadioInput.on('choose', (selected) => {
             this.handleActionChange(selected);
         });
 
         this.loadCommentLayout();
 
-        requestedTitleDiv.append(actionRadioInput.$element[0], this.commentLayout.$element[0]);
+        requestedTitleDiv.append(this.actionRadioInput.$element[0], this.commentLayout.$element[0]);
 
         this.responderElement.append(requestedTitleDiv);
+    }
+
+    public updateFromAction(action: RedirectAction) {
+        this.actionRadioInput.chooseItem(this.actionRadioInput.findItemFromData(action.action) as OO.ui.OptionWidget);
+
+        switch (action.action) {
+            case 'accept': {
+                this.tagSelect.setValue(action.redirectTemplates ?? []);
+
+                for (const [editorIndex, template] of action.redirectTemplateParameters!.entries()) {
+                    if (!action.redirectTemplates!.includes(template.name)) continue;
+
+                    const currentParameters = this.templateEditorsInfo[editorIndex].parameters;
+
+                    for (const [parameterIndex, newParameter] of template.parameters.entries())
+                        currentParameters[parameterIndex].editor.setValue(newParameter.editor.getValue());
+                }
+
+                break;
+            }
+            case 'deny': {
+                this.denyReasonInput.setValue(action.denyReason!);
+                this.denyReasonInput
+                    .getMenu()
+                    .chooseItem(this.denyReasonInput.getMenu().findItemFromData(action.denyReason!) as OO.ui.OptionWidget);
+
+                break;
+            }
+            case 'close': {
+                this.closingReasonDropdown
+                    .getMenu()
+                    .chooseItem(this.closingReasonDropdown.getMenu().findItemFromData(action.closingReason!.id) as OO.ui.OptionWidget);
+
+                break;
+            }
+        }
+
+        this.commentInput.setValue(action.comment ?? '');
     }
 
     /**
@@ -70,7 +113,7 @@ export default class RedirectRequestHandler {
     private handleActionChange(selected: OO.ui.OptionWidget) {
         setTimeout(() => this.dialog.updateSize(), 0);
 
-        const option = (selected.getData() as string).toLowerCase() as RequestActionType;
+        const option = selected.getData() as RequestActionType;
 
         this.updateActionsToTake({ action: option });
 
@@ -125,7 +168,7 @@ export default class RedirectRequestHandler {
      * Loads the tag select and template parameters editors.
      */
     private loadTagSelectAndParametersEditor() {
-        const tagSelect = new OO.ui.MenuTagMultiselectWidget({
+        this.tagSelect = new OO.ui.MenuTagMultiselectWidget({
             allowArbitrary: false,
             allowReordering: false,
             options: Object.entries(this.dialog.redirectTemplates).map(([tag, { redirect }]) => {
@@ -136,8 +179,8 @@ export default class RedirectRequestHandler {
                 return { data: tag, label };
             }),
         });
-        (tagSelect.getMenu() as OO.ui.MenuSelectWidget.ConfigOptions).filterMode = 'substring';
-        tagSelect.on('change', (selectedElements) => {
+        (this.tagSelect.getMenu() as OO.ui.MenuSelectWidget.ConfigOptions).filterMode = 'substring';
+        this.tagSelect.on('change', (selectedElements) => {
             const selectedTags = selectedElements.map((element) => element.getData() as string);
 
             const sortedTags = selectedTags.toSorted((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
@@ -145,7 +188,7 @@ export default class RedirectRequestHandler {
             if (selectedTags.join(';') !== sortedTags.join(';')) {
                 const lastElement = selectedElements.at(-1) as unknown as OO.ui.mixin.DraggableElement & OO.ui.Element;
 
-                tagSelect.reorder(lastElement, sortedTags.indexOf(lastElement.getData() as string));
+                this.tagSelect.reorder(lastElement, sortedTags.indexOf(lastElement.getData() as string));
             }
 
             this.updateActionsToTake({ redirectTemplates: sortedTags });
@@ -164,7 +207,7 @@ export default class RedirectRequestHandler {
             noTemplatesMessage.style.display = shownTemplateEditors > 0 ? 'none' : 'block';
         });
 
-        this.tagSelectLayout = new OO.ui.FieldLayout(tagSelect, {
+        this.tagSelectLayout = new OO.ui.FieldLayout(this.tagSelect, {
             classes: ['afcrc-helper-tag-select-layout'],
             align: 'inline',
             label: 'Redirect templates:',
@@ -228,7 +271,7 @@ export default class RedirectRequestHandler {
      * Loads the deny reason layout.
      */
     private loadDenyReasonLayout() {
-        const denyReasonInput = new OO.ui.ComboBoxInputWidget({
+        this.denyReasonInput = new OO.ui.ComboBoxInputWidget({
             classes: ['afcrc-closing-reason-input'],
             placeholder: 'autofill:unlikely',
             options: [
@@ -245,14 +288,14 @@ export default class RedirectRequestHandler {
             ].map(([value, label]) => ({ data: `autofill:${value}`, label: `Autofilled text for ${label}` })),
         });
 
-        denyReasonInput.on('change', (value) => {
+        this.denyReasonInput.on('change', (value) => {
             this.updateActionsToTake({ denyReason: value || 'autofill:unlikely' });
         });
 
-        denyReasonInput.setValue('autofill:unlikely');
-        denyReasonInput.getMenu().selectItemByData('autofill:unlikely');
+        this.denyReasonInput.setValue('autofill:unlikely');
+        this.denyReasonInput.getMenu().selectItemByData('autofill:unlikely');
 
-        this.denyReasonLayout = new OO.ui.FieldLayout(denyReasonInput, {
+        this.denyReasonLayout = new OO.ui.FieldLayout(this.denyReasonInput, {
             align: 'inline',
             label: 'Deny reason:',
             help: 'Supports automatic reasoning, custom reasoning, or a combination of the two with "autofill:REASON, CUSTOM" format',
@@ -266,7 +309,7 @@ export default class RedirectRequestHandler {
      * Loads the closing reason layout.
      */
     private loadClosingReasonLayout() {
-        const closingReasonDropdown = new OO.ui.DropdownWidget({
+        this.closingReasonDropdown = new OO.ui.DropdownWidget({
             classes: ['afcrc-closing-reason-input'],
             menu: {
                 items: [
@@ -276,15 +319,16 @@ export default class RedirectRequestHandler {
                 ].map(([title, id]) => new OO.ui.MenuOptionWidget({ data: id, label: title })),
             },
         });
-        closingReasonDropdown.getMenu().selectItemByData('r');
 
-        closingReasonDropdown.getMenu().on('choose', (selected) => {
+        this.closingReasonDropdown.getMenu().on('choose', (selected) => {
             this.updateActionsToTake({ closingReason: { name: selected.getLabel() as string, id: selected.getData() as string } });
 
             this.dialog.updateRequestColor(this.detailsElement, this.titleIndex);
         });
 
-        this.closingReasonLayout = new OO.ui.FieldLayout(closingReasonDropdown, { align: 'inline', label: 'Closing reason:' });
+        this.closingReasonDropdown.getMenu().chooseItem(this.closingReasonDropdown.getMenu().findItemFromData('s') as OO.ui.OptionWidget);
+
+        this.closingReasonLayout = new OO.ui.FieldLayout(this.closingReasonDropdown, { align: 'inline', label: 'Closing reason:' });
         this.closingReasonLayout.$element.hide();
 
         this.commentLayout.$element[0].before(this.closingReasonLayout.$element[0]);

@@ -171,15 +171,15 @@ export default class CategoriesDialog extends HelperDialog {
 
         const actionRadioInput = new OO.ui.RadioSelectWidget({
             classes: ['afcrc-helper-action-radio'],
-            items: ['Accept', 'Deny', 'Comment', 'Close', 'None'].map((label) => new OO.ui.RadioOptionWidget({ data: label, label })),
+            items: ['Accept', 'Deny', 'Comment', 'Close', 'None'].map(
+                (label) => new OO.ui.RadioOptionWidget({ data: label.toLowerCase(), label }),
+            ),
         });
         actionRadioInput.selectItemByLabel('None');
-        actionRadioInput.on('choose', () => {
+        actionRadioInput.on('choose', (selected) => {
             setTimeout(() => this.updateSize(), 0);
 
-            const option = (
-                (actionRadioInput.findSelectedItem() as OO.ui.RadioOptionWidget).getData() as string
-            ).toLowerCase() as RequestActionType;
+            const option = selected.getData() as RequestActionType;
 
             this.actionsToTake[index].action = option;
 
@@ -379,9 +379,7 @@ export default class CategoriesDialog extends HelperDialog {
                 ].map(([title, id]) => new OO.ui.MenuOptionWidget({ data: id, label: title })),
             },
         });
-        closingReason.getMenu().on('choose', () => {
-            const selected = closingReason.getMenu().findSelectedItem() as OO.ui.MenuOptionWidget;
-
+        closingReason.getMenu().on('choose', (selected) => {
             this.actionsToTake[index].closingReason = {
                 name: selected.getLabel() as string,
                 id: selected.getData() as string,
@@ -389,8 +387,7 @@ export default class CategoriesDialog extends HelperDialog {
 
             this.updateRequestColor(detailsElement, index);
         });
-        closingReason.getMenu().selectItemByData('r');
-        this.actionsToTake[index].closingReason = { name: 'No response', id: 'r' };
+        closingReason.getMenu().chooseItem(closingReason.getMenu().findItemFromData('s') as OO.ui.OptionWidget);
 
         const closingReasonLayout = new OO.ui.FieldLayout(closingReason, { align: 'inline', label: 'Closing reason:' });
         closingReasonLayout.$element.hide();

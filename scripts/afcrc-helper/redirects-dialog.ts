@@ -214,10 +214,29 @@ export default class RedirectsDialog extends HelperDialog {
         const requestResponderElement = document.createElement('div');
         requestResponderElement.classList.add('afcrc-helper-request-responder');
 
+        const handlers: RedirectRequestHandler[] = [];
+
+        if (request.pages.length > 1) {
+            const modifyAllButton = new OO.ui.ButtonWidget({
+                id: 'afcrc-helper-sync-all-with-first-button',
+                label: 'Sync all requests with first',
+                icon: 'recentChanges',
+            });
+            modifyAllButton.on('click', () => {
+                const action = this.actionsToTake[index].requests[request.pages[0]];
+
+                for (const handler of handlers.slice(1)) handler.updateFromAction(action);
+            });
+
+            requestResponderElement.append(modifyAllButton.$element[0]);
+        }
+
         for (const requestedTitle of request.pages) {
             const handler = new RedirectRequestHandler(index, requestedTitle, detailsElement, requestResponderElement, this);
 
             handler.setUp();
+
+            handlers.push(handler);
         }
 
         detailsElement.append(requestResponderElement);

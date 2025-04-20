@@ -56,6 +56,10 @@ body.afcrc-helper-open #mw-teleport-target {
     }
 }
 
+#afcrc-helper-sync-all-with-first-button {
+    margin-bottom: 5px;
+}
+
 .afcrc-helper-action-radio {
     margin-top: 8px;
 

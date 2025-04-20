@@ -42,7 +42,7 @@ export default class ActionsDialog extends OO.ui.Dialog {
 
         this.updateSize();
 
-        this.closeButton.scrollElementIntoView();
+        this.$element[0].scrollTo({ top: this.$content[0].scrollHeight, behavior: 'smooth' });
     }
 
     /**

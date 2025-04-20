@@ -42,7 +42,9 @@ export default class ActionsDialog extends OO.ui.Dialog {
 
         this.updateSize();
 
-        this.$element[0].scrollTo({ top: this.$content[0].scrollHeight, behavior: 'smooth' });
+        const bodyElement = (this as unknown as { $body: JQuery }).$body;
+
+        bodyElement[0].scrollTo({ top: bodyElement[0].scrollHeight, behavior: 'smooth' });
     }
 
     /**

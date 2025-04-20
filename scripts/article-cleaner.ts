@@ -88,6 +88,9 @@ export {};
             finalText = cleanupSpacing(finalText);
             finalText = cleanupReferences(finalText);
             finalText = formatTemplates(finalText);
+            finalText = removeComments(finalText);
+
+            finalText = cleanupSpacing(finalText);
 
             if (originalText === finalText) mw.notify('No changes to be made to the article!', { type: 'warn', autoHideSeconds: 'short' });
             else {
@@ -570,6 +573,11 @@ function formatTemplates(content: string) {
         MinimizedSpaced,
     }
 
+    enum Namespace {
+        User = 2,
+        Draft = 118,
+    }
+
     class Template {
         public location: { start: number; end?: number };
         public isNested = false;
@@ -609,6 +617,20 @@ function formatTemplates(content: string) {
             ],
             [FormatStyle.Minimized]: ['coord', 'end date', 'lang', 'langx', 'start date'],
             [FormatStyle.MinimizedSpaced]: ['infobox mapframe'],
+        };
+
+        private namespaceSpecificTemplates = {
+            [Namespace.Draft]: [
+                'afc comment',
+                'afc submission',
+                'afc topic',
+                'draft article',
+                'draft topics',
+                'draft',
+                'drafts moved from mainspace',
+                'preloaddraft submit',
+            ],
+            [Namespace.User]: ['user sandbox', 'userspace draft'],
         };
 
         constructor(startLocation: number) {
@@ -658,6 +680,16 @@ function formatTemplates(content: string) {
             this.parameters = splitParameters;
         }
 
+        private shouldBeRemoved() {
+            for (const [namespace, templates] of Object.entries(this.namespaceSpecificTemplates)) {
+                if (mw.config.get('wgNamespaceNumber') === Number.parseInt(namespace)) continue;
+
+                if (templates.includes(this.name!.toLowerCase())) return true;
+            }
+
+            return false;
+        }
+
         private getStyle() {
             let mostSpecificDefaultStylePrefixLength = 0;
             let mostSpecificDefaultStyleFormatStyle: FormatStyle | undefined;
@@ -695,6 +727,8 @@ function formatTemplates(content: string) {
 
         public format() {
             if (!this.fullText) this.parse();
+
+            if (this.shouldBeRemoved()) return '';
 
             const style = this.getStyle();
             if (style === undefined) return this.fullText!;
@@ -800,4 +834,21 @@ function formatTemplates(content: string) {
         }
 
     return newContent;
+}
+
+/**
+ * Removes unnecessary comments from an article's content.
+ * @param content The article content to clean up.
+ */
+function removeComments(content: string) {
+    if (mw.config.get('wgNamespaceNumber') !== 0) return content;
+
+    const comments = [
+        'Important, do not remove anything above this line before article has been created.',
+        'Note: The following pages were redirects to ',
+    ];
+
+    for (const comment of comments) content = content.replaceAll(new RegExp(`<!-- ?${escapeRegexCharacters(comment)}.*?-->\n?`, 'gs'), '');
+
+    return content;
 }

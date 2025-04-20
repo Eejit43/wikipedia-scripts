@@ -226,7 +226,7 @@ export default class RedirectsDialog extends HelperDialog {
                 const action = this.actionsToTake[index].requests[request.pages[0]];
 
                 for (const [index, handler] of handlers.entries()) {
-                    if (index === 1) continue;
+                    if (index === 0) continue;
 
                     handler.updateFromAction(action);
                 }

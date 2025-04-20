@@ -1,7 +1,7 @@
 import type { ApiEditPageParams, ApiQueryRevisionsParams } from 'types-mediawiki/api_params';
 import type { MediaWikiDataError, PageRevisionsResult } from '../../global-types';
+import ActionsDialog from './actions-dialog';
 import type { WatchMethod } from './afcrc-helper';
-import ActionsDialog from './show-actions-dialog';
 
 export type RequestRequester = { type: 'user' | 'ip'; name: string } | null;
 
@@ -166,9 +166,9 @@ export default class HelperDialog extends OO.ui.ProcessDialog {
         const windowManager = new OO.ui.WindowManager();
         document.body.append(windowManager.$element[0]);
 
-        const showActionsDialog = new ActionsDialog();
-        windowManager.addWindows([showActionsDialog]);
-        showActionsDialog.open();
+        const actionsDialog = new ActionsDialog();
+        windowManager.addWindows([actionsDialog]);
+        actionsDialog.open();
 
         const counts = { 'accepted': 0, 'denied': 0, 'commented on': 0, 'closed': 0 }; // eslint-disable-line @typescript-eslint/naming-convention
 
@@ -183,7 +183,7 @@ export default class HelperDialog extends OO.ui.ProcessDialog {
             } satisfies ApiQueryRevisionsParams)) as PageRevisionsResult
         ).query!.pages[0].revisions[0].slots.main.content.trim();
 
-        void this.performSubtypeActions(showActionsDialog, counts, newPageText);
+        void this.performSubtypeActions(actionsDialog, counts, newPageText);
     }
 
     /**
@@ -276,9 +276,9 @@ export default class HelperDialog extends OO.ui.ProcessDialog {
 
     /**
      * Makes all edits and creations that need to be made.
-     * @param showActionsDialog The dialog to log the results to.
+     * @param actionsDialog The dialog to log the results to.
      */
-    protected async makeAllEditsCreations(showActionsDialog: ActionsDialog) {
+    protected async makeAllEditsCreations(actionsDialog: ActionsDialog) {
         for (const [index, action] of this.editsCreationsToMake.entries()) {
             const apiFunction =
                 action.type === 'edit'
@@ -292,7 +292,7 @@ export default class HelperDialog extends OO.ui.ProcessDialog {
 
             const actionResultElementId = `afcrc-helper-action-result-${index}`;
 
-            showActionsDialog.addLogEntry(
+            actionsDialog.addLogEntry(
                 `${action.type === 'edit' ? 'Editing' : 'Creating'} ${linkElement.outerHTML}... <span id="${actionResultElementId}"></span>`,
             );
 
@@ -318,22 +318,22 @@ export default class HelperDialog extends OO.ui.ProcessDialog {
                 })
                 .catch(async (errorCode, errorInfo) => {
                     if (errorCode === 'ratelimited') {
-                        showActionsDialog.addLogEntry(
+                        actionsDialog.addLogEntry(
                             `Rate limited. Waiting for 70 seconds... (resuming at ${new Date(Date.now() + 70_000).toLocaleTimeString()})`,
                             'warning',
                         );
                         await new Promise((resolve) => setTimeout(resolve, 70_000));
 
-                        showActionsDialog.addLogEntry('Continuing...', 'success');
+                        actionsDialog.addLogEntry('Continuing...', 'success');
 
                         await apiFunction().catch((errorCode, errorInfo) => {
-                            showActionsDialog.addLogEntry(
+                            actionsDialog.addLogEntry(
                                 `Error ${action.type === 'edit' ? 'editing' : 'creating'} ${linkElement.outerHTML}: ${(errorInfo as MediaWikiDataError)?.error?.info ?? 'Unknown error'} (${errorCode}).`,
                                 'error',
                             );
                         });
                     } else
-                        showActionsDialog.addLogEntry(
+                        actionsDialog.addLogEntry(
                             `Error ${action.type === 'edit' ? 'editing' : 'creating'} ${linkElement.outerHTML}: ${(errorInfo as MediaWikiDataError)?.error?.info ?? 'Unknown error'} (${errorCode as string}).`,
                             'error',
                         );

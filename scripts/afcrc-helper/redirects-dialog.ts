@@ -1,9 +1,9 @@
 import type { ApiQueryRevisionsParams } from 'types-mediawiki/api_params';
 import type { PageRevisionsResult } from '../../global-types';
 import type { RedirectTemplateData, TemplateEditorElementInfo } from '../redirect-helper/redirect-helper-dialog';
+import type ActionsDialog from './actions-dialog';
 import HelperDialog, { type RequestAction, type RequestRequester } from './helper-dialog';
 import RedirectRequestHandler from './redirect-request-handler';
-import type ActionsDialog from './show-actions-dialog';
 
 interface RedirectRequestData {
     pages: string[];
@@ -284,11 +284,11 @@ export default class RedirectsDialog extends HelperDialog {
 
     /**
      * Performs actions on a given category request.
-     * @param showActionsDialog The dialog to add messages to.
+     * @param actionsDialog The dialog to add messages to.
      * @param counts The count object used to track requests for the edit summary.
      * @param newPageText The new page text.
      */
-    protected async performSubtypeActions(showActionsDialog: ActionsDialog, counts: Record<string, number>, newPageText: string) {
+    protected async performSubtypeActions(actionsDialog: ActionsDialog, counts: Record<string, number>, newPageText: string) {
         const anyRequestHandled = this.actionsToTake.some((actionData) =>
             Object.values(actionData.requests).some((action) => action.action !== 'none'),
         );
@@ -317,7 +317,7 @@ export default class RedirectsDialog extends HelperDialog {
                     switch (action.action) {
                         case 'accept': {
                             if (someRequestAcceptedDenied && !allRequestsAcceptedDenied)
-                                showActionsDialog.addLogEntry(
+                                actionsDialog.addLogEntry(
                                     `Not all requests to "${target}" were accepted or denied, the handling of "${requestedTitle}" will be ignored.`,
                                     'warning',
                                 );
@@ -331,7 +331,7 @@ export default class RedirectsDialog extends HelperDialog {
                         }
                         case 'deny': {
                             if (someRequestAcceptedDenied && !allRequestsAcceptedDenied)
-                                showActionsDialog.addLogEntry(
+                                actionsDialog.addLogEntry(
                                     `Not all requests to "${target}" were accepted or denied, the handling of "${requestedTitle}" is being ignored.`,
                                     'warning',
                                 );
@@ -347,7 +347,7 @@ export default class RedirectsDialog extends HelperDialog {
                                 comments.push([requestedTitle, action.comment]);
                                 counts['commented on']++;
                             } else
-                                showActionsDialog.addLogEntry(
+                                actionsDialog.addLogEntry(
                                     `The request to create "${requestedTitle}" → "${target}" was marked to be commented on, but no comment was provided so it will be skipped.`,
                                     'warning',
                                 );
@@ -359,7 +359,7 @@ export default class RedirectsDialog extends HelperDialog {
                                 if (action.comment) comments.push([requestedTitle, action.comment]);
                                 counts.closed++;
                             } else
-                                showActionsDialog.addLogEntry(
+                                actionsDialog.addLogEntry(
                                     `Not all requests to "${target}" were closed with the same reason, the handling of "${requestedTitle}" is being ignored.`,
                                     'warning',
                                 );
@@ -415,7 +415,7 @@ export default class RedirectsDialog extends HelperDialog {
             }
 
             if (this.beforeText + this.pageContent === newPageText) {
-                showActionsDialog.addLogEntry('No requests have been handled (page content identical)!');
+                actionsDialog.addLogEntry('No requests have been handled (page content identical)!');
 
                 return;
             }
@@ -434,12 +434,12 @@ export default class RedirectsDialog extends HelperDialog {
                 }),
             });
 
-            await this.makeAllEditsCreations(showActionsDialog);
+            await this.makeAllEditsCreations(actionsDialog);
 
-            showActionsDialog.addLogEntry('All changes made, click below to reload!', 'success');
+            actionsDialog.addLogEntry('All changes made, click below to reload!', 'success');
 
-            showActionsDialog.showReload();
-        } else showActionsDialog.addLogEntry('No requests have been handled!');
+            actionsDialog.showReload();
+        } else actionsDialog.addLogEntry('No requests have been handled!');
     }
 
     /**

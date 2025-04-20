@@ -1,7 +1,7 @@
+import type ActionsDialog from './actions-dialog';
 import CategoryInputWidget from './category-input-widget';
 import HelperDialog, { type RequestAction, type RequestActionType, type RequestRequester } from './helper-dialog';
 import PageInputWidget from './page-input-widget';
-import type ActionsDialog from './show-actions-dialog';
 
 interface CategoryRequestData {
     category: string;
@@ -447,11 +447,11 @@ export default class CategoriesDialog extends HelperDialog {
 
     /**
      * Performs actions on a given category request.
-     * @param showActionsDialog The dialog to add messages to.
+     * @param actionsDialog The dialog to add messages to.
      * @param counts The count object used to track requests for the edit summary.
      * @param newPageText The new page text.
      */
-    protected async performSubtypeActions(showActionsDialog: ActionsDialog, counts: Record<string, number>, newPageText: string) {
+    protected async performSubtypeActions(actionsDialog: ActionsDialog, counts: Record<string, number>, newPageText: string) {
         const anyRequestHandled = this.actionsToTake.some((actionData) => actionData.action !== 'none');
 
         if (anyRequestHandled) {
@@ -489,7 +489,7 @@ export default class CategoriesDialog extends HelperDialog {
 
                             counts['commented on']++;
                         } else
-                            showActionsDialog.addLogEntry(
+                            actionsDialog.addLogEntry(
                                 `The request to create "${actionData.category}" was marked to be commented on, but no comment was provided so it will be skipped.`,
                                 'warning',
                             );
@@ -512,7 +512,7 @@ export default class CategoriesDialog extends HelperDialog {
             }
 
             if (this.beforeText + this.pageContent === newPageText) {
-                showActionsDialog.addLogEntry('No requests have been handled (page content identical)!');
+                actionsDialog.addLogEntry('No requests have been handled (page content identical)!');
 
                 return;
             }
@@ -531,12 +531,12 @@ export default class CategoriesDialog extends HelperDialog {
                 }),
             });
 
-            await this.makeAllEditsCreations(showActionsDialog);
+            await this.makeAllEditsCreations(actionsDialog);
 
-            showActionsDialog.addLogEntry('All changes made, click below to reload!', 'success');
+            actionsDialog.addLogEntry('All changes made, click below to reload!', 'success');
 
-            showActionsDialog.showReload();
-        } else showActionsDialog.addLogEntry('No requests have been handled!');
+            actionsDialog.showReload();
+        } else actionsDialog.addLogEntry('No requests have been handled!');
     }
 
     /**

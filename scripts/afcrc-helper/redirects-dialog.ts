@@ -225,7 +225,11 @@ export default class RedirectsDialog extends HelperDialog {
             modifyAllButton.on('click', () => {
                 const action = this.actionsToTake[index].requests[request.pages[0]];
 
-                for (const handler of handlers.slice(1)) handler.updateFromAction(action);
+                for (const [index, handler] of handlers.entries()) {
+                    if (index === 1) continue;
+
+                    handler.updateFromAction(action);
+                }
             });
 
             requestResponderElement.append(modifyAllButton.$element[0]);

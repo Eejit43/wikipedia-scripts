@@ -849,6 +849,7 @@ function removeComments(content: string) {
     if (mw.config.get('wgNamespaceNumber') !== 0) return content;
 
     const comments = [
+        'EDIT BELOW THIS LINE',
         'Important, do not remove anything above this line before article has been created.',
         'Inline citations added to your article will automatically display here.',
         'Note: The following pages were redirects to ',

@@ -623,8 +623,10 @@ function formatTemplates(content: string) {
             [Namespace.Draft]: [
                 'afc comment',
                 'afc submission',
+                'afc submission/draft',
                 'afc topic',
                 'draft article',
+                'draft categories',
                 'draft topics',
                 'draft',
                 'drafts moved from mainspace',
@@ -632,6 +634,8 @@ function formatTemplates(content: string) {
             ],
             [Namespace.User]: ['user sandbox', 'userspace draft'],
         };
+
+        private templatesToKeepContent = ['draft categories'];
 
         constructor(startLocation: number) {
             this.location = { start: startLocation };
@@ -728,7 +732,8 @@ function formatTemplates(content: string) {
         public format() {
             if (!this.fullText) this.parse();
 
-            if (this.shouldBeRemoved()) return '';
+            if (this.shouldBeRemoved())
+                return this.templatesToKeepContent.includes(this.name!.toLowerCase()) ? this.parameters[0].value : '';
 
             const style = this.getStyle();
             if (style === undefined) return this.fullText!;
@@ -845,6 +850,7 @@ function removeComments(content: string) {
 
     const comments = [
         'Important, do not remove anything above this line before article has been created.',
+        'Inline citations added to your article will automatically display here.',
         'Note: The following pages were redirects to ',
     ];
 

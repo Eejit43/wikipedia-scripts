@@ -90,8 +90,6 @@ export {};
             finalText = formatTemplates(finalText);
             finalText = removeComments(finalText);
 
-            finalText = cleanupSpacing(finalText);
-
             if (originalText === finalText) mw.notify('No changes to be made to the article!', { type: 'warn', autoHideSeconds: 'short' });
             else {
                 if (ve.init) {
@@ -856,6 +854,9 @@ function removeComments(content: string) {
     ];
 
     for (const comment of comments) content = content.replaceAll(new RegExp(`<!-- ?${escapeRegexCharacters(comment)}.*?-->\n?`, 'gs'), '');
+
+    content = content.replaceAll(/\n{3,}/g, '\n\n'); // Remove extra newlines
+    content = content.trim(); // Remove extra newlines at the start or end of the content
 
     return content;
 }

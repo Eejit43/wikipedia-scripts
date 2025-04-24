@@ -138,10 +138,13 @@ function cleanupSectionHeaders(content: string) {
         /* eslint-enable @typescript-eslint/naming-convention */
     };
 
-    const commonMiscapitalizedWords = ['and', 'birth', 'career', 'death', 'education', 'life', 'or'];
+    const commonMiscapitalizedWords = ['and', 'birth', 'career', 'death', 'education', 'life', 'of', 'or'];
 
     const reverseCommonReplacements = Object.fromEntries(
-        Object.entries(commonReplacements).flatMap(([key, values]) => values.map((value) => [value, key])),
+        Object.entries(commonReplacements).flatMap(([key, values]) => [
+            [key.toLowerCase(), key],
+            ...(values.map((value) => [value, key]) as [string, string][]), // eslint-disable-line @typescript-eslint/no-unnecessary-type-assertion
+        ]),
     );
 
     const headers = content.matchAll(/(?<=^|\n)\n*(?<startMarkup>=+) *(?<name>.*?) *(?<endMarkup>=+)(\n+|$)/g);
@@ -161,7 +164,7 @@ function cleanupSectionHeaders(content: string) {
         return { name, depth, original: header[0] };
     });
 
-    const headersSet = new Set(parsedHeaders.map((header) => header.name.toLowerCase()));
+    const headersSet = new Set(parsedHeaders.map((header) => header.name));
 
     const titleSpacer = parsedHeaders.length > 0 ? (/^\n*=+ | =+\n+$/.test(parsedHeaders[0].original) ? ' ' : '') : '';
 
@@ -169,7 +172,7 @@ function cleanupSectionHeaders(content: string) {
         const lowercaseName = header.name.toLowerCase();
 
         const replacedName =
-            lowercaseName in reverseCommonReplacements && !headersSet.has(reverseCommonReplacements[lowercaseName].toLowerCase())
+            lowercaseName in reverseCommonReplacements && !headersSet.has(reverseCommonReplacements[lowercaseName])
                 ? reverseCommonReplacements[lowercaseName]
                 : header.name;
 

@@ -630,7 +630,7 @@ function formatTemplates(content: string) {
                 'drafts moved from mainspace',
                 'preloaddraft submit',
             ],
-            [Namespace.User]: ['user sandbox', 'userspace draft'],
+            [Namespace.User]: ['dashboard.wikiedu.org sandbox', 'user sandbox', 'userspace draft'],
         };
 
         private templatesToKeepContent = ['draft categories'];

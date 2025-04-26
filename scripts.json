@@ -157,7 +157,7 @@
         "name": "displaytitle-editor",
         "image-caption": "Top: editor before opening<br>Bottom: editor while editing",
         "short-description": "User script to modify DISPLAYTITLEs",
-        "description": "This user script adds an icon following the article title, which, when clicked, allows a [[WP:DISPLAYTITLE|DISPLAYTITLE]] to be added, modified, or removed.",
+        "description": "This user script adds an icon following the article title, which, when clicked, allows a [[WP:DISPLAYTITLE|DISPLAYTITLE]] to be added, modified, or removed.\n\n'''Note:''' This script does not have very complex logic, and is currently unable to handle to handle templates such as {{tl|italic title}}, {{tl|lowercase title}}, and more, including DISPLAYTITLEs added by other templates such as infoboxes.",
         "changelog": {
             "2025|04|26": "Correctly place DISPLAYTITLE magic word beneath #REDIRECT markup"
         },

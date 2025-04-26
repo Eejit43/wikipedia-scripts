@@ -61,25 +61,31 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui.styles.icons-editing
             editBox.pushPending();
 
             await new mw.Api().edit(mw.config.get('wgPageName'), (revision) => {
-                const text = revision.content.replaceAll(/{{\s*displaytitle\s*:\s*(.*?)\s*}}\n?/gi, '');
+                const text = revision.content.replaceAll(/{{\s*displaytitle\s*:\s*(.*?)\s*}}\n*/gi, '');
 
                 if (!editBox.getValue() || editBox.getValue().replaceAll('_', ' ') === actualTitle)
                     return { text, summary: 'Removing DISPLAYTITLE (via [[User:Eejit43/scripts/displaytitle-editor|script]])' };
 
                 const isAdded = text === revision.content;
 
-                return /{{short description/i.test(text)
-                    ? {
-                          text: text.replace(
-                              /{{short description(.*?)}}/i,
-                              `{{short description$1}}\n{{DISPLAYTITLE:${editBox.getValue()}}}`,
-                          ),
-                          summary: `${isAdded ? 'Adding DISPLAYTITLE of' : 'Changing DISPLAYTITLE to'} "${editBox.getValue()}" (via [[User:Eejit43/scripts/displaytitle-editor|script]])`,
-                      }
-                    : {
-                          text: `{{DISPLAYTITLE:${editBox.getValue()}}}\n${text}`,
-                          summary: `${isAdded ? 'Adding DISPLAYTITLE of' : 'Changing DISPLAYTITLE to'} "${editBox.getValue()}" (via [[User:Eejit43/scripts/displaytitle-editor|script]])`,
-                      };
+                const summary = `${isAdded ? 'Adding DISPLAYTITLE of' : 'Changing DISPLAYTITLE to'} "${editBox.getValue()}" (via [[User:Eejit43/scripts/displaytitle-editor|script]])`;
+
+                const redirectRegex = /^#redirect\s*\[\[.*?]]/i;
+
+                if (/{{short description/i.test(text))
+                    return {
+                        text: text.replace(
+                            /{{short description(.*?)}}/i,
+                            `{{short description$1}}\n{{DISPLAYTITLE:${editBox.getValue()}}}`,
+                        ),
+                        summary,
+                    };
+                else if (redirectRegex.test(text))
+                    return {
+                        text: text.replace(redirectRegex, `$&\n\n{{DISPLAYTITLE:${editBox.getValue()}}}`),
+                        summary,
+                    };
+                else return { text: `{{DISPLAYTITLE:${editBox.getValue()}}}\n${text}`, summary };
             });
 
             mw.notify('Successfully updated DISPLAYTITLE, reloading...', { type: 'success' });

@@ -158,6 +158,9 @@
         "image-caption": "Top: editor before opening<br>Bottom: editor while editing",
         "short-description": "User script to modify DISPLAYTITLEs",
         "description": "This user script adds an icon following the article title, which, when clicked, allows a [[WP:DISPLAYTITLE|DISPLAYTITLE]] to be added, modified, or removed.",
+        "changelog": {
+            "2025|04|26": "Correctly place DISPLAYTITLE magic word beneath #REDIRECT markup"
+        },
         "skin-support": {
             "vector-2022": "yes",
             "vector": "yes",
@@ -168,7 +171,7 @@
             "cologne-blue": "yes"
         },
         "released": "2023|04|28",
-        "updated": "2024|01|26"
+        "updated": "2025|04|26"
     },
     {
         "name": "highlight-homographs",

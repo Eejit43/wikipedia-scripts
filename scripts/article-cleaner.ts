@@ -89,6 +89,7 @@ export {};
             finalText = cleanupReferences(finalText);
             finalText = formatTemplates(finalText);
             finalText = removeComments(finalText);
+            finalText = cleanupSpacing(finalText, true);
 
             if (originalText === finalText) mw.notify('No changes to be made to the article!', { type: 'warn', autoHideSeconds: 'short' });
             else {
@@ -456,8 +457,9 @@ function cleanupStrayMarkup(content: string) {
 /**
  * Cleans up spacing in an article's content.
  * @param content The article content to clean up.
+ * @param secondRun Whether the function is being run for the second time, after other processing.
  */
-function cleanupSpacing(content: string) {
+function cleanupSpacing(content: string, secondRun = false) {
     content = content.replaceAll(/(\b|\p{Punctuation}|\]\]|\}\}|\w>) {2,}(\b|\p{Punctuation}|\[\[|\{\{|<\w)/gu, '$1 $2'); // Remove extra spaces between words and sentences
     content = content.replaceAll(/^ +| +$/gm, ''); // Remove extra spaces at the start or end of lines
     content = content.replaceAll(/\n{3,}/g, '\n\n'); // Remove extra newlines
@@ -465,7 +467,7 @@ function cleanupSpacing(content: string) {
     content = content.replaceAll(/\s+$/g, ''); // Remove trailing spaces
     content = content.replaceAll(/^([#*]+) */gm, '$1 '); // Ensure there is a space after a bullet or hash in a list item
     content = content.replaceAll(/^([#*]+ .*)\n+(?=[#*]+ )/gm, '$1\n'); // Remove newlines between list items
-    content = content.replaceAll(/\s+(?=<ref(?!erences))/g, ''); // Remove spaces before references
+    if (!secondRun) content = content.replaceAll(/\s+(?=<ref(?!erences))/g, ''); // Remove spaces before references
     content = content.replaceAll(/^(=+.*?=+)$\n{2,}(?=^=+.*?=+$)/gm, '$1\n'); // Remove extra newlines between empty section and following section
     content = content.trim(); // Remove extra newlines at the start or end of the content
 
@@ -859,9 +861,6 @@ function removeComments(content: string) {
     ];
 
     for (const comment of comments) content = content.replaceAll(new RegExp(`<!-- ?${escapeRegexCharacters(comment)}.*?-->\n?`, 'gs'), '');
-
-    content = content.replaceAll(/\n{3,}/g, '\n\n'); // Remove extra newlines
-    content = content.trim(); // Remove extra newlines at the start or end of the content
 
     return content;
 }

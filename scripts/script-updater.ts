@@ -53,7 +53,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
         private repoName = 'wikipedia-scripts';
 
         private content!: OO.ui.PanelLayout;
-        private checkboxElements: [string, OO.ui.CheckboxInputWidget][] = [];
+        private scriptsMultiselect!: OO.ui.CheckboxMultiselectWidget;
         private actionsMultiselect!: OO.ui.CheckboxMultiselectWidget;
 
         private latestCommitHash!: string;
@@ -63,7 +63,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
             super({ size: 'medium' });
 
             ScriptUpdaterDialog.static.name = 'ScriptUpdaterDialog';
-            ScriptUpdaterDialog.static.title = 'What scripts do you want to update?';
+            ScriptUpdaterDialog.static.title = 'script-updater';
             ScriptUpdaterDialog.static.actions = [
                 { action: 'cancel', label: 'Close', flags: ['safe', 'close'] },
                 { action: 'save', label: 'Run', flags: ['primary', 'progressive'] },
@@ -88,15 +88,14 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
 
                     this.content = new OO.ui.PanelLayout({ padded: true, expanded: false });
 
-                    for (const script of this.scripts) {
-                        const checkbox = new OO.ui.CheckboxInputWidget();
+                    this.scriptsMultiselect = new OO.ui.CheckboxMultiselectWidget({
+                        items: this.scripts.map((script) => new OO.ui.CheckboxMultioptionWidget({ data: script.name, label: script.name })),
+                    });
 
-                        this.checkboxElements.push([script.name, checkbox]);
-
-                        const layout = new OO.ui.FieldLayout(checkbox, { align: 'inline', label: script.name });
-
-                        this.content.$element.append(layout.$element);
-                    }
+                    const scriptsMultiselectLayout = new OO.ui.FieldLayout(this.scriptsMultiselect, {
+                        label: new OO.ui.HtmlSnippet('<b>Scripts to update:</b>'),
+                        align: 'inline',
+                    });
 
                     this.actionsMultiselect = new OO.ui.CheckboxMultiselectWidget({
                         items: [
@@ -114,6 +113,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                         align: 'inline',
                     });
 
+                    this.content.$element.append(scriptsMultiselectLayout.$element);
                     this.content.$element.append(actionsMultiselectLayout.$element);
 
                     (this as unknown as { $body: JQuery }).$body.append(this.content.$element);
@@ -128,9 +128,9 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                 });
             else if (action === 'save')
                 return new OO.ui.Process(() => {
-                    const selectedScripts = [];
-                    for (const [scriptName, checkbox] of this.checkboxElements)
-                        if (checkbox.isSelected()) selectedScripts.push(this.scripts.find((script) => script.name === scriptName)!);
+                    const selectedScripts = (this.scriptsMultiselect.findSelectedItemsData() as string[]).map(
+                        (scriptName) => this.scripts.find((script) => script.name === scriptName)!,
+                    );
 
                     this.close();
 

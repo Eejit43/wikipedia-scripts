@@ -196,7 +196,9 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
             if (!scriptDataResponse.ok)
                 return `Failed to fetch script data from GitHub: ${scriptDataResponse.statusText} (${scriptDataResponse.status})`;
 
-            this.scripts = (await scriptDataResponse.json()) as Script[];
+            const scriptData = (await scriptDataResponse.json()) as Record<string, Omit<Script, 'name'>>;
+
+            this.scripts = Object.entries(scriptData).map(([scriptName, script]) => ({ name: scriptName, ...script }));
         };
 
         /**

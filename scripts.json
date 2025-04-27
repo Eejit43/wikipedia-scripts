@@ -1,6 +1,5 @@
-[
-    {
-        "name": "afcrc-helper",
+{
+    "afcrc-helper": {
         "short-description": "User script to help handle requests at [[WP:AFC/R]] and [[WP:AFC/C]]",
         "description": "This user script was inspired by [[User:Enterprisey/AFCRHS|Enterprisey's \"AFCRHS\" script]], and helps to handle requests at [[WP:AFC/R]] and [[WP:AFC/C]] (redirects and categories creation requests). This script features an easier to use interface with improved functionality and new features. It can be run using the link in the \"More\"/\"Tools\" menu.",
         "configuration": "This script can be configured via a {{code|window.afcrcConfig}} object to [[Special:MyPage/common.js|your common.js]]. This takes the following form:\n\n<syntaxhighlight lang=\"js\">\nwindow.afcrcConfiguration = {\n    createdPageWatchMethod: 'nochange' | 'preferences' | 'unwatch' | 'watch',\n};\n</syntaxhighlight>\n\nBy default, pages that are created will use the {{code|preferences}} watchlist change method, following the {{myprefs|Watchlist|Watched pages|check={{int:tog-watchdefault}}}} configuration field. This can be changed through {{code|createdPageWatchMethod}} to either {{code|nochange}} (don't change watch settings for the created page), {{code|unwatch}} (unwatch the created page), or {{code|watch}} (watch the created page).\n\nFor example, to not change watch settings for created pages, add the following to your common.js:\n\n<syntaxhighlight lang=\"js\">\nwindow.afcrcConfiguration = {\n    createdPageWatchMethod: 'nochange',\n};\n</syntaxhighlight>",
@@ -43,8 +42,7 @@
         "released": "2024|02|15",
         "updated": "2025|04|20"
     },
-    {
-        "name": "AFCRHS",
+    "AFCRHS": {
         "image": false,
         "use-instead": "afcrc-helper",
         "short-description": "User script to help handle requests at [[WP:AFC/R]] and [[WP:AFC/C]]",
@@ -63,8 +61,7 @@
         "released": "2023|02|27",
         "updated": "2024|08|26"
     },
-    {
-        "name": "ajax-undo",
+    "ajax-undo": {
         "image-caption": "Top: history view before button click<br>Bottom: diff view after button click",
         "short-description": "User script to easily undo edits",
         "description": "This user script adds a link following \"undo\" on page histories and diff views, allowing the edit to be undone without leaving the history/diff page. It allows for an optional comment to add to the edit summary.",
@@ -80,8 +77,7 @@
         "released": "2023|02|16",
         "updated": "2025|04|09"
     },
-    {
-        "name": "aligner",
+    "aligner": {
         "use-instead": "article-cleaner",
         "image": false,
         "short-description": "User script to align infobox template parameters",
@@ -103,8 +99,7 @@
         "released": "2023|01|02",
         "updated": "2024|12|25"
     },
-    {
-        "name": "article-cleaner",
+    "article-cleaner": {
         "image": false,
         "short-description": "User script to fix stylistic and other minor issues in articles",
         "description": "This user script adds the ability to fix stylistic and other miscellaneous issues in articles, of which a list can be found below. This script is activated using a link in the \"More\"/\"Tools\" menu, visible when in editing mode on a page.\n\n'''This script can possibly make unexpected changes, please make sure you check the diff before submitting edits.'''\n\n== Features ==\n* Cleans up section headers (fixes capitalization, depth, and spacing)\n* Removes improper or unnecessary magic words\n* Cleans up DISPLAYTITLEs/DEFAULTSORTs (converts templates magic words and removes unnecessary magic words)\n* Cleans up categories (fixes category links or transclusions)\n* Cleans up links (cleans up spacing, optimizes text after links instead of piping, and more)\n* Removes improper characters (replaces smart quotes and ellipses with their standard counterparts, and replaces non-breaking spaces with their HTML tag for readability)\n* Cleans up improper date ranges\n* Removes stray markup (removes empty tags and toolbar markup filler text)\n* Cleans up spacing (removes many types of excess spacing and adds extra spacing where needed, such as before stub templates)\n* Cleans up references (fixes links in ref tags, corrects spacing, makes tags self-closing, and more)\n* Cleans up templates (aligns parameters in infoboxes and other templates, removes unnecessary templates, and more)\n* Removes unnecessary comments (comments left over from article drafts, etc.)",
@@ -120,8 +115,7 @@
         "released": "2025|02|10",
         "updated": "2025|04|26"
     },
-    {
-        "name": "copy-search-results",
+    "copy-search-results": {
         "image": false,
         "short-description": "User script to copy search results on [[Special:Search]]",
         "description": "This user script adds a link to the \"More\"/\"Tools\" menu on [[Special:Search]] which, when clicked, copies the titles of all visible search results (separated by newlines) to the clipboard.",
@@ -137,8 +131,7 @@
         "released": "2023|05|12",
         "updated": "2024|01|08"
     },
-    {
-        "name": "deletion-finder",
+    "deletion-finder": {
         "short-description": "User script that displays if a page has been previously deleted or taken to AfD",
         "description": "This user script adds messages following an article's title if it has been previously deleted or taken to AfD (linking to the deletion log or AfD discussion(s), respectively). It was inspired by [[User:Writ Keeper/Scripts/deletionFinder.js|Writ Keeper's \"deletionFinder\"]].",
         "skin-support": {
@@ -153,8 +146,7 @@
         "released": "2023|05|10",
         "updated": "2025|02|28"
     },
-    {
-        "name": "displaytitle-editor",
+    "displaytitle-editor": {
         "image-caption": "Top: editor before opening<br>Bottom: editor while editing",
         "short-description": "User script to modify DISPLAYTITLEs",
         "description": "This user script adds an icon following the article title, which, when clicked, allows a [[WP:DISPLAYTITLE|DISPLAYTITLE]] to be added, modified, or removed.\n\n'''Note:''' This script does not have very complex logic, and is currently unable to handle to handle templates such as {{tl|italic title}}, {{tl|lowercase title}}, and more, including DISPLAYTITLEs added by other templates such as infoboxes.",
@@ -173,8 +165,7 @@
         "released": "2023|04|28",
         "updated": "2025|04|26"
     },
-    {
-        "name": "highlight-homographs",
+    "highlight-homographs": {
         "image-caption": "The \"a\" is actually a Cyrillic character (\"а\")!",
         "short-description": "User script that highlights homographs in page titles",
         "description": "This user script adds a red background to homograph characters in page titles, which may be used to bypass create protection. While entirely rewritten, this script uses regex from [[User:Þjarkur/Highlight homographs in title|Þjarkur's script]].",
@@ -190,8 +181,7 @@
         "released": "2023|05|09",
         "updated": "2025|02|28"
     },
-    {
-        "name": "null-edit",
+    "null-edit": {
         "image": false,
         "short-description": "User script to null edit the current page",
         "description": "This user script adds a link to the \"More\"/\"Tools\" menu which allows the current page to be null edited.",
@@ -207,8 +197,7 @@
         "released": "2023|02|14",
         "updated": "2024|01|08"
     },
-    {
-        "name": "pageswap",
+    "pageswap": {
         "use-instead": "[[User:Ahecht/Scripts/pageswap|Ahecht's \"pageswap\"]]",
         "short-description": "User script to easily make [[WP:ROUNDROBIN|round-robin]] moves (history swaps)",
         "description": "This user script allows [[WP:Page mover|page movers]] to easily make [[WP:ROUNDROBIN|round-robin]]/history swap moves (swapping one page with another). This script is a majorly modified fork of [[User:Andy M. Wang/pageswap|Andy M. Wang's version]], except with a UI for making moves instead of using browser popups.",
@@ -225,8 +214,7 @@
         "released": "2023|03|29",
         "updated": "2024|01|08"
     },
-    {
-        "name": "redirect-helper",
+    "redirect-helper": {
         "short-description": "User script to easily manage redirects",
         "description": "This user script enables convenient editing and creation of redirects. Although it serves a similar purpose to [[User:Wugapodes/Capricorn|Wugapodes' \"Capricorn\"]] and its earlier versions, this script is completely different. It has been redesigned with enhanced user-friendliness and incorporates new features.",
         "usage": "This script's editor can be accessed in the following ways:\n\n* Using the automatically set up dialog on redirect pages\n* Can be started when clicking \"Create redirect\" on a nonexistent page\n* Can be started by clicking \"Redirect page\" in the \"More\"/\"Tools\" menu on an existing article",
@@ -285,8 +273,7 @@
         "released": "2023|05|17",
         "updated": "2025|04|09"
     },
-    {
-        "name": "rmtr-helper",
+    "rmtr-helper": {
         "short-description": "User script to help handle requests at [[WP:RM/TR]]",
         "description": "This user script helps handle requests at [[WP:RM/TR]] (technical move requests). A link is added to the \"More\"/\"Tools\" dropdown menu (or sidebar), which creates a UI at the top of the page, allowing requests to be removed and moved between sections with comments.\n\n'''The script does not currently actually move pages!'''",
         "changelog": {
@@ -312,8 +299,7 @@
         "released": "2023|02|14",
         "updated": "2025|02|28"
     },
-    {
-        "name": "script-updater",
+    "script-updater": {
         "image": false,
         "short-description": "User script that updates on-wiki scripts from GitHub",
         "description": "A user script for ''personal'' use that updates on-wiki scripts from GitHub.",
@@ -330,8 +316,7 @@
         "released": "2023|04|05",
         "updated": "2025|04|26"
     },
-    {
-        "name": "search-links",
+    "search-links": {
         "image": false,
         "short-description": "User script that adds helpful links on [[Special:Search]]",
         "description": "This user script adds edit and history links to search results on [[Special:Search]].",
@@ -347,8 +332,7 @@
         "released": "2023|04|27",
         "updated": "2025|02|17"
     },
-    {
-        "name": "sync-redirect",
+    "sync-redirect": {
         "image": false,
         "use-instead": "redirect-helper",
         "short-description": "User script to sync talk page redirects with their main page",
@@ -365,8 +349,7 @@
         "released": "2023|02|09",
         "updated": "2025|04|09"
     },
-    {
-        "name": "to-monitor-list",
+    "to-monitor-list": {
         "image": false,
         "short-description": "User script that adds counts to [[User:Eejit43#Stuff to monitor|§ Stuff to monitor]]",
         "description": "A user script for ''personal'' use that loads data that can't be parsed with wikitext in [[User:Eejit43#Stuff to monitor|§ Stuff to monitor]].",
@@ -383,4 +366,4 @@
         "released": "2023|03|05",
         "updated": "2025|04|09"
     }
-]
+}

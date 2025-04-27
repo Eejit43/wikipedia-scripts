@@ -129,7 +129,7 @@ mw.loader.using(['mediawiki.util'], () => {
                     parameters.original = parameters[1]?.replace(/^\[+/, '').replace(/]+$/, '') ?? 'UNKNOWN';
                     parameters.destination = parameters[2]?.replace(/^\[+/, '').replace(/]+$/, '') ?? 'UNKNOWN';
 
-                    if (!parameters.requester) parameters.requester = parameters.sig?.match(/\[\[User:(.*?)(\||]])/)?.[1].trim();
+                    parameters.requester ??= parameters.sig?.match(/\[\[User:(.*?)(\||]])/)?.[1].trim();
 
                     delete parameters[1];
                     delete parameters[2];

@@ -17,7 +17,7 @@
      * @returns The string with homographs marked.
      */
     function markHomographs(string: string): string {
-        return [...string]
+        return [...string] // eslint-disable-line @typescript-eslint/no-misused-spread
             .map((char) => {
                 return (
                     /* Cyrillics */

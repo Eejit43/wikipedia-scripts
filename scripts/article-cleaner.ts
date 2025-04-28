@@ -461,7 +461,7 @@ function cleanupStrayMarkup(content: string) {
  */
 function cleanupSpacing(content: string, secondRun = false) {
     content = content.replaceAll(/(\b|\p{Punctuation}|\]\]|\}\}|\w>) {2,}(\b|\p{Punctuation}|\[\[|\{\{|<\w)/gu, '$1 $2'); // Remove extra spaces between words and sentences
-    content = content.replaceAll(/^ +| +$/gm, ''); // Remove extra spaces at the start or end of lines
+    if (!secondRun) content = content.replaceAll(/^ +| +$/gm, ''); // Remove extra spaces at the start or end of lines
     content = content.replaceAll(/\n{3,}/g, '\n\n'); // Remove extra newlines
     content = content.replace(/\s*({{[^}]*stub}})/i, '\n\n\n$1'); // Ensure there are three newlines before the first stub template
     content = content.replaceAll(/\s+$/g, ''); // Remove trailing spaces
@@ -469,7 +469,7 @@ function cleanupSpacing(content: string, secondRun = false) {
     content = content.replaceAll(/^([#*]+ .*)\n+(?=[#*]+ )/gm, '$1\n'); // Remove newlines between list items
     if (!secondRun) content = content.replaceAll(/\s+(?=<ref(?!erences))/g, ''); // Remove spaces before references
     content = content.replaceAll(/^(=+.*?=+)$\n{2,}(?=^=+.*?=+$)/gm, '$1\n'); // Remove extra newlines between empty section and following section
-    content = content.trim(); // Remove extra newlines at the start or end of the content
+    content = content.trim(); // Remove whitespace at the start or end of the content
 
     return content;
 }

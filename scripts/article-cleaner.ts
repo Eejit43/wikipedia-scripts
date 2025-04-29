@@ -479,7 +479,9 @@ function cleanupSpacing(content: string, secondRun = false) {
  * @param content The article content to clean up.
  */
 function cleanupReferences(content: string) {
-    content = content.replaceAll(/((?:<ref(?!erences).*?>.*?<\/ref>)+)([!,.;?])/g, '$2$1'); // Fix punctuation following references
+    content = content
+        .replaceAll(/((?:<ref(?!erences)[^/]*?>.*?<\/ref>)+)([!,.;?])/g, '$2$1')
+        .replaceAll(/((?:<ref(?!erences)(?:.(?!<\/ref))*?\/>)+)([!,.;?])/g, '$2$1'); // Fix punctuation following references
 
     const references: { start: number; end: number; isSelfClosing?: true }[] = [];
 

@@ -555,7 +555,7 @@ function cleanupReferences(content: string) {
         const tagContent = originalText
             .slice(startTag.length, -6)
             .trim()
-            .replaceAll(/^\[ *([^\]]*) *]$/gm, '$1')
+            .replaceAll(/^\[ *([^ \]]*) *]$/gm, '$1')
             .trim();
 
         output =

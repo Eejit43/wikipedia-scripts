@@ -217,16 +217,20 @@ function cleanupDisplaytitlesAndDefaultsorts(content: string) {
     for (const tag of parsedTags) {
         const originalTagRegex = new RegExp(`${escapeRegexCharacters(tag.original)}\n*`, 'g');
 
-        const title = mw.Title.makeTitle(currentTitle.getNamespaceId(), tag.value.includes(':') ? tag.value.split(':')[1] : tag.value);
+        const title = mw.Title.makeTitle(currentTitle.getNamespaceId(), mw.Title.newFromText(tag.value)!.getMainText());
 
         if (!title) continue;
 
-        if (currentTitle.toText() === title.toText()) {
+        const defaultKey = tag.type === 'DISPLAYTITLE' ? currentTitle.toText() : currentTitle.getMainText();
+
+        const customKey = tag.type === 'DISPLAYTITLE' ? title.toText() : title.getMainText();
+
+        if (defaultKey === customKey) {
             content = content.replace(originalTagRegex, '');
             continue;
         }
 
-        const newText = `{{${tag.type}:${title.toText()}}}\n`;
+        const newText = `{{${tag.type}:${customKey}}}\n`;
 
         content = content.replace(originalTagRegex, newText);
     }

@@ -62,9 +62,9 @@ export {};
                 const summaryInput = document.querySelector<HTMLTextAreaElement>('.ve-ui-mwSaveDialog-summary textarea')!;
 
                 if (!summaryInput.value.includes(scriptMessage.slice(1)))
-                    if (summaryInput.value && !summaryInput.value.startsWith('/* ') && !summaryInput.value.endsWith(' */'))
+                    if (summaryInput.value && !summaryInput.value.startsWith('/* ') && !summaryInput.value.endsWith(' */ '))
                         summaryInput.value += `; ${scriptMessage.charAt(0).toLowerCase() + scriptMessage.slice(1)}`;
-                    else summaryInput.value = `${summaryInput.value}${summaryInput.value ? ' ' : ''}${scriptMessage}`;
+                    else summaryInput.value = `${summaryInput.value}${scriptMessage}`;
 
                 shouldAddScriptMessage = false;
             }

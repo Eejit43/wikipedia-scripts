@@ -606,9 +606,19 @@ function formatTemplates(content: string) {
 
         private defaultTemplateStyles = {
             [FormatStyle.ExpandedAligned]: [
+                'american football uniform',
+                'australian rules football kit',
                 'automatic taxobox',
+                'baseball uniform',
+                'basketball kit',
+                'beachhandball kit',
                 'blockquote',
+                'cricket uniform',
+                'field hockey kit',
+                'football kit',
+                'handball kit',
                 'hybridbox',
+                'icehockey kit',
                 'ichnobox',
                 'infobox',
                 'infraspeciesbox',
@@ -628,6 +638,7 @@ function formatTemplates(content: string) {
                 'succession box',
                 'taxobox',
                 'virusbox',
+                'volleyball kit',
             ],
             [FormatStyle.Minimized]: ['coord', 'end date', 'lang', 'langx', 'start date'],
             [FormatStyle.MinimizedSpaced]: ['infobox mapframe'],

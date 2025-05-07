@@ -472,7 +472,7 @@ function cleanupSpacing(content: string, secondRun = false) {
     content = content.replaceAll(/\s+$/g, ''); // Remove trailing spaces
     content = content.replaceAll(/^([#*]+) */gm, '$1 '); // Ensure there is a space after a bullet or hash in a list item
     content = content.replaceAll(/^([#*]+ .*)\n+(?=[#*]+ )/gm, '$1\n'); // Remove newlines between list items
-    if (!secondRun) content = content.replaceAll(/\s+(?=<ref(?!erences))/g, ''); // Remove spaces before references
+    if (!secondRun) content = content.replaceAll(/(?<!\|)\s+(?=<ref(?!erences))/g, ''); // Remove spaces before references
     content = content.replaceAll(/<\/([A-Za-z]+) +>/g, '</$1>'); // Remove excess space in closing tags
     content = content.replaceAll(/^(=+.*?=+)$\n{2,}(?=^=+.*?=+$)/gm, '$1\n'); // Remove extra newlines between empty section and following section
     content = content.trim(); // Remove whitespace at the start or end of the content

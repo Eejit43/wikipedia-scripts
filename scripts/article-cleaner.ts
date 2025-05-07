@@ -623,7 +623,7 @@ function formatTemplates(content: string) {
                 'infobox',
                 'infraspeciesbox',
                 'listen',
-                'location map many',
+                'location map',
                 'motorsport season',
                 'multiple image',
                 'mycomorphbox',

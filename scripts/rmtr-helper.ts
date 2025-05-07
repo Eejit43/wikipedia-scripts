@@ -21,6 +21,11 @@ mw.loader.using(['mediawiki.util'], () => {
     link.addEventListener('click', async (event) => {
         event.preventDefault();
 
+        let shouldStopTabClosure = true;
+        window.addEventListener('beforeunload', (event) => {
+            if (shouldStopTabClosure) event.preventDefault();
+        });
+
         if (displayed) return document.querySelector('#rmtr-review-result')?.scrollIntoView();
         else displayed = true;
 
@@ -420,6 +425,8 @@ mw.loader.using(['mediawiki.util'], () => {
             await new mw.Api().edit(mw.config.get('wgPageName'), () => ({ text: endResult, summary: editSummary }));
 
             mw.notify(`Successfully handled ${changes.total} requests, reloading...`, { type: 'success' });
+
+            shouldStopTabClosure = false;
 
             window.location.reload();
         });

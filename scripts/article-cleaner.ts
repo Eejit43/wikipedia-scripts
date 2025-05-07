@@ -876,8 +876,9 @@ function removeComments(content: string) {
     const comments = [
         'Do not remove this line',
         'EDIT BELOW THIS LINE',
-        'Important, do not remove anything above this line before article has been created.',
-        'Inline citations added to your article will automatically display here.',
+        'Important, do not remove anything above this line before article has been created',
+        'Important, do not remove this line before article has been created',
+        'Inline citations added to your article will automatically display here',
         'Note: The following pages were redirects to ',
     ];
 

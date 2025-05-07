@@ -1,3 +1,5 @@
+import type HelperDialog from './helper-dialog';
+
 /**
  * An instance of this class is an action dialog.
  */
@@ -6,11 +8,15 @@ export default class ActionsDialog extends OO.ui.Dialog {
     private logOutput!: HTMLDivElement;
     private closeButton!: OO.ui.ButtonWidget;
 
-    constructor() {
+    private helperDialog!: HelperDialog;
+
+    constructor(helperDialog: HelperDialog) {
         super({ size: 'large' });
 
         ActionsDialog.static.name = 'ActionsDialog';
         ActionsDialog.static.title = 'Actions';
+
+        this.helperDialog = helperDialog;
     }
 
     initialize = () => {
@@ -55,6 +61,8 @@ export default class ActionsDialog extends OO.ui.Dialog {
 
         const reloadButton = new OO.ui.ButtonWidget({ label: 'Reload', flags: ['primary'] });
         reloadButton.on('click', () => {
+            this.helperDialog.allowTabClosure();
+
             window.location.reload();
         });
 

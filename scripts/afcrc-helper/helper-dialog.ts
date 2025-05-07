@@ -37,6 +37,8 @@ export default class HelperDialog extends OO.ui.ProcessDialog {
         | { type: 'create'; isRedirect: boolean; title: string; text: string; summary: string }
     )[] = [];
 
+    private shouldStopTabClosure = true;
+
     constructor(requestPageType: 'redirect' | 'category', pageTitle: string, createdWatchMethod: WatchMethod | undefined) {
         super({ size: 'large' });
 
@@ -56,15 +58,22 @@ export default class HelperDialog extends OO.ui.ProcessDialog {
                 : 'preferences';
 
         document.body.classList.add('afcrc-helper-open');
+
+        window.addEventListener('beforeunload', (event) => {
+            if (this.parsedRequests.length > 0 && this.shouldStopTabClosure) event.preventDefault();
+        });
     }
 
     getActionProcess = (action: string) => {
         if (!action || action === 'cancel')
             return new OO.ui.Process(() => {
                 if (this.parsedRequests.length > 0)
-                    OO.ui
-                        .confirm('Are you sure you want to close? All changes will be discarded.')
-                        .then((confirmed) => (confirmed ? this.close() : null));
+                    OO.ui.confirm('Are you sure you want to close? All changes will be discarded.').then((confirmed) => {
+                        if (!confirmed) return;
+
+                        this.close();
+                        this.shouldStopTabClosure = false;
+                    });
                 else this.close();
             });
         else if (action === 'save')
@@ -166,7 +175,7 @@ export default class HelperDialog extends OO.ui.ProcessDialog {
         const windowManager = new OO.ui.WindowManager();
         document.body.append(windowManager.$element[0]);
 
-        const actionsDialog = new ActionsDialog();
+        const actionsDialog = new ActionsDialog(this);
         windowManager.addWindows([actionsDialog]);
         actionsDialog.open();
 
@@ -339,6 +348,13 @@ export default class HelperDialog extends OO.ui.ProcessDialog {
                         );
                 });
         }
+    }
+
+    /**
+     * Disables the block against tab closure.
+     */
+    public allowTabClosure() {
+        this.shouldStopTabClosure = false;
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars

@@ -104,6 +104,9 @@
         "image": false,
         "short-description": "User script to fix stylistic and other minor issues in articles",
         "description": "This user script adds the ability to fix stylistic and other miscellaneous issues in articles, of which a list can be found below. This script is activated using a link in the \"More\"/\"Tools\" menu, visible when in editing mode on a page.\n\n'''This script can possibly make unexpected changes, please make sure you check the diff before submitting edits.'''\n\n== Features ==\n* Cleans up section headers (fixes capitalization, depth, and spacing)\n* Removes improper or unnecessary magic words\n* Cleans up DISPLAYTITLEs/DEFAULTSORTs (converts templates magic words and removes unnecessary magic words)\n* Cleans up categories (fixes category links or transclusions)\n* Cleans up links (cleans up spacing, optimizes text after links instead of piping, and more)\n* Removes improper characters (replaces smart quotes and ellipses with their standard counterparts, and replaces non-breaking spaces with their HTML tag for readability)\n* Cleans up improper date ranges\n* Removes stray markup (removes empty tags and toolbar markup filler text)\n* Cleans up spacing (removes many types of excess spacing and adds extra spacing where needed, such as before stub templates)\n* Cleans up references (fixes links in ref tags, corrects spacing, makes tags self-closing, and more)\n* Cleans up templates (aligns parameters in infoboxes and other templates, removes unnecessary templates, and more)\n* Removes unnecessary comments (comments left over from article drafts, etc.)",
+        "changelog": {
+            "2025|05|08": "Strip unnecessary template parameters when formatting."
+        },
         "skin-support": {
             "vector-2022": "yes",
             "vector": "yes",
@@ -114,7 +117,7 @@
             "cologne-blue": "yes"
         },
         "released": "2025|02|10",
-        "updated": "2025|05|07"
+        "updated": "2025|05|08"
     },
     "copy-search-results": {
         "image": false,
@@ -152,7 +155,7 @@
         "short-description": "User script to modify DISPLAYTITLEs",
         "description": "This user script adds an icon following the article title, which, when clicked, allows a [[WP:DISPLAYTITLE|DISPLAYTITLE]] to be added, modified, or removed.\n\n'''Note:''' This script does not have very complex logic, and is currently unable to handle to handle templates such as {{tl|italic title}}, {{tl|lowercase title}}, and more, including DISPLAYTITLEs added by other templates such as infoboxes.",
         "changelog": {
-            "2025|04|26": "Correctly place DISPLAYTITLE magic word beneath #REDIRECT markup"
+            "2025|04|26": "Correctly place DISPLAYTITLE magic word beneath #REDIRECT markup."
         },
         "skin-support": {
             "vector-2022": "yes",

@@ -640,7 +640,7 @@ function formatTemplates(content: string) {
                 'virusbox',
                 'volleyball kit',
             ],
-            [FormatStyle.Minimized]: ['coord', 'end date', 'lang', 'langx', 'start date'],
+            [FormatStyle.Minimized]: ['birth date', 'coord', 'death date', 'end date', 'lang', 'start date'],
             [FormatStyle.MinimizedSpaced]: ['infobox mapframe'],
         };
 
@@ -773,11 +773,26 @@ function formatTemplates(content: string) {
                 if (style === FormatStyle.ExpandedAligned)
                     requiredKeyLength = Math.max(...this.parameters.map((parameter) => parameter.key?.length ?? 0));
 
-                for (const parameter of this.parameters)
+                for (const [index, parameter] of this.parameters.entries()) {
+                    if (
+                        !parameter.key &&
+                        !parameter.value &&
+                        this.parameters.slice(index + 1).every((parameter) => parameter.key ?? !parameter.value)
+                    )
+                        continue;
+
                     output.push(`| ${parameter.key ? `${parameter.key.padEnd(requiredKeyLength)} = ` : ''}${parameter.value}`);
+                }
             } else
-                for (const parameter of this.parameters)
-                    if (parameter.value) output.push(`|${parameter.key ? `${parameter.key}=` : ''}${parameter.value}`);
+                for (const [index, parameter] of this.parameters.entries()) {
+                    if (
+                        !parameter.value &&
+                        (parameter.key || this.parameters.slice(index + 1).every((parameter) => parameter.key ?? !parameter.value))
+                    )
+                        continue;
+
+                    output.push(`|${parameter.key ? `${parameter.key}=` : ''}${parameter.value}`);
+                }
 
             output.push('}}');
 

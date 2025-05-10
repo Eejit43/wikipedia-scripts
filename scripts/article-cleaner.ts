@@ -630,6 +630,7 @@ function formatTemplates(content: string) {
                 'infraspeciesbox',
                 'listen',
                 'location map',
+                'medical resources',
                 'motorsport season',
                 'multiple image',
                 'mycomorphbox',

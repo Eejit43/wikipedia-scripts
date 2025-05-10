@@ -671,6 +671,7 @@ function formatTemplates(content: string) {
         private templatesToKeepContent = ['draft categories'];
 
         private templatesToSubst = [
+            // Magic words
             'articlepagename',
             'articlespace',
             'basepagename',
@@ -684,6 +685,9 @@ function formatTemplates(content: string) {
             'subpagename',
             'talkpagename',
             'talkspace',
+
+            // Templates
+            'pagenamebase',
         ];
 
         constructor(startLocation: number) {

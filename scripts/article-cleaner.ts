@@ -780,9 +780,9 @@ function formatTemplates(content: string) {
 
                 if (shouldSubst) newName = `subst:${newName}`;
 
-                this.fullText = this.fullText!.replace(this.rawName!, newName);
+                if (newName !== this.rawName!) this.fullText = this.fullText!.replace(this.rawName!, newName);
 
-                return this.fullText;
+                return this.fullText!;
             }
 
             const output = [`{{${shouldSubst ? 'subst:' : ''}${this.name}`];

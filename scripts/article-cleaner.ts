@@ -668,7 +668,15 @@ function formatTemplates(content: string) {
 
         private templatesToKeepContent = ['draft categories'];
 
-        private templatesToSubst = ['pagename'];
+        private templatesToSubst = [
+            'basepagename',
+            'fullpagename',
+            'pagename',
+            'rootpagename',
+            'subjectpagename',
+            'subpagename',
+            'talkpagename',
+        ];
 
         constructor(startLocation: number) {
             this.location = { start: startLocation };

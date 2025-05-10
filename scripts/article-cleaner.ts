@@ -596,6 +596,7 @@ function formatTemplates(content: string) {
 
         public fullText?: string;
         private fullTextEscaped?: string;
+        private rawName?: string;
         private name?: string;
         private parameters: { key: string | null; value: string }[] = [];
         public subTemplates: Template[] = [];
@@ -662,6 +663,8 @@ function formatTemplates(content: string) {
 
         private templatesToKeepContent = ['draft categories'];
 
+        private templatesToSubst = ['pagename'];
+
         constructor(startLocation: number) {
             this.location = { start: startLocation };
         }
@@ -691,7 +694,8 @@ function formatTemplates(content: string) {
 
             const parameters = trimmedInnerText.split('|').map((parameter) => parameter.replaceAll(this.placeholderStrings[1], '|').trim());
 
-            this.name = parameters.shift()?.replaceAll('_', ' ');
+            this.rawName = parameters.shift();
+            this.name = this.rawName?.replaceAll('_', ' ');
 
             const splitParameters = parameters.map((parameters) => {
                 const equalsLocation = parameters.indexOf('=');
@@ -761,9 +765,18 @@ function formatTemplates(content: string) {
                 return this.templatesToKeepContent.includes(this.name!.toLowerCase()) ? this.parameters[0].value : '';
 
             const style = this.getStyle();
-            if (style === undefined) return this.fullText!;
+            if (style === undefined) {
+                if (this.rawName!.includes('_')) this.fullText = this.fullText!.replace(this.rawName!, this.name!);
+                if (this.name!.toLowerCase().startsWith('template:')) this.fullText = this.fullText!.replace(/^{{[Tt]emplate:/, '{{');
 
-            const output = [`{{${this.name}`];
+                return this.fullText!;
+            }
+
+            const shouldSubst = this.templatesToSubst.some(
+                (name) => name === this.name!.toLowerCase() || this.name!.toLowerCase().startsWith(`${name}:`),
+            );
+
+            const output = [`{{${shouldSubst ? 'subst:' : ''}${this.name}`];
 
             this.cleanupParameters();
 

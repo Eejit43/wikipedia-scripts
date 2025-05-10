@@ -768,17 +768,21 @@ function formatTemplates(content: string) {
             if (this.shouldBeRemoved())
                 return this.templatesToKeepContent.includes(this.name!.toLowerCase()) ? this.parameters[0].value : '';
 
-            const style = this.getStyle();
-            if (style === undefined) {
-                if (this.rawName!.includes('_')) this.fullText = this.fullText!.replace(this.rawName!, this.name!);
-                if (this.name!.toLowerCase().startsWith('template:')) this.fullText = this.fullText!.replace(/^{{[Tt]emplate:/, '{{');
-
-                return this.fullText!;
-            }
-
             const shouldSubst = this.templatesToSubst.some(
                 (name) => name === this.name!.toLowerCase() || this.name!.toLowerCase().startsWith(`${name}:`),
             );
+
+            const style = this.getStyle();
+            if (style === undefined) {
+                let newName = this.name!;
+                if (this.name!.toLowerCase().startsWith('template:')) newName = this.name!.slice(9);
+
+                if (shouldSubst) newName = `subst:${newName}`;
+
+                this.fullText = this.fullText!.replace(this.rawName!, newName);
+
+                return this.fullText;
+            }
 
             const output = [`{{${shouldSubst ? 'subst:' : ''}${this.name}`];
 

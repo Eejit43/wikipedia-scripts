@@ -619,6 +619,7 @@ function formatTemplates(content: string) {
                 'beachhandball kit',
                 'blockquote',
                 'cricket uniform',
+                'election box',
                 'field hockey kit',
                 'football kit',
                 'handball kit',

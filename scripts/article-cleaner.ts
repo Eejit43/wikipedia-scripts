@@ -218,7 +218,11 @@ function cleanupDisplaytitlesAndDefaultsorts(content: string) {
     for (const tag of parsedTags) {
         const originalTagRegex = new RegExp(`${escapeRegexCharacters(tag.original)}\n*`, 'g');
 
-        const title = mw.Title.makeTitle(currentTitle.getNamespaceId(), mw.Title.newFromText(tag.value)!.getMainText());
+        const unprefixedTitle = mw.Title.newFromText(tag.value);
+
+        if (!unprefixedTitle) continue;
+
+        const title = mw.Title.makeTitle(currentTitle.getNamespaceId(), unprefixedTitle.getMainText());
 
         if (!title) continue;
 

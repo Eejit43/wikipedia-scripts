@@ -670,13 +670,18 @@ function formatTemplates(content: string) {
 
         private templatesToSubst = [
             'articlepagename',
+            'articlespace',
             'basepagename',
             'fullpagename',
+            'namespace',
+            'namespacenumber',
             'pagename',
             'rootpagename',
             'subjectpagename',
+            'subjectspace',
             'subpagename',
             'talkpagename',
+            'talkspace',
         ];
 
         constructor(startLocation: number) {

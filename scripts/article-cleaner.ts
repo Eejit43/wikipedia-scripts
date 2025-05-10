@@ -591,6 +591,7 @@ function formatTemplates(content: string) {
 
     enum Namespace {
         User = 2,
+        Template = 10,
         Draft = 118,
     }
 
@@ -761,7 +762,7 @@ function formatTemplates(content: string) {
         }
 
         private cleanupParameters() {
-            const imageParameters = new Set(['image', 'logo', 'cover']);
+            const imageParameters = new Set(['cover', 'image_flag', 'image', 'logo', 'map_image']);
 
             for (let number = 1; number <= 10; number++) imageParameters.add(`image${number}`);
 
@@ -784,9 +785,9 @@ function formatTemplates(content: string) {
             if (this.shouldBeRemoved())
                 return this.templatesToKeepContent.includes(this.name!.toLowerCase()) ? this.parameters[0].value : '';
 
-            const shouldSubst = this.templatesToSubst.some(
-                (name) => name === this.name!.toLowerCase() || this.name!.toLowerCase().startsWith(`${name}:`),
-            );
+            const shouldSubst =
+                mw.config.get('wgNamespaceNumber') !== (Namespace.Template as number) &&
+                this.templatesToSubst.some((name) => name === this.name!.toLowerCase() || this.name!.toLowerCase().startsWith(`${name}:`));
 
             const style = this.getStyle();
             if (style === undefined) {

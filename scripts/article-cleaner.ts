@@ -669,6 +669,7 @@ function formatTemplates(content: string) {
         private templatesToKeepContent = ['draft categories'];
 
         private templatesToSubst = [
+            'articlepagename',
             'basepagename',
             'fullpagename',
             'pagename',

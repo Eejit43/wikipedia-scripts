@@ -107,7 +107,7 @@
         "changelog": {
             "2025|05|09": [
                 "Strip unneeded namespace prefix from and prettify template calls.",
-                "Automatically substitute {{code|{{(}}PAGENAME{{)}}}}."
+                "Automatically substitute {{code|{{(}}PAGENAME{{)}}}} and other magic words."
             ],
             "2025|05|08": "Strip unnecessary template parameters when formatting."
         },
@@ -121,7 +121,7 @@
             "cologne-blue": "yes"
         },
         "released": "2025|02|10",
-        "updated": "2025|05|12"
+        "updated": "2025|05|21"
     },
     "copy-search-results": {
         "image": false,

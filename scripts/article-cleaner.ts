@@ -649,6 +649,7 @@ function formatTemplates(content: string) {
                 'succession box',
                 'taxobox',
                 'team bracket',
+                'track listing',
                 'virusbox',
                 'volleyball kit',
 

@@ -619,6 +619,7 @@ function formatTemplates(content: string) {
                 'basketball kit',
                 'beachhandball kit',
                 'blockquote',
+                'chembox',
                 'cricket uniform',
                 'election box',
                 'external music video',

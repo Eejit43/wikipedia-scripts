@@ -621,6 +621,8 @@ function formatTemplates(content: string) {
                 'blockquote',
                 'cricket uniform',
                 'election box',
+                'external music video',
+                'extra album cover',
                 'field hockey kit',
                 'football kit',
                 'handball kit',

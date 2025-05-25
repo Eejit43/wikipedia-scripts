@@ -80,6 +80,7 @@ export {};
 
             let finalText = originalText;
 
+            finalText = cleanupStrayUnicodeCharacters(finalText);
             finalText = cleanupSectionHeaders(finalText);
             finalText = cleanupMagicWords(finalText);
             finalText = cleanupDisplaytitlesAndDefaultsorts(finalText);
@@ -124,6 +125,26 @@ export {};
  */
 function escapeRegexCharacters(string: string) {
     return string.replaceAll(/[$()*+.?[\\\]^{|}]/g, '\\$&');
+}
+
+/**
+ * Cleans up stray Unicode characters in an article's content.
+ * @param content The article content to clean up.
+ */
+function cleanupStrayUnicodeCharacters(content: string) {
+    // This regex removes:
+    //   - ASCII control characters (\u0000-\u0009, \u000B-\u000C, \u000E-\u001F)
+    //   - DEL (\u007F)
+    //   - Soft hyphen (\u00AD)
+    //   - Zero-width characters and directionality marks (\u200B-\u200F)
+    //   - Bidi override and formatting characters (\u202A-\u202E)
+    //   - Word joiner and invisible separator (\u2060, \u2063)
+    //   - Byte order mark (BOM) (\uFEFF)
+    const strayUnicodeRegex = /[\u0000-\u0009\u000B\u000C\u000E-\u001F\u007F\u00AD\u200B-\u200F\u202A-\u202E\u2060\u2063\uFEFF]/g; // eslint-disable-line no-control-regex
+
+    if (strayUnicodeRegex.test(content)) content = content.replaceAll(strayUnicodeRegex, '');
+
+    return content;
 }
 
 /**

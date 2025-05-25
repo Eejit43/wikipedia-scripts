@@ -2,10 +2,10 @@ import type { ApiQueryBacklinksParams, ApiQueryRevisionsParams, ApiQuerySearchPa
 import type { BacklinksResult, EmbeddedinResult, MediaWikiDataError, PageRevisionsResult, SearchResult } from '../global-types';
 
 interface SearchData {
-    categories: { id: string; category: string; namespace?: string; notNamespace?: string }[];
-    searches: { id: string; search: string; namespace?: string; notNamespace?: string }[];
-    whatLinksHere: { id: string; title: string; namespace?: string; notNamespace?: string }[];
-    transclusions: { id: string; title: string; namespace?: string; notNamespace?: string }[];
+    categories: { id: string; category: string; namespaces?: string[]; notNamespaces?: string[] }[];
+    searches: { id: string; search: string; namespaces?: string[]; notNamespaces?: string[] }[];
+    whatLinksHere: { id: string; title: string; namespaces?: string[]; notNamespaces?: string[] }[];
+    transclusions: { id: string; title: string; namespaces?: string[]; notNamespaces?: string[] }[];
 }
 
 type SearchDataCheck =
@@ -205,21 +205,23 @@ class MonitoringListManager {
     /**
      * Parses the searched categories from the check object.
      * @param check The check object.
-     * @param check.namespace The namespace to search in.
-     * @param check.notNamespace The namespace to exclude from the search.
-     * @returns The category ID or list of category IDs (separated by '|').
+     * @param check.namespaces The namespace to search in.
+     * @param check.notNamespaces The namespaces to exclude from the search.
+     * @returns The category ID or array of category IDs.
      */
-    private getCategory({ namespace, notNamespace }: { namespace?: string; notNamespace?: string }) {
-        if (!namespace && !notNamespace) return 0;
-        else if (namespace) {
-            const foundNamespace = Object.entries(mw.config.get('wgFormattedNamespaces')).find(
-                ([, namespaceName]) => namespaceName === namespace,
-            );
+    private getCategory({ namespaces, notNamespaces }: { namespaces?: string[]; notNamespaces?: string[] }) {
+        if (!namespaces && !notNamespaces) return 0;
+        else if (namespaces) {
+            const foundNamespaces = namespaces
+                .map((namespace) =>
+                    Object.entries(mw.config.get('wgFormattedNamespaces')).find(([, namespaceName]) => namespaceName === namespace),
+                )
+                .filter(Boolean) as [string, string][];
 
-            return foundNamespace ? Number.parseInt(foundNamespace[0]) : 0;
+            return foundNamespaces.length > 0 ? foundNamespaces.map((foundNamespace) => Number.parseInt(foundNamespace[0])) : 0;
         } else
             return Object.entries(mw.config.get('wgFormattedNamespaces'))
-                .filter(([, namespaceName]) => notNamespace !== (namespaceName || 'Article'))
+                .filter(([, namespaceName]) => !notNamespaces!.includes(namespaceName || 'Article'))
                 .map(([namespaceId]) => Number.parseInt(namespaceId));
     }
 }

@@ -8,11 +8,7 @@ interface SearchData {
     transclusions: { id: string; title: string; namespaces?: string[]; notNamespaces?: string[] }[];
 }
 
-type SearchDataCheck =
-    | SearchData['categories'][0]
-    | SearchData['searches'][0]
-    | SearchData['whatLinksHere'][0]
-    | SearchData['transclusions'][0];
+type SearchDataCheck = SearchData[keyof SearchData][0];
 
 /**
  * An instance of this class handles the entire functionality of the to-monitor-list script.

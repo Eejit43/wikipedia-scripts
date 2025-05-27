@@ -633,6 +633,8 @@ function formatTemplates(content: string) {
 
         private defaultTemplateStyles = {
             [FormatStyle.ExpandedAligned]: [
+                'album rating',
+                'album reviews',
                 'american football uniform',
                 'australian rules football kit',
                 'automatic taxobox',
@@ -662,6 +664,7 @@ function formatTemplates(content: string) {
                 'medical resources',
                 'motorsport season',
                 'multiple image',
+                'music ratings',
                 'mycomorphbox',
                 'navbox',
                 'oobox',
@@ -670,6 +673,9 @@ function formatTemplates(content: string) {
                 'quote box',
                 'repechage',
                 'sidebar',
+                'single ratings',
+                'singles',
+                'song ratings',
                 'speciesbox',
                 'starbox',
                 'succession box',

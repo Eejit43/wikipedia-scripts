@@ -898,7 +898,7 @@ export default class RedirectHelperDialog {
                         });
                     if (!tags.includes('R to anchor'))
                         errors.push({
-                            message: 'is a redirect to an anchor, but it is not tagged with <code>{{R from anchor}}</code>!',
+                            message: 'is a redirect to an anchor, but it is not tagged with <code>{{R to anchor}}</code>!',
                             autoFixes: [{ type: 'add', tag: 'R to anchor' }],
                         });
                 } else

@@ -673,7 +673,6 @@ function formatTemplates(content: string) {
                 'quote box',
                 'repechage',
                 'sidebar',
-                'sidebar',
                 'single ratings',
                 'singles',
                 'song ratings',

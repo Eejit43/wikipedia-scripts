@@ -672,6 +672,7 @@ function formatTemplates(content: string) {
                 'osm location map',
                 'quote box',
                 'repechage',
+                'rugbybox',
                 'sidebar',
                 'single ratings',
                 'singles',

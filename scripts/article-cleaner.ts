@@ -645,6 +645,7 @@ function formatTemplates(content: string) {
                 'chembox',
                 'cricket uniform',
                 'election box',
+                'episode list',
                 'external music video',
                 'extra album cover',
                 'field hockey kit',

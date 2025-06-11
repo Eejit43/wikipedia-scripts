@@ -65,6 +65,7 @@ export default class RedirectHelperDialog {
 
     private editorBox!: OO.ui.PanelLayout;
     private syncWithSubjectPageButton?: OO.ui.ButtonWidget;
+    private syncWithRootPageButton?: OO.ui.ButtonWidget;
     private redirectInput!: RedirectTargetInputWidget;
     private redirectInputLayout!: OO.ui.FieldLayout;
     private tagSelect!: OO.ui.MenuTagMultiselectWidget;
@@ -139,6 +140,16 @@ export default class RedirectHelperDialog {
             } satisfies ApiQueryInfoParams)) as PageInfoResult;
 
             if (subjectPageData.query!.pages[0].redirect) await this.loadSyncWithSubjectPageButton();
+            else if (this.pageTitleParsed.getPrefixedText().includes('/')) {
+                const rootPageData = (await this.api.get({
+                    action: 'query',
+                    formatversion: '2',
+                    prop: 'info',
+                    titles: this.pageTitleParsed.getPrefixedText().split('/')[0],
+                } satisfies ApiQueryInfoParams)) as PageInfoResult;
+
+                if (rootPageData.query!.pages[0].redirect) await this.loadSyncWithRootPageButton();
+            }
         }
 
         this.loadInputElements();
@@ -148,6 +159,7 @@ export default class RedirectHelperDialog {
         this.editorBox.$element[0].append(
             ...([
                 this.syncWithSubjectPageButton?.$element[0],
+                this.syncWithRootPageButton?.$element[0],
                 this.redirectInputLayout.$element[0],
                 this.tagSelectLayout.$element[0],
                 this.templateParametersEditor,
@@ -175,12 +187,42 @@ export default class RedirectHelperDialog {
             if (!target) return mw.notify('Failed to parse subject page content!', { type: 'error' });
 
             this.redirectInput.setValue(mw.Title.newFromText(target)?.getTalkPage()?.getPrefixedText() ?? '');
-            const fromMove = ['R from move', ...this.redirectTemplates['R from move'].aliases].some((tagOrRedirect) =>
+
+            const isFromMove = ['R from move', ...this.redirectTemplates['R from move'].aliases].some((tagOrRedirect) =>
                 new RegExp(`{{\\s*[${tagOrRedirect[0].toLowerCase()}${tagOrRedirect[0]}]${tagOrRedirect.slice(1)}\\s*(\\||}})`).test(
                     subjectPageContent,
                 ),
             );
-            if (fromMove) this.tagSelect.setValue(['R from move']);
+
+            this.tagSelect.setValue(isFromMove ? ['R from move'] : []);
+        });
+    }
+
+    /**
+     * Loads the "Sync with root page" button on subpage talk pages.
+     */
+    private async loadSyncWithRootPageButton() {
+        const currentTitleSplit = this.pageTitleParsed.getPrefixedText().split('/');
+        const currentSubpage = currentTitleSplit.slice(1).join('/');
+
+        const rootPageContent = await this.getPageContent(currentTitleSplit[0]);
+
+        this.syncWithRootPageButton = new OO.ui.ButtonWidget({ label: 'Sync with root page', icon: 'link', flags: ['progressive'] });
+        this.syncWithRootPageButton.on('click', () => {
+            const target = this.redirectRegex.exec(rootPageContent)?.[1];
+            if (!target) return mw.notify('Failed to parse root page content!', { type: 'error' });
+
+            const targetTitle = mw.Title.newFromText(target)?.getPrefixedText();
+
+            this.redirectInput.setValue(targetTitle ? `${targetTitle}/${currentSubpage}` : '');
+
+            const isFromMove = ['R from move', ...this.redirectTemplates['R from move'].aliases].some((tagOrRedirect) =>
+                new RegExp(`{{\\s*[${tagOrRedirect[0].toLowerCase()}${tagOrRedirect[0]}]${tagOrRedirect.slice(1)}\\s*(\\||}})`).test(
+                    rootPageContent,
+                ),
+            );
+
+            this.tagSelect.setValue(isFromMove ? ['R from move'] : []);
         });
     }
 

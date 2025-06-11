@@ -64,7 +64,7 @@ export default class RedirectHelperDialog {
     private needsCheck = true;
 
     private editorBox!: OO.ui.PanelLayout;
-    private syncWithMainButton?: OO.ui.ButtonWidget;
+    private syncWithSubjectPageButton?: OO.ui.ButtonWidget;
     private redirectInput!: RedirectTargetInputWidget;
     private redirectInputLayout!: OO.ui.FieldLayout;
     private tagSelect!: OO.ui.MenuTagMultiselectWidget;
@@ -131,14 +131,14 @@ export default class RedirectHelperDialog {
         this.editorBox = new OO.ui.PanelLayout({ id: 'redirect-helper-box', padded: true, expanded: false, framed: true });
 
         if (this.pageTitleParsed.isTalkPage()) {
-            const mainPageData = (await this.api.get({
+            const subjectPageData = (await this.api.get({
                 action: 'query',
                 formatversion: '2',
                 prop: 'info',
                 titles: this.pageTitleParsed.getSubjectPage()!.getPrefixedText(),
             } satisfies ApiQueryInfoParams)) as PageInfoResult;
 
-            if (mainPageData.query!.pages[0].redirect) await this.loadSyncWithMainButton();
+            if (subjectPageData.query!.pages[0].redirect) await this.loadSyncWithSubjectPageButton();
         }
 
         this.loadInputElements();
@@ -147,7 +147,7 @@ export default class RedirectHelperDialog {
         /* Add elements to screen and load data (if applicable) */
         this.editorBox.$element[0].append(
             ...([
-                this.syncWithMainButton?.$element[0],
+                this.syncWithSubjectPageButton?.$element[0],
                 this.redirectInputLayout.$element[0],
                 this.tagSelectLayout.$element[0],
                 this.templateParametersEditor,
@@ -164,20 +164,20 @@ export default class RedirectHelperDialog {
     }
 
     /**
-     * Loads the "Sync with main page" button" on talk pages.
+     * Loads the "Sync with subject page" button" on talk pages.
      */
-    private async loadSyncWithMainButton() {
-        const mainPageContent = await this.getPageContent(this.pageTitleParsed.getSubjectPage()!.getPrefixedText());
+    private async loadSyncWithSubjectPageButton() {
+        const subjectPageContent = await this.getPageContent(this.pageTitleParsed.getSubjectPage()!.getPrefixedText());
 
-        this.syncWithMainButton = new OO.ui.ButtonWidget({ label: 'Sync with main page', icon: 'link', flags: ['progressive'] });
-        this.syncWithMainButton.on('click', () => {
-            const target = this.redirectRegex.exec(mainPageContent)?.[1];
-            if (!target) return mw.notify('Failed to parse main page content!', { type: 'error' });
+        this.syncWithSubjectPageButton = new OO.ui.ButtonWidget({ label: 'Sync with subject page', icon: 'link', flags: ['progressive'] });
+        this.syncWithSubjectPageButton.on('click', () => {
+            const target = this.redirectRegex.exec(subjectPageContent)?.[1];
+            if (!target) return mw.notify('Failed to parse subject page content!', { type: 'error' });
 
             this.redirectInput.setValue(mw.Title.newFromText(target)?.getTalkPage()?.getPrefixedText() ?? '');
             const fromMove = ['R from move', ...this.redirectTemplates['R from move'].aliases].some((tagOrRedirect) =>
                 new RegExp(`{{\\s*[${tagOrRedirect[0].toLowerCase()}${tagOrRedirect[0]}]${tagOrRedirect.slice(1)}\\s*(\\||}})`).test(
-                    mainPageContent,
+                    subjectPageContent,
                 ),
             );
             if (fromMove) this.tagSelect.setValue(['R from move']);
@@ -1131,7 +1131,7 @@ export default class RedirectHelperDialog {
             const talkResult = await this.editOrCreate(
                 this.pageTitleParsed.getTalkPage()!.getPrefixedText(),
                 output,
-                'Syncing redirect from main page' + this.scriptMessage,
+                'Syncing redirect from subject page' + this.scriptMessage,
             );
             if (!talkResult) return;
 

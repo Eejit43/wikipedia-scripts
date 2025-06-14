@@ -92,6 +92,7 @@ export {};
             finalText = formatTemplates(finalText);
             finalText = removeComments(finalText);
             finalText = cleanupSpacing(finalText, true);
+            finalText = autoTagPage(finalText);
 
             if (originalText === finalText) mw.notify('No changes to be made to the article!', { type: 'warn', autoHideSeconds: 'short' });
             else {
@@ -1019,6 +1020,23 @@ function removeComments(content: string) {
 
     for (const comment of comments)
         content = content.replaceAll(new RegExp(` *<!-- ?${escapeRegexCharacters(comment)}.*?--> *\n?`, 'gs'), '');
+
+    return content;
+}
+
+/**
+ * Adds relevant tags to an article's content.
+ * @param content The article content to add tags to.
+ */
+function autoTagPage(content: string) {
+    const numberOfCategories = [...content.matchAll(/\[\[Category:/g)].length;
+
+    content = content.replaceAll(/\n*{{(uncategorized|improve categories)(\|.+?)?}}\n*/gi, '');
+
+    if (numberOfCategories === 0 && !/{{uncategorized/i.test(content))
+        content += '\n\n{{Uncategorized|{{subst:CURRENTMONTHNAME}} {{subst:CURRENTYEAR}}}}';
+    else if (numberOfCategories === 1 && !/{{improve categories/i.test(content))
+        content += '\n\n{{Improve categories|{{subst:CURRENTMONTHNAME}} {{subst:CURRENTYEAR}}}}';
 
     return content;
 }

@@ -372,9 +372,18 @@ function cleanupLinks(content: string, functionsCalledWhileEscaped: ((content: s
 
         let afterLinkText = '';
 
+        if (/[!',.:;?]$/.test(altText)) {
+            const addedPunctuation = altText.slice(-1);
+
+            if (!link.endsWith(addedPunctuation)) {
+                afterLinkText = addedPunctuation;
+                altText = altText.slice(0, -1);
+            }
+        }
+
         if (link === altText) altText = '';
         else if (new RegExp(`^${escapeRegexCharacters(link)}[a-z]+$`).test(altText)) {
-            afterLinkText = altText.slice(link.length);
+            afterLinkText = altText.slice(link.length) + afterLinkText;
             altText = '';
         }
 
@@ -384,7 +393,7 @@ function cleanupLinks(content: string, functionsCalledWhileEscaped: ((content: s
                 altText = '';
             } else if (new RegExp(`^${escapeRegexCharacters(newLink)}[a-z]+$`).test(altText)) {
                 link = newLink;
-                afterLinkText = altText.slice(newLink.length);
+                afterLinkText = altText.slice(newLink.length) + afterLinkText;
                 altText = '';
             }
 

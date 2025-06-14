@@ -684,6 +684,7 @@ function formatTemplates(content: string) {
                 'taxobox',
                 'team bracket',
                 'track listing',
+                'tweet',
                 'virusbox',
                 'volleyball kit',
 

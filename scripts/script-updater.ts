@@ -483,7 +483,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                                 .map((page) => page.title.split(':')[1])
                                 .filter(
                                     (page) =>
-                                        ![...redirectTemplates, ...possibleRedirectTemplates].some((template) => template.name === page) && // TODO: won't catch if template is added after, this check should be done last
+                                        ![...redirectTemplates, ...possibleRedirectTemplates].some((template) => template.name === page) &&
                                         !page.endsWith('/doc') &&
                                         !page.endsWith('/sandbox'),
                                 )

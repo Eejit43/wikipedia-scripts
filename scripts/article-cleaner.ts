@@ -1,3 +1,6 @@
+import type { ApiQueryRevisionsParams } from 'types-mediawiki/api_params';
+import type { PageRevisionsResult } from '../global-types';
+
 declare global {
     // eslint-disable-next-line @typescript-eslint/no-extraneous-class
     class VeRange {
@@ -70,7 +73,7 @@ export {};
             }
         });
 
-        link.addEventListener('click', (event) => {
+        link.addEventListener('click', async (event) => {
             event.preventDefault();
 
             const editBox = $('#wpTextbox1');
@@ -89,7 +92,7 @@ export {};
             finalText = cleanupStrayMarkup(finalText);
             finalText = cleanupSpacing(finalText);
             finalText = cleanupReferences(finalText);
-            finalText = formatTemplates(finalText);
+            finalText = await formatTemplates(finalText);
             finalText = removeComments(finalText);
             finalText = cleanupSpacing(finalText, true);
             finalText = autoTagPage(finalText);
@@ -608,11 +611,16 @@ function cleanupReferences(content: string) {
     return content;
 }
 
+interface TemplateRedirect {
+    from: string[];
+    to: string;
+}
+
 /**
  * Formats template spacing in an article's content.
  * @param content The article content to format.
  */
-function formatTemplates(content: string) {
+async function formatTemplates(content: string) {
     enum FormatStyle {
         Expanded,
         ExpandedAligned,
@@ -625,6 +633,23 @@ function formatTemplates(content: string) {
         Template = 10,
         Draft = 118,
     }
+
+    const templateAliases = JSON.parse(
+        (
+            (await new mw.Api().get({
+                action: 'query',
+                formatversion: '2',
+                prop: 'revisions',
+                rvprop: 'content',
+                rvslots: 'main',
+                titles: 'User:Eejit43/scripts/article-cleaner.json',
+            } satisfies ApiQueryRevisionsParams)) as PageRevisionsResult
+        ).query!.pages[0]?.revisions?.[0]?.slots?.main?.content || '[]',
+    ) as TemplateRedirect[];
+
+    const mappedTemplateAliases = Object.fromEntries(
+        templateAliases.flatMap((alias) => alias.from.map((from) => [from.charAt(0).toLowerCase() + from.slice(1), alias.to])),
+    );
 
     class Template {
         public location: { start: number; end?: number };
@@ -640,6 +665,8 @@ function formatTemplates(content: string) {
         private placeholderStrings = ['\u{F0000}', '\u{10FFFF}', '\u{FFFFE}'];
 
         private pipeEscapeRegexes = [/(\[\[[^\]]*?)\|(.*?]])/g, /(<!--.*?)\|(.*?-->)/g, /(<nowiki>.*?)\|(.*?<\/nowiki>)/g];
+
+        private templateAliases = mappedTemplateAliases;
 
         private defaultTemplateStyles = {
             [FormatStyle.ExpandedAligned]: [
@@ -804,8 +831,16 @@ function formatTemplates(content: string) {
 
             const parameters = trimmedInnerText.split('|').map((parameter) => parameter.replaceAll(this.placeholderStrings[1], '|').trim());
 
-            this.rawName = parameters.shift();
-            this.name = this.rawName?.replaceAll('_', ' ');
+            this.rawName = parameters.shift()!;
+            this.name = this.rawName.replaceAll('_', ' ');
+
+            // Strip namespace prefix from name
+            if (this.name.toLowerCase().startsWith('template:')) this.name = this.name.slice(9);
+
+            const nameLowercaseFirst = this.name.charAt(0).toLowerCase() + this.name.slice(1);
+
+            // Resolve template alias in name
+            this.name = nameLowercaseFirst in this.templateAliases ? this.templateAliases[nameLowercaseFirst] : this.name;
 
             const splitParameters = parameters.map((parameters) => {
                 const equalsLocation = parameters.indexOf('=');
@@ -893,7 +928,7 @@ function formatTemplates(content: string) {
                 return this.fullTextEscaped!;
             }
 
-            const output = [`{{${shouldSubst ? 'subst:' : ''}${this.name}`];
+            const output = [`{{${shouldSubst ? 'subst:' : ''}${this.name!}`];
 
             this.cleanupParameters();
 

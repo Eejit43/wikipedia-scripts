@@ -2,19 +2,6 @@ import type { ApiQueryParams } from 'types-mediawiki/api_params';
 
 type OneOrMore<T> = T | T[];
 
-// Page searches
-export interface BacklinksResult {
-    query?: { backlinks: object[] };
-}
-
-export interface EmbeddedinResult {
-    query?: { embeddedin: object[] };
-}
-
-export interface SearchResult {
-    query?: { searchinfo: { totalhits: number } };
-}
-
 // Generators (modified from their ApiQueryParams counterparts)
 export interface ApiQueryAllPagesGeneratorParameters extends ApiQueryParams {
     gapfrom?: string;
@@ -32,6 +19,31 @@ export interface ApiQueryAllPagesGeneratorParameters extends ApiQueryParams {
     gapdir?: 'ascending' | 'descending';
     gapfilterlanglinks?: 'all' | 'withlanglinks' | 'withoutlanglinks';
     gapprexpiry?: 'all' | 'definite' | 'indefinite';
+}
+
+// Page searches
+export interface BacklinksResult {
+    query?: { backlinks: unknown[] };
+}
+
+export interface EmbeddedinResult {
+    query?: { embeddedin: unknown[] };
+}
+
+export interface SearchResult {
+    query?: { searchinfo: { totalhits: number } };
+}
+
+export interface CategoryMembersResult {
+    query: { categorymembers: { title: string }[] };
+}
+
+export interface LinksHereResult {
+    query: { pages: { linkshere?: { title: string; redirect: boolean }[] }[] };
+}
+
+export interface RedirectsResult {
+    query: { pages: { redirects?: { ns: number; title: string }[] }[] };
 }
 
 // Page information
@@ -53,6 +65,21 @@ export interface CategoriesResult {
 
 export interface PageRevisionsResult {
     query?: { pages: { revisions: { revid: number; slots: { main: { content: string } } }[] }[] };
+}
+
+export interface TemplateDataParameterData {
+    type: string;
+    aliases: string[];
+    suggested: boolean;
+    required: boolean;
+    default: { en: string } | null;
+    example: { en: string } | null;
+    description: { en: string } | null;
+    label: { en: string } | null;
+}
+
+export interface TemplateDataResult {
+    pages: Record<number, { params: Record<number, TemplateDataParameterData> }>;
 }
 
 // Other

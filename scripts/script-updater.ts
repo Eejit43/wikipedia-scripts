@@ -1,4 +1,9 @@
-import type { MediaWikiDataError } from '../global-types';
+import type {
+    ApiQueryBacklinkspropParams,
+    ApiQueryCategoryMembersParams,
+    TemplateDataApiTemplateDataParams,
+} from 'types-mediawiki/api_params';
+import type { CategoryMembersResult, LinksHereResult, MediaWikiDataError, RedirectsResult, TemplateDataResult } from '../global-types';
 
 interface Script {
     'name': string;
@@ -45,10 +50,14 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
 
     document.querySelector('h2#My_user_scripts + .mw-editsection')!.after(fullLinkElement);
 
+    const scriptMessage = ' (via [[User:Eejit43/scripts/script-updater.js|script]])';
+
     /**
      * An instance of this class is a dialog that manages updating scripts.
      */
     class ScriptUpdaterDialog extends OO.ui.ProcessDialog {
+        private api = new mw.Api();
+
         private repoOwner = 'Eejit43';
         private repoName = 'wikipedia-scripts';
 
@@ -58,6 +67,10 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
 
         private latestCommitHash!: string;
         private scripts!: Script[];
+
+        private scriptDataUpdaters = {
+            'redirect-helper': getRedirectHelperData,
+        };
 
         constructor() {
             super({ size: 'medium' });
@@ -91,10 +104,11 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                     this.scriptsMultiselect = new OO.ui.CheckboxMultiselectWidget({
                         items: this.scripts.map((script) => new OO.ui.CheckboxMultioptionWidget({ data: script.name, label: script.name })),
                     });
+                    this.scriptsMultiselect.$element[0].style.columnCount = '2';
 
                     const scriptsMultiselectLayout = new OO.ui.FieldLayout(this.scriptsMultiselect, {
                         label: new OO.ui.HtmlSnippet('<b>Scripts to update:</b>'),
-                        align: 'inline',
+                        align: 'top',
                     });
 
                     this.actionsMultiselect = new OO.ui.CheckboxMultiselectWidget({
@@ -110,11 +124,42 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
 
                     const actionsMultiselectLayout = new OO.ui.FieldLayout(this.actionsMultiselect, {
                         label: new OO.ui.HtmlSnippet('<b>Actions to take (if applicable):</b>'),
-                        align: 'inline',
+                        align: 'top',
+                    });
+
+                    const buttonGroup = new OO.ui.ButtonGroupWidget({
+                        items: Object.entries(this.scriptDataUpdaters).map(([name, updater]) => {
+                            const button = new OO.ui.ButtonWidget({
+                                label: `Update ${name} data`,
+                                flags: ['progressive'],
+                            });
+                            button.on('click', async () => {
+                                mw.notify(`Fetching ${name} data...`, { tag: 'update-script-data-notification' });
+
+                                const data = await updater();
+
+                                mw.notify(`Successfully fetched ${name} data, opening diff...`, {
+                                    type: 'success',
+                                    tag: 'update-script-data-notification',
+                                });
+
+                                await new Promise((resolve) => setTimeout(resolve, 500)); // Allow the notification to be shown
+
+                                openDiff('User:Eejit43/scripts/redirect-helper.json', data);
+                            });
+
+                            return button;
+                        }),
+                    });
+
+                    const scriptDataUpdatersMultiselectLayout = new OO.ui.FieldLayout(buttonGroup, {
+                        label: new OO.ui.HtmlSnippet('<b>Script data updaters:</b>'),
+                        align: 'top',
                     });
 
                     this.content.$element.append(scriptsMultiselectLayout.$element);
                     this.content.$element.append(actionsMultiselectLayout.$element);
+                    this.content.$element.append(scriptDataUpdatersMultiselectLayout.$element);
 
                     (this as unknown as { $body: JQuery }).$body.append(this.content.$element);
                 });
@@ -254,10 +299,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                 else
                     return mw.notify(
                         `Failed to fetch "${script.name}.js" from GitHub: ${scriptContentResponse.statusText} (${scriptContentResponse.status})`,
-                        {
-                            type: 'error',
-                            tag: 'sync-scripts-notification',
-                        },
+                        { type: 'error', tag: 'sync-scripts-notification' },
                     );
             }
 
@@ -299,26 +341,23 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
          * @param summary The edit summary (will append script notice).
          */
         private async editOrCreate(title: string, text: string, summary: string) {
-            summary += ' (via [[User:Eejit43/scripts/script-updater.js|script]])';
-            await new mw.Api()
+            summary += scriptMessage;
+
+            await this.api
                 .edit(title, () => ({ text, summary, watchlist: 'watch' }))
                 .catch(async (errorCode, errorInfo) => {
                     if (errorCode === 'nocreate-missing')
-                        await new mw.Api().create(title, { summary, watchlist: 'watch' }, text).catch((errorCode, errorInfo) => {
+                        await this.api.create(title, { summary, watchlist: 'watch' }, text).catch((errorCode, errorInfo) => {
                             mw.notify(
                                 `Error creating ${title}: ${(errorInfo as MediaWikiDataError)?.error?.info ?? 'Unknown error'} (${errorCode})`,
-                                {
-                                    type: 'error',
-                                },
+                                { type: 'error' },
                             );
                             return;
                         });
                     else {
                         mw.notify(
                             `Error editing or creating ${title}: ${(errorInfo as MediaWikiDataError)?.error?.info ?? 'Unknown error'} (${errorCode})`,
-                            {
-                                type: 'error',
-                            },
+                            { type: 'error' },
                         );
                         return;
                     }
@@ -327,4 +366,161 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
     }
 
     Object.assign(ScriptUpdaterDialog.prototype, OO.ui.ProcessDialog.prototype);
+
+    /**
+     * Opens a diff containing the updates to redirect-helper.json.
+     */
+    async function getRedirectHelperData() {
+        const api = new mw.Api();
+
+        const allRedirectTemplates = (await api.get({
+            action: 'query',
+            list: 'categorymembers',
+            cmtitle: 'Category:Redirect templates',
+            cmlimit: 'max',
+            formatversion: '2',
+        } satisfies ApiQueryCategoryMembersParams)) as CategoryMembersResult;
+        const allPossibleTemplates = (await api.get({
+            action: 'query',
+            list: 'categorymembers',
+            cmtitle: 'Category:Template redirects with possibilities',
+            cmlimit: 'max',
+            formatversion: '2',
+        } satisfies ApiQueryCategoryMembersParams)) as CategoryMembersResult;
+
+        const redirectTemplates = allRedirectTemplates.query.categorymembers
+            .filter((page) => page.title.startsWith('Template:R ') && page.title !== 'Template:R template index')
+            .map((page) => ({ name: page.title.split(':')[1], redirect: false }));
+        const possibleRedirectTemplates = allPossibleTemplates.query.categorymembers
+            .filter((page) => page.title.startsWith('Template:R ') && page.title !== 'Template:R with possibilities')
+            .map((page) => ({ name: page.title.split(':')[1], redirect: true }));
+
+        const allAliasesOfRedirects: string[] = [];
+
+        const mappedData = await Promise.all(
+            [...redirectTemplates, ...possibleRedirectTemplates]
+                .sort((a, b) => {
+                    // Force comics and Middle Earth templates to the end of the list
+                    if (a.name.startsWith('R comics') || a.name.startsWith('R ME')) return 1;
+                    else if (b.name.startsWith('R comics') || b.name.startsWith('R ME')) return -1;
+                    else return a.name.localeCompare(b.name);
+                })
+                .map(async (page) => {
+                    const templateDataQuery = (await api.get({
+                        action: 'templatedata',
+                        titles: 'Template:' + page.name,
+                        formatversion: '2',
+                    } satisfies TemplateDataApiTemplateDataParams)) as TemplateDataResult;
+
+                    const parameters = Object.values(templateDataQuery.pages)[0]?.params || {}; // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+
+                    const formattedParameters = Object.fromEntries(
+                        Object.entries(parameters).map(([name, data]) => [
+                            name,
+                            {
+                                aliases: data.aliases,
+                                label: data.label?.en ?? null,
+                                description: data.description?.en ?? null,
+                                type: data.type,
+                                required: data.required,
+                                suggested: data.suggested,
+                                default: data.default?.en ?? null,
+                                example: data.example?.en ?? null,
+                            },
+                        ]),
+                    );
+
+                    let mappedRedirects;
+                    if (page.redirect) {
+                        const linksQuery = (await api.get({
+                            action: 'query',
+                            titles: 'Template:' + page.name,
+                            prop: 'linkshere',
+                            lhnamespace: 10,
+                            lhlimit: 'max',
+                            formatversion: '2',
+                        } satisfies ApiQueryBacklinkspropParams)) as LinksHereResult;
+
+                        mappedRedirects =
+                            linksQuery.query.pages[0].linkshere
+                                ?.filter((page) => page.redirect)
+                                .map((page) => page.title.split(':')[1])
+                                .filter(
+                                    (page) =>
+                                        ![...redirectTemplates, ...possibleRedirectTemplates].some((template) => template.name === page) && // TODO: won't catch if template is added after, this check should be done last
+                                        !page.endsWith('/doc') &&
+                                        !page.endsWith('/sandbox'),
+                                )
+                                .sort((a, b) => a.localeCompare(b)) ?? [];
+
+                        allAliasesOfRedirects.push(...mappedRedirects);
+                    } else {
+                        const redirectsQuery = (await api.get({
+                            action: 'query',
+                            titles: 'Template:' + page.name,
+                            prop: 'redirects',
+                            rdlimit: 'max',
+                            formatversion: '2',
+                        } satisfies ApiQueryBacklinkspropParams)) as RedirectsResult;
+
+                        mappedRedirects =
+                            redirectsQuery.query.pages[0].redirects
+                                ?.filter((redirect) => redirect.ns === 10)
+                                .map((redirect) => redirect.title.split(':')[1])
+                                .filter((redirect) => !possibleRedirectTemplates.some((template) => template.name === redirect))
+                                .sort((a, b) => a.localeCompare(b)) ?? [];
+                    }
+
+                    const templateData = {
+                        ...(page.redirect ? { redirect: true } : {}),
+                        parameters: formattedParameters,
+                        aliases: mappedRedirects,
+                    };
+
+                    return [page.name, templateData] as const;
+                }),
+        );
+
+        for (const alias of allAliasesOfRedirects)
+            for (const [, data] of mappedData)
+                if (!data.redirect && data.aliases.includes(alias)) data.aliases = data.aliases.filter((a) => a !== alias);
+
+        return JSON.stringify(Object.fromEntries(mappedData));
+    }
+
+    /**
+     * Opens a diff for the given page title and content.
+     * @param pageTitle The title of the page to open a diff for.
+     * @param content The content to set for the page.
+     */
+    function openDiff(pageTitle: string, content: string) {
+        const formData = {
+            wpTextbox1: content,
+            wpSummary: `Updating data${scriptMessage}`,
+            wpDiff: '1', // Any truthy value makes this work
+            wpUltimateParam: '1', // Marks the end of form data
+        };
+
+        const formUrl = new URL(`${mw.config.get('wgScriptPath')}/index.php`, window.location.origin);
+        formUrl.searchParams.set('title', pageTitle);
+        formUrl.searchParams.set('action', 'submit');
+
+        const form = document.createElement('form');
+        form.action = formUrl.toString();
+        form.method = 'POST';
+        form.target = '_blank';
+
+        for (const [key, value] of Object.entries(formData)) {
+            const hiddenField = document.createElement('input');
+            hiddenField.type = 'hidden';
+            hiddenField.name = key;
+            hiddenField.value = value;
+
+            form.append(hiddenField);
+        }
+
+        document.body.append(form);
+        form.submit();
+        form.remove();
+    }
 });

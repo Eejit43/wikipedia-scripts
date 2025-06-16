@@ -50,8 +50,6 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
 
     document.querySelector('h2#My_user_scripts + .mw-editsection')!.after(fullLinkElement);
 
-    const scriptMessage = ' (via [[User:Eejit43/scripts/script-updater.js|script]])';
-
     /**
      * An instance of this class is a dialog that manages updating scripts.
      */
@@ -60,6 +58,8 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
 
         private repoOwner = 'Eejit43';
         private repoName = 'wikipedia-scripts';
+
+        private scriptMessage = ' (via [[User:Eejit43/scripts/script-updater.js|script]])';
 
         private content!: OO.ui.PanelLayout;
         private scriptsMultiselect!: OO.ui.CheckboxMultiselectWidget;
@@ -145,7 +145,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
 
                                 await new Promise((resolve) => setTimeout(resolve, 500)); // Allow the notification to be shown
 
-                                openDiff('User:Eejit43/scripts/redirect-helper.json', data);
+                                this.openDiff('User:Eejit43/scripts/redirect-helper.json', data);
                             });
 
                             return button;
@@ -341,7 +341,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
          * @param summary The edit summary (will append script notice).
          */
         private async editOrCreate(title: string, text: string, summary: string) {
-            summary += scriptMessage;
+            summary += this.scriptMessage;
 
             await this.api
                 .edit(title, () => ({ text, summary, watchlist: 'watch' }))
@@ -362,6 +362,42 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                         return;
                     }
                 });
+        }
+
+        /**
+         * Opens a diff for the given page title and content.
+         * @param pageTitle The title of the page to open a diff for.
+         * @param content The content to set for the page.
+         */
+        private openDiff(pageTitle: string, content: string) {
+            const formData = {
+                wpTextbox1: content,
+                wpSummary: `Updating data${this.scriptMessage}`,
+                wpDiff: '1', // Any truthy value makes this work
+                wpUltimateParam: '1', // Marks the end of form data
+            };
+
+            const formUrl = new URL(`${mw.config.get('wgScriptPath')}/index.php`, window.location.origin);
+            formUrl.searchParams.set('title', pageTitle);
+            formUrl.searchParams.set('action', 'submit');
+
+            const form = document.createElement('form');
+            form.action = formUrl.toString();
+            form.method = 'POST';
+            form.target = '_blank';
+
+            for (const [key, value] of Object.entries(formData)) {
+                const hiddenField = document.createElement('input');
+                hiddenField.type = 'hidden';
+                hiddenField.name = key;
+                hiddenField.value = value;
+
+                form.append(hiddenField);
+            }
+
+            document.body.append(form);
+            form.submit();
+            form.remove();
         }
     }
 
@@ -486,41 +522,5 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                 if (!data.redirect && data.aliases.includes(alias)) data.aliases = data.aliases.filter((a) => a !== alias);
 
         return JSON.stringify(Object.fromEntries(mappedData));
-    }
-
-    /**
-     * Opens a diff for the given page title and content.
-     * @param pageTitle The title of the page to open a diff for.
-     * @param content The content to set for the page.
-     */
-    function openDiff(pageTitle: string, content: string) {
-        const formData = {
-            wpTextbox1: content,
-            wpSummary: `Updating data${scriptMessage}`,
-            wpDiff: '1', // Any truthy value makes this work
-            wpUltimateParam: '1', // Marks the end of form data
-        };
-
-        const formUrl = new URL(`${mw.config.get('wgScriptPath')}/index.php`, window.location.origin);
-        formUrl.searchParams.set('title', pageTitle);
-        formUrl.searchParams.set('action', 'submit');
-
-        const form = document.createElement('form');
-        form.action = formUrl.toString();
-        form.method = 'POST';
-        form.target = '_blank';
-
-        for (const [key, value] of Object.entries(formData)) {
-            const hiddenField = document.createElement('input');
-            hiddenField.type = 'hidden';
-            hiddenField.name = key;
-            hiddenField.value = value;
-
-            form.append(hiddenField);
-        }
-
-        document.body.append(form);
-        form.submit();
-        form.remove();
     }
 });

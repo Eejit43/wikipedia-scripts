@@ -1,9 +1,17 @@
 import type {
     ApiQueryBacklinkspropParams,
     ApiQueryCategoryMembersParams,
+    ApiQueryRevisionsParams,
     TemplateDataApiTemplateDataParams,
 } from 'types-mediawiki/api_params';
-import type { CategoryMembersResult, LinksHereResult, MediaWikiDataError, RedirectsResult, TemplateDataResult } from '../global-types';
+import type {
+    CategoryMembersResult,
+    LinksHereResult,
+    MediaWikiDataError,
+    PageRevisionsResult,
+    RedirectsResult,
+    TemplateDataResult,
+} from '../global-types';
 
 interface Script {
     'name': string;
@@ -69,6 +77,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
         private scripts!: Script[];
 
         private scriptDataUpdaters = {
+            'article-cleaner': getArticleCleanerData,
             'redirect-helper': getRedirectHelperData,
         };
 
@@ -130,7 +139,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                     const buttonGroup = new OO.ui.ButtonGroupWidget({
                         items: Object.entries(this.scriptDataUpdaters).map(([name, updater]) => {
                             const button = new OO.ui.ButtonWidget({
-                                label: `Update ${name} data`,
+                                label: name,
                                 flags: ['progressive'],
                             });
                             button.on('click', async () => {
@@ -145,7 +154,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
 
                                 await new Promise((resolve) => setTimeout(resolve, 500)); // Allow the notification to be shown
 
-                                this.openDiff('User:Eejit43/scripts/redirect-helper.json', data);
+                                this.openDiff(`User:Eejit43/scripts/${name}.json`, data);
                             });
 
                             return button;
@@ -402,125 +411,154 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
     }
 
     Object.assign(ScriptUpdaterDialog.prototype, OO.ui.ProcessDialog.prototype);
-
-    /**
-     * Opens a diff containing the updates to redirect-helper.json.
-     */
-    async function getRedirectHelperData() {
-        const api = new mw.Api();
-
-        const allRedirectTemplates = (await api.get({
-            action: 'query',
-            list: 'categorymembers',
-            cmtitle: 'Category:Redirect templates',
-            cmlimit: 'max',
-            formatversion: '2',
-        } satisfies ApiQueryCategoryMembersParams)) as CategoryMembersResult;
-        const allPossibleTemplates = (await api.get({
-            action: 'query',
-            list: 'categorymembers',
-            cmtitle: 'Category:Template redirects with possibilities',
-            cmlimit: 'max',
-            formatversion: '2',
-        } satisfies ApiQueryCategoryMembersParams)) as CategoryMembersResult;
-
-        const redirectTemplates = allRedirectTemplates.query.categorymembers
-            .filter((page) => page.title.startsWith('Template:R ') && page.title !== 'Template:R template index')
-            .map((page) => ({ name: page.title.split(':')[1], redirect: false }));
-        const possibleRedirectTemplates = allPossibleTemplates.query.categorymembers
-            .filter((page) => page.title.startsWith('Template:R ') && page.title !== 'Template:R with possibilities')
-            .map((page) => ({ name: page.title.split(':')[1], redirect: true }));
-
-        const allAliasesOfRedirects: string[] = [];
-
-        const mappedData = await Promise.all(
-            [...redirectTemplates, ...possibleRedirectTemplates]
-                .sort((a, b) => {
-                    // Force comics and Middle Earth templates to the end of the list
-                    if (a.name.startsWith('R comics') || a.name.startsWith('R ME')) return 1;
-                    else if (b.name.startsWith('R comics') || b.name.startsWith('R ME')) return -1;
-                    else return a.name.localeCompare(b.name);
-                })
-                .map(async (page) => {
-                    const templateDataQuery = (await api.get({
-                        action: 'templatedata',
-                        titles: 'Template:' + page.name,
-                        formatversion: '2',
-                    } satisfies TemplateDataApiTemplateDataParams)) as TemplateDataResult;
-
-                    const parameters = Object.values(templateDataQuery.pages)[0]?.params || {}; // eslint-disable-line @typescript-eslint/no-unnecessary-condition
-
-                    const formattedParameters = Object.fromEntries(
-                        Object.entries(parameters).map(([name, data]) => [
-                            name,
-                            {
-                                aliases: data.aliases,
-                                label: data.label?.en ?? null,
-                                description: data.description?.en ?? null,
-                                type: data.type,
-                                required: data.required,
-                                suggested: data.suggested,
-                                default: data.default?.en ?? null,
-                                example: data.example?.en ?? null,
-                            },
-                        ]),
-                    );
-
-                    let mappedRedirects;
-                    if (page.redirect) {
-                        const linksQuery = (await api.get({
-                            action: 'query',
-                            titles: 'Template:' + page.name,
-                            prop: 'linkshere',
-                            lhnamespace: 10,
-                            lhlimit: 'max',
-                            formatversion: '2',
-                        } satisfies ApiQueryBacklinkspropParams)) as LinksHereResult;
-
-                        mappedRedirects =
-                            linksQuery.query.pages[0].linkshere
-                                ?.filter((page) => page.redirect)
-                                .map((page) => page.title.split(':')[1])
-                                .filter(
-                                    (page) =>
-                                        ![...redirectTemplates, ...possibleRedirectTemplates].some((template) => template.name === page) &&
-                                        !page.endsWith('/doc') &&
-                                        !page.endsWith('/sandbox'),
-                                )
-                                .sort((a, b) => a.localeCompare(b)) ?? [];
-
-                        allAliasesOfRedirects.push(...mappedRedirects);
-                    } else {
-                        const redirectsQuery = (await api.get({
-                            action: 'query',
-                            titles: 'Template:' + page.name,
-                            prop: 'redirects',
-                            rdlimit: 'max',
-                            formatversion: '2',
-                        } satisfies ApiQueryBacklinkspropParams)) as RedirectsResult;
-
-                        mappedRedirects =
-                            redirectsQuery.query.pages[0].redirects
-                                ?.filter((redirect) => redirect.ns === 10)
-                                .map((redirect) => redirect.title.split(':')[1])
-                                .filter((redirect) => !possibleRedirectTemplates.some((template) => template.name === redirect))
-                                .sort((a, b) => a.localeCompare(b)) ?? [];
-                    }
-
-                    const templateData = {
-                        ...(page.redirect ? { redirect: true } : {}),
-                        parameters: formattedParameters,
-                        aliases: mappedRedirects,
-                    };
-
-                    return [page.name, templateData] as const;
-                }),
-        );
-
-        for (const alias of allAliasesOfRedirects)
-            for (const [, data] of mappedData)
-                if (!data.redirect && data.aliases.includes(alias)) data.aliases = data.aliases.filter((a) => a !== alias);
-
-        return JSON.stringify(Object.fromEntries(mappedData));
-    }
 });
+
+/**
+ * Gets the script data for article-cleaner.
+ */
+async function getArticleCleanerData() {
+    const api = new mw.Api();
+
+    const content = (
+        (await api.get({
+            action: 'query',
+            formatversion: '2',
+            prop: 'revisions',
+            rvprop: 'content',
+            rvslots: 'main',
+            titles: 'Wikipedia:AutoWikiBrowser/Template redirects',
+        } satisfies ApiQueryRevisionsParams)) as PageRevisionsResult
+    ).query!.pages[0].revisions[0].slots.main.content.trim();
+
+    const replacements = content
+        .matchAll(/\* {{tl\|.+/g)
+        .toArray()
+        .map((line) => {
+            const templates = line[0].matchAll(/{{tl\|(.+?)}}/g).toArray();
+
+            return { from: templates.slice(0, -1).map((template) => template[1]), to: templates.at(-1)![1] };
+        });
+
+    return JSON.stringify(replacements);
+}
+
+/**
+ * Gets the script data for redirect-helper.
+ */
+async function getRedirectHelperData() {
+    const api = new mw.Api();
+
+    const allRedirectTemplates = (await api.get({
+        action: 'query',
+        list: 'categorymembers',
+        cmtitle: 'Category:Redirect templates',
+        cmlimit: 'max',
+        formatversion: '2',
+    } satisfies ApiQueryCategoryMembersParams)) as CategoryMembersResult;
+    const allPossibleTemplates = (await api.get({
+        action: 'query',
+        list: 'categorymembers',
+        cmtitle: 'Category:Template redirects with possibilities',
+        cmlimit: 'max',
+        formatversion: '2',
+    } satisfies ApiQueryCategoryMembersParams)) as CategoryMembersResult;
+
+    const redirectTemplates = allRedirectTemplates.query.categorymembers
+        .filter((page) => page.title.startsWith('Template:R ') && page.title !== 'Template:R template index')
+        .map((page) => ({ name: page.title.split(':')[1], redirect: false }));
+    const possibleRedirectTemplates = allPossibleTemplates.query.categorymembers
+        .filter((page) => page.title.startsWith('Template:R ') && page.title !== 'Template:R with possibilities')
+        .map((page) => ({ name: page.title.split(':')[1], redirect: true }));
+
+    const allAliasesOfRedirects: string[] = [];
+
+    const mappedData = await Promise.all(
+        [...redirectTemplates, ...possibleRedirectTemplates]
+            .sort((a, b) => {
+                // Force comics and Middle Earth templates to the end of the list
+                if (a.name.startsWith('R comics') || a.name.startsWith('R ME')) return 1;
+                else if (b.name.startsWith('R comics') || b.name.startsWith('R ME')) return -1;
+                else return a.name.localeCompare(b.name);
+            })
+            .map(async (page) => {
+                const templateDataQuery = (await api.get({
+                    action: 'templatedata',
+                    titles: 'Template:' + page.name,
+                    formatversion: '2',
+                } satisfies TemplateDataApiTemplateDataParams)) as TemplateDataResult;
+
+                const parameters = Object.values(templateDataQuery.pages)[0]?.params || {}; // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+
+                const formattedParameters = Object.fromEntries(
+                    Object.entries(parameters).map(([name, data]) => [
+                        name,
+                        {
+                            aliases: data.aliases,
+                            label: data.label?.en ?? null,
+                            description: data.description?.en ?? null,
+                            type: data.type,
+                            required: data.required,
+                            suggested: data.suggested,
+                            default: data.default?.en ?? null,
+                            example: data.example?.en ?? null,
+                        },
+                    ]),
+                );
+
+                let mappedRedirects;
+                if (page.redirect) {
+                    const linksQuery = (await api.get({
+                        action: 'query',
+                        titles: 'Template:' + page.name,
+                        prop: 'linkshere',
+                        lhnamespace: 10,
+                        lhlimit: 'max',
+                        formatversion: '2',
+                    } satisfies ApiQueryBacklinkspropParams)) as LinksHereResult;
+
+                    mappedRedirects =
+                        linksQuery.query.pages[0].linkshere
+                            ?.filter((page) => page.redirect)
+                            .map((page) => page.title.split(':')[1])
+                            .filter(
+                                (page) =>
+                                    ![...redirectTemplates, ...possibleRedirectTemplates].some((template) => template.name === page) &&
+                                    !page.endsWith('/doc') &&
+                                    !page.endsWith('/sandbox'),
+                            )
+                            .sort((a, b) => a.localeCompare(b)) ?? [];
+
+                    allAliasesOfRedirects.push(...mappedRedirects);
+                } else {
+                    const redirectsQuery = (await api.get({
+                        action: 'query',
+                        titles: 'Template:' + page.name,
+                        prop: 'redirects',
+                        rdlimit: 'max',
+                        formatversion: '2',
+                    } satisfies ApiQueryBacklinkspropParams)) as RedirectsResult;
+
+                    mappedRedirects =
+                        redirectsQuery.query.pages[0].redirects
+                            ?.filter((redirect) => redirect.ns === 10)
+                            .map((redirect) => redirect.title.split(':')[1])
+                            .filter((redirect) => !possibleRedirectTemplates.some((template) => template.name === redirect))
+                            .sort((a, b) => a.localeCompare(b)) ?? [];
+                }
+
+                const templateData = {
+                    ...(page.redirect ? { redirect: true } : {}),
+                    parameters: formattedParameters,
+                    aliases: mappedRedirects,
+                };
+
+                return [page.name, templateData] as const;
+            }),
+    );
+
+    for (const alias of allAliasesOfRedirects)
+        for (const [, data] of mappedData)
+            if (!data.redirect && data.aliases.includes(alias)) data.aliases = data.aliases.filter((a) => a !== alias);
+
+    return JSON.stringify(Object.fromEntries(mappedData));
+}

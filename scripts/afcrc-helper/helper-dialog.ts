@@ -21,7 +21,7 @@ export interface RequestAction {
 export default class HelperDialog extends OO.ui.ProcessDialog {
     protected api = new mw.Api();
 
-    protected scriptMessage = ' ([[User:Eejit43/scripts/afcrc-helper|afcrc-helper]])';
+    protected readonly SCRIPT_MESSAGE = ' ([[User:Eejit43/scripts/afcrc-helper|afcrc-helper]])';
 
     private requestPageType: 'redirect' | 'category';
     protected pageTitle: string;

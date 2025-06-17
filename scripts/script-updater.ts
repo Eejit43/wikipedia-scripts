@@ -64,10 +64,10 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
     class ScriptUpdaterDialog extends OO.ui.ProcessDialog {
         private api = new mw.Api();
 
-        private repoOwner = 'Eejit43';
-        private repoName = 'wikipedia-scripts';
+        private readonly REPO_OWNER = 'Eejit43';
+        private readonly REPO_NAME = 'wikipedia-scripts';
 
-        private scriptMessage = ' (via [[User:Eejit43/scripts/script-updater.js|script]])';
+        private readonly SCRIPT_MESSAGE = ' (via [[User:Eejit43/scripts/script-updater.js|script]])';
 
         private content!: OO.ui.PanelLayout;
         private scriptsMultiselect!: OO.ui.CheckboxMultiselectWidget;
@@ -238,14 +238,14 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
          * Loads data for all scripts.
          */
         private loadScriptData = async () => {
-            const latestCommitHashResponse = await fetch(`https://api.github.com/repos/${this.repoOwner}/${this.repoName}/commits`);
+            const latestCommitHashResponse = await fetch(`https://api.github.com/repos/${this.REPO_OWNER}/${this.REPO_NAME}/commits`);
             if (!latestCommitHashResponse.ok)
                 return `Failed to fetch latest commit hash from GitHub: ${latestCommitHashResponse.statusText} (${latestCommitHashResponse.status})`;
 
             this.latestCommitHash = ((await latestCommitHashResponse.json()) as { sha: string }[])[0].sha;
 
             const scriptDataResponse = await fetch(
-                `https://raw.githubusercontent.com/${this.repoOwner}/${this.repoName}/${this.latestCommitHash}/scripts.json`,
+                `https://raw.githubusercontent.com/${this.REPO_OWNER}/${this.REPO_NAME}/${this.latestCommitHash}/scripts.json`,
             );
             if (!scriptDataResponse.ok)
                 return `Failed to fetch script data from GitHub: ${scriptDataResponse.statusText} (${scriptDataResponse.status})`;
@@ -302,7 +302,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
 
             if (actionsToTake.includes('script')) {
                 const scriptContentResponse = await fetch(
-                    `https://raw.githubusercontent.com/${this.repoOwner}/${this.repoName}/${this.latestCommitHash}/dist/${script.name}.js`,
+                    `https://raw.githubusercontent.com/${this.REPO_OWNER}/${this.REPO_NAME}/${this.latestCommitHash}/dist/${script.name}.js`,
                 );
                 if (scriptContentResponse.ok) scriptContent = await scriptContentResponse.text();
                 else
@@ -350,7 +350,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
          * @param summary The edit summary (will append script notice).
          */
         private async editOrCreate(title: string, text: string, summary: string) {
-            summary += this.scriptMessage;
+            summary += this.SCRIPT_MESSAGE;
 
             await this.api
                 .edit(title, () => ({ text, summary, watchlist: 'watch' }))
@@ -381,7 +381,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
         private openDiff(pageTitle: string, content: string) {
             const formData = {
                 wpTextbox1: content,
-                wpSummary: `Updating data${this.scriptMessage}`,
+                wpSummary: `Updating data${this.SCRIPT_MESSAGE}`,
                 wpDiff: '1', // Any truthy value makes this work
                 wpUltimateParam: '1', // Marks the end of form data
             };

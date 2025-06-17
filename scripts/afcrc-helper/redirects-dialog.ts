@@ -430,7 +430,7 @@ export default class RedirectsDialog extends HelperDialog {
                 title: this.pageTitle,
                 transform: () => ({
                     text: newPageText,
-                    summary: `Handling AfC redirect requests (${mappedCounts})${this.scriptMessage}`,
+                    summary: `Handling AfC redirect requests (${mappedCounts})${this.SCRIPT_MESSAGE}`,
                 }),
             });
 
@@ -481,14 +481,14 @@ export default class RedirectsDialog extends HelperDialog {
                 isRedirect: true,
                 title: title.getPrefixedText(),
                 text: `#REDIRECT [[${target}]]${tagsWithArguments ? `\n\n{{Redirect category shell|\n${tagsWithArguments.join('\n')}\n}}` : ''}`,
-                summary: `Creating redirect to [[${target}]] as requested at [[WP:AFC/R]]${this.scriptMessage}`,
+                summary: `Creating redirect to [[${target}]] as requested at [[WP:AFC/R]]${this.SCRIPT_MESSAGE}`,
             },
             {
                 type: 'create',
                 isRedirect: false,
                 title: title.getTalkPage()!.getPrefixedText(),
                 text: `{{WikiProject banner shell|\n{{WikiProject Articles for creation|ts={{subst:LOCALTIMESTAMP}}|reviewer=${mw.config.get('wgUserName')}}}\n}}`,
-                summary: `Adding [[Wikipedia:WikiProject Articles for creation|WikiProject Articles for creation]] banner${this.scriptMessage}`,
+                summary: `Adding [[Wikipedia:WikiProject Articles for creation|WikiProject Articles for creation]] banner${this.SCRIPT_MESSAGE}`,
             },
         );
     }

@@ -48,8 +48,8 @@ export interface TemplateEditorElementInfo {
 export default class RedirectHelperDialog {
     // Utility variables
     private api = new mw.Api();
-    private redirectRegex = /^#.*?:?\s*\[\[\s*:?([^[\]{|}]+?)\s*(?:\|[^[\]{|}]+?)?]]\s*/i;
-    private scriptMessage = ' (via [[w:en:User:Eejit43/scripts/redirect-helper|redirect-helper]])';
+    private readonly REDIRECT_REGEX = /^#.*?:?\s*\[\[\s*:?([^[\]{|}]+?)\s*(?:\|[^[\]{|}]+?)?]]\s*/i;
+    private readonly SCRIPT_MESSAGE = ' (via [[w:en:User:Eejit43/scripts/redirect-helper|redirect-helper]])';
 
     // Assigned in constructor
     private redirectTemplates: RedirectTemplateData;
@@ -183,7 +183,7 @@ export default class RedirectHelperDialog {
 
         this.syncWithSubjectPageButton = new OO.ui.ButtonWidget({ label: 'Sync with subject page', icon: 'link', flags: ['progressive'] });
         this.syncWithSubjectPageButton.on('click', () => {
-            const target = this.redirectRegex.exec(subjectPageContent)?.[1];
+            const target = this.REDIRECT_REGEX.exec(subjectPageContent)?.[1];
             if (!target) return mw.notify('Failed to parse subject page content!', { type: 'error' });
 
             this.redirectInput.setValue(mw.Title.newFromText(target)?.getTalkPage()?.getPrefixedText() ?? '');
@@ -209,7 +209,7 @@ export default class RedirectHelperDialog {
 
         this.syncWithRootPageButton = new OO.ui.ButtonWidget({ label: 'Sync with root page', icon: 'link', flags: ['progressive'] });
         this.syncWithRootPageButton.on('click', () => {
-            const target = this.redirectRegex.exec(rootPageContent)?.[1];
+            const target = this.REDIRECT_REGEX.exec(rootPageContent)?.[1];
             if (!target) return mw.notify('Failed to parse root page content!', { type: 'error' });
 
             const targetTitle = mw.Title.newFromText(target)?.getPrefixedText();
@@ -710,7 +710,7 @@ export default class RedirectHelperDialog {
     private async loadExistingData() {
         if (this.exists) this.pageContent = await this.getPageContent(this.pageTitle);
 
-        this.oldRedirectTarget = this.redirectRegex.exec(this.pageContent)?.[1];
+        this.oldRedirectTarget = this.REDIRECT_REGEX.exec(this.pageContent)?.[1];
 
         this.oldRedirectTags = (
             Object.entries(this.redirectTemplates)
@@ -1149,7 +1149,7 @@ export default class RedirectHelperDialog {
         );
 
         const summary =
-            (this.summaryInput.getValue() || (this.summaryInput.$tabIndexed[0] as HTMLInputElement).placeholder) + this.scriptMessage;
+            (this.summaryInput.getValue() || (this.summaryInput.$tabIndexed[0] as HTMLInputElement).placeholder) + this.SCRIPT_MESSAGE;
 
         const result = await this.editOrCreate(this.pageTitle, output, summary);
         if (!result) return;
@@ -1173,7 +1173,7 @@ export default class RedirectHelperDialog {
             const talkResult = await this.editOrCreate(
                 this.pageTitleParsed.getTalkPage()!.getPrefixedText(),
                 output,
-                'Syncing redirect from subject page' + this.scriptMessage,
+                'Syncing redirect from subject page' + this.SCRIPT_MESSAGE,
             );
             if (!talkResult) return;
 
@@ -1309,18 +1309,14 @@ export default class RedirectHelperDialog {
                     return this.api.create(title, { summary, watchlist }, text).catch((errorCode, errorInfo) => {
                         mw.notify(
                             `Error creating ${title}: ${(errorInfo as MediaWikiDataError)?.error?.info ?? 'Unknown error'} (${errorCode})`,
-                            {
-                                type: 'error',
-                            },
+                            { type: 'error' },
                         );
                         return null;
                     });
                 else {
                     mw.notify(
                         `Error editing or creating ${title}: ${(errorInfo as MediaWikiDataError)?.error?.info ?? 'Unknown error'} (${errorCode})`,
-                        {
-                            type: 'error',
-                        },
+                        { type: 'error' },
                     );
                     return null;
                 }

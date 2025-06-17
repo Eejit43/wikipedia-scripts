@@ -65,19 +65,13 @@ mw.loader.using(['mediawiki.util'], async () => {
                         .catch((errorCode, errorInfo) => {
                             mw.notify(
                                 `Failed to redirect page: ${(errorInfo as MediaWikiDataError)?.error?.info ?? 'Unknown error'} (${errorCode})`,
-                                {
-                                    type: 'error',
-                                    tag: 'sync-redirect-notification',
-                                },
+                                { type: 'error', tag: 'sync-redirect-notification' },
                             );
                         });
                 else
                     mw.notify(
                         `Failed to redirect page: ${(errorInfo as MediaWikiDataError)?.error?.info ?? 'Unknown error'} (${errorCode})`,
-                        {
-                            type: 'error',
-                            tag: 'sync-redirect-notification',
-                        },
+                        { type: 'error', tag: 'sync-redirect-notification' },
                     );
             });
 

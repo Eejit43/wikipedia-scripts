@@ -41,7 +41,7 @@
         },
         "source-multiple": true,
         "released": "2024|02|15",
-        "updated": "2025|05|07"
+        "updated": "2025|06|16"
     },
     "AFCRHS": {
         "image": false,
@@ -76,7 +76,7 @@
             "cologne-blue": "yes"
         },
         "released": "2023|02|16",
-        "updated": "2025|04|09"
+        "updated": "2025|06|16"
     },
     "aligner": {
         "use-instead": "article-cleaner",
@@ -286,7 +286,7 @@
         },
         "source-multiple": true,
         "released": "2023|05|17",
-        "updated": "2025|06|10"
+        "updated": "2025|06|16"
     },
     "rmtr-helper": {
         "short-description": "User script to help handle requests at [[WP:RM/TR]]",
@@ -363,7 +363,7 @@
             "cologne-blue": "yes"
         },
         "released": "2023|02|09",
-        "updated": "2025|04|09"
+        "updated": "2025|06|16"
     },
     "to-monitor-list": {
         "image": false,

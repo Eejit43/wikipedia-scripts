@@ -527,7 +527,7 @@ export default class CategoriesDialog extends HelperDialog {
                 title: this.pageTitle,
                 transform: () => ({
                     text: newPageText,
-                    summary: `Handling AfC category requests (${mappedCounts})${this.scriptMessage}`,
+                    summary: `Handling AfC category requests (${mappedCounts})${this.SCRIPT_MESSAGE}`,
                 }),
             });
 
@@ -550,14 +550,14 @@ export default class CategoriesDialog extends HelperDialog {
                 isRedirect: false,
                 title: `Category:${data.category}`,
                 text: data.parents.map((parent) => `[[Category:${parent}]]`).join('\n'),
-                summary: `Creating category as requested at [[WP:AFC/C]]${this.scriptMessage}`,
+                summary: `Creating category as requested at [[WP:AFC/C]]${this.SCRIPT_MESSAGE}`,
             },
             {
                 type: 'create',
                 isRedirect: false,
                 title: `Category talk:${data.category}`,
                 text: `{{WikiProject banner shell|\n{{WikiProject Articles for creation|ts={{subst:LOCALTIMESTAMP}}|reviewer=${mw.config.get('wgUserName')}}}\n}}`,
-                summary: `Adding [[Wikipedia:WikiProject Articles for creation|WikiProject Articles for creation]] banner${this.scriptMessage}`,
+                summary: `Adding [[Wikipedia:WikiProject Articles for creation|WikiProject Articles for creation]] banner${this.SCRIPT_MESSAGE}`,
             },
             ...data.categorizedPages.map((page) => ({
                 type: 'edit' as const,
@@ -580,7 +580,7 @@ export default class CategoriesDialog extends HelperDialog {
 
                     return {
                         text: content,
-                        summary: `Adding page to [[:Category:${data.category}]] as requested at [[WP:AFC/C]]${this.scriptMessage}`,
+                        summary: `Adding page to [[:Category:${data.category}]] as requested at [[WP:AFC/C]]${this.SCRIPT_MESSAGE}`,
                     };
                 },
             })),

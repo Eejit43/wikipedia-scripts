@@ -58,16 +58,16 @@ export {};
 
         let shouldAddScriptMessage = false;
 
-        const scriptMessage = 'Cleaned up article content (via [[User:Eejit43/scripts/article-cleaner|article-cleaner]])';
+        const SCRIPT_MESSAGE = 'Cleaned up article content (via [[User:Eejit43/scripts/article-cleaner|article-cleaner]])';
 
         mw.hook('ve.saveDialog.stateChanged').add(() => {
             if (shouldAddScriptMessage) {
                 const summaryInput = document.querySelector<HTMLTextAreaElement>('.ve-ui-mwSaveDialog-summary textarea')!;
 
-                if (!summaryInput.value.includes(scriptMessage.slice(1)))
+                if (!summaryInput.value.includes(SCRIPT_MESSAGE.slice(1)))
                     if (summaryInput.value && !summaryInput.value.startsWith('/* ') && !summaryInput.value.endsWith(' */ '))
-                        summaryInput.value += `; ${scriptMessage.charAt(0).toLowerCase() + scriptMessage.slice(1)}`;
-                    else summaryInput.value = `${summaryInput.value}${scriptMessage}`;
+                        summaryInput.value += `; ${SCRIPT_MESSAGE.charAt(0).toLowerCase() + SCRIPT_MESSAGE.slice(1)}`;
+                    else summaryInput.value = `${summaryInput.value}${SCRIPT_MESSAGE}`;
 
                 shouldAddScriptMessage = false;
             }
@@ -114,9 +114,10 @@ export {};
 
                 const summaryInput = document.querySelector<HTMLInputElement>('#wpSummary');
                 if (summaryInput) {
-                    if (!summaryInput.value.includes(scriptMessage.slice(1)))
-                        if (summaryInput.value) summaryInput.value += `; ${scriptMessage.charAt(0).toLowerCase() + scriptMessage.slice(1)}`;
-                        else summaryInput.value = scriptMessage;
+                    if (!summaryInput.value.includes(SCRIPT_MESSAGE.slice(1)))
+                        if (summaryInput.value)
+                            summaryInput.value += `; ${SCRIPT_MESSAGE.charAt(0).toLowerCase() + SCRIPT_MESSAGE.slice(1)}`;
+                        else summaryInput.value = SCRIPT_MESSAGE;
                 } else shouldAddScriptMessage = true;
             }
         });
@@ -662,9 +663,11 @@ async function formatTemplates(content: string) {
         private parameters: { key: string | null; value: string }[] = [];
         public subTemplates: Template[] = [];
 
-        private placeholderStrings = ['\u{F0000}', '\u{10FFFF}', '\u{FFFFE}'];
+        private PLACEHOLDER_STRINGS = ['\u{F0000}', '\u{10FFFF}', '\u{FFFFE}'];
 
-        private pipeEscapeRegexes = [/(\[\[[^\]]*?)\|(.*?]])/g, /(<!--.*?)\|(.*?-->)/g, /(<nowiki>.*?)\|(.*?<\/nowiki>)/g];
+        private PIPE_ESCAPE_REGEXES = [/(\[\[[^\]]*?)\|(.*?]])/g, /(<!--.*?)\|(.*?-->)/g, /(<nowiki>.*?)\|(.*?<\/nowiki>)/g];
+
+        private TAG_EQUALS_ESCAPE_REGEXES = [/<(\w+)( [^<>]+?)(?<!\/)>.*?<\/\1>/g, /<(\w+)( [^<>]+?)\/>/g];
 
         private templateAliases = mappedTemplateAliases;
 
@@ -813,23 +816,23 @@ async function formatTemplates(content: string) {
             for (const subTemplate of this.subTemplates) {
                 subTemplate.parse();
 
-                this.fullTextEscaped = this.fullTextEscaped.replace(subTemplate.fullText!, this.placeholderStrings[0]);
+                this.fullTextEscaped = this.fullTextEscaped.replace(subTemplate.fullText!, this.PLACEHOLDER_STRINGS[0]);
             }
 
             let trimmedInnerText = this.fullTextEscaped.slice(2, -2).trim();
 
-            for (const pipeEscapeRegex of this.pipeEscapeRegexes)
+            for (const pipeEscapeRegex of this.PIPE_ESCAPE_REGEXES)
                 while (pipeEscapeRegex.test(trimmedInnerText))
-                    trimmedInnerText = trimmedInnerText.replaceAll(pipeEscapeRegex, `$1${this.placeholderStrings[1]}$2`);
+                    trimmedInnerText = trimmedInnerText.replaceAll(pipeEscapeRegex, `$1${this.PLACEHOLDER_STRINGS[1]}$2`);
 
-            const tagEqualsEscapeRegexes = [/<(\w+)( [^<>]+?)(?<!\/)>.*?<\/\1>/g, /<(\w+)( [^<>]+?)\/>/g];
-
-            for (const tagEqualsEscapeRegex of tagEqualsEscapeRegexes)
-                trimmedInnerText = trimmedInnerText.replaceAll(tagEqualsEscapeRegex, (fullText, tagName: string, attributes: string) => {
-                    return fullText.replace(attributes, attributes.replaceAll('=', this.placeholderStrings[2]));
+            for (const regex of this.TAG_EQUALS_ESCAPE_REGEXES)
+                trimmedInnerText = trimmedInnerText.replaceAll(regex, (fullText, tagName: string, attributes: string) => {
+                    return fullText.replace(attributes, attributes.replaceAll('=', this.PLACEHOLDER_STRINGS[2]));
                 });
 
-            const parameters = trimmedInnerText.split('|').map((parameter) => parameter.replaceAll(this.placeholderStrings[1], '|').trim());
+            const parameters = trimmedInnerText
+                .split('|')
+                .map((parameter) => parameter.replaceAll(this.PLACEHOLDER_STRINGS[1], '|').trim());
 
             this.rawName = parameters.shift()!;
             this.name = this.rawName.replaceAll('_', ' ');
@@ -845,9 +848,9 @@ async function formatTemplates(content: string) {
             const splitParameters = parameters.map((parameters) => {
                 const equalsLocation = parameters.indexOf('=');
 
-                if (equalsLocation === -1) return { key: null, value: parameters.replaceAll(this.placeholderStrings[2], '=').trim() };
+                if (equalsLocation === -1) return { key: null, value: parameters.replaceAll(this.PLACEHOLDER_STRINGS[2], '=').trim() };
 
-                const value = parameters.slice(equalsLocation + 1).replaceAll(this.placeholderStrings[2], '=');
+                const value = parameters.slice(equalsLocation + 1).replaceAll(this.PLACEHOLDER_STRINGS[2], '=');
 
                 return {
                     key: parameters.slice(0, equalsLocation).trim(),
@@ -923,7 +926,7 @@ async function formatTemplates(content: string) {
                 if (newName !== this.rawName!) this.fullTextEscaped = this.fullTextEscaped!.replace(this.rawName!, newName);
 
                 for (const subTemplate of this.subTemplates)
-                    this.fullTextEscaped = this.fullTextEscaped!.replace(this.placeholderStrings[0], subTemplate.format());
+                    this.fullTextEscaped = this.fullTextEscaped!.replace(this.PLACEHOLDER_STRINGS[0], subTemplate.format());
 
                 return this.fullTextEscaped!;
             }
@@ -980,7 +983,7 @@ async function formatTemplates(content: string) {
             );
 
             for (const subTemplate of this.subTemplates)
-                joinedOutput = joinedOutput.replace(this.placeholderStrings[0], subTemplate.format());
+                joinedOutput = joinedOutput.replace(this.PLACEHOLDER_STRINGS[0], subTemplate.format());
 
             return joinedOutput;
         }

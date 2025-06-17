@@ -1,13 +1,10 @@
 import type { ApiParseParams } from 'types-mediawiki/api_params';
+import { api } from '../../utility';
 
 /**
  * An instance of this class is a dialog used for previewing template output.
  */
 export default class OutputPreviewDialog extends OO.ui.ProcessDialog {
-    // Utility variables
-    private api = new mw.Api();
-
-    // Assigned in constructor
     private pageTitleParsed: mw.Title;
 
     constructor(config: OO.ui.ProcessDialog.ConfigOptions, pageTitleParsed: mw.Title) {
@@ -22,7 +19,7 @@ export default class OutputPreviewDialog extends OO.ui.ProcessDialog {
 
     getSetupProcess = () => {
         return OutputPreviewDialog.super.prototype.getSetupProcess.call(this).next(() => {
-            return this.api
+            return api
                 .post({
                     action: 'parse',
                     formatversion: '2',

@@ -64,7 +64,23 @@ export interface CategoriesResult {
 }
 
 export interface PageRevisionsResult {
-    query?: { pages: { revisions: { revid: number; slots: { main: { content: string } } }[] }[] };
+    batchcomplete: true;
+    query: {
+        pages: {
+            ns: number;
+            title: string;
+            missing?: true;
+            revisions?: {
+                slots: {
+                    main: {
+                        content: string;
+                        contentmodel: string;
+                        contentformat: string;
+                    };
+                };
+            }[];
+        }[];
+    };
 }
 
 export interface TemplateDataParameterData {

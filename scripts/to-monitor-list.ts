@@ -1,5 +1,6 @@
-import type { ApiQueryBacklinksParams, ApiQueryRevisionsParams, ApiQuerySearchParams } from 'types-mediawiki/api_params';
-import type { BacklinksResult, EmbeddedinResult, MediaWikiDataError, PageRevisionsResult, SearchResult } from '../global-types';
+import type { ApiQueryBacklinksParams, ApiQuerySearchParams } from 'types-mediawiki/api_params';
+import type { BacklinksResult, EmbeddedinResult, MediaWikiDataError, SearchResult } from '../global-types';
+import { api, getPageContent } from '../utility';
 
 interface SearchData {
     categories: { id: string; category: string; namespaces?: string[]; notNamespaces?: string[] }[];
@@ -14,8 +15,6 @@ type SearchDataCheck = SearchData[keyof SearchData][0];
  * An instance of this class handles the entire functionality of the to-monitor-list script.
  */
 class MonitoringListManager {
-    private api = new mw.Api();
-
     private link!: HTMLAnchorElement;
 
     private toCheck!: SearchData;
@@ -53,7 +52,7 @@ class MonitoringListManager {
 
             for (const check of this.toCheck.categories)
                 void this.handleCheck(check, async () => {
-                    const data = (await this.api
+                    const data = (await api
                         .get({
                             action: 'query',
                             list: 'search',
@@ -75,7 +74,7 @@ class MonitoringListManager {
 
             for (const check of this.toCheck.searches)
                 void this.handleCheck(check, async () => {
-                    const data = (await this.api
+                    const data = (await api
                         .get({
                             action: 'query',
                             list: 'search',
@@ -97,7 +96,7 @@ class MonitoringListManager {
 
             for (const check of this.toCheck.whatLinksHere)
                 void this.handleCheck(check, async () => {
-                    const data = (await this.api
+                    const data = (await api
                         .get({
                             action: 'query',
                             list: 'backlinks',
@@ -119,7 +118,7 @@ class MonitoringListManager {
 
             for (const check of this.toCheck.transclusions)
                 void this.handleCheck(check, async () => {
-                    const data = (await this.api
+                    const data = (await api
                         .get({
                             action: 'query',
                             list: 'embeddedin',
@@ -154,18 +153,7 @@ class MonitoringListManager {
      * Loads the data of checks to handle.
      */
     public async loadToCheckData() {
-        this.toCheck = JSON.parse(
-            (
-                (await this.api.get({
-                    action: 'query',
-                    formatversion: '2',
-                    prop: 'revisions',
-                    rvprop: 'content',
-                    rvslots: 'main',
-                    titles: 'User:Eejit43/scripts/to-monitor-list.json',
-                } satisfies ApiQueryRevisionsParams)) as PageRevisionsResult
-            ).query!.pages[0].revisions[0].slots.main.content,
-        ) as SearchData;
+        this.toCheck = JSON.parse((await getPageContent('User:Eejit43/scripts/to-monitor-list.json')) ?? '{}') as SearchData;
 
         this.totalToCheck = Object.values(this.toCheck).flat().length;
     }

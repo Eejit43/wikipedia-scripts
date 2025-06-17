@@ -1,13 +1,10 @@
 import type { ApiComparePagesParams } from 'types-mediawiki/api_params';
+import { api } from '../../utility';
 
 /**
  * An instance of this class is a dialog used for showing changes to be made.
  */
 export default class ChangesDialog extends OO.ui.ProcessDialog {
-    // Utility variables
-    private api = new mw.Api();
-
-    // Tracking variables
     private hasLoadedDiffStyles = false;
 
     constructor(config: OO.ui.ProcessDialog.ConfigOptions) {
@@ -28,7 +25,7 @@ export default class ChangesDialog extends OO.ui.ProcessDialog {
 
             const [oldText, newText] = this.getData() as string[];
 
-            return this.api
+            return api
                 .post({
                     'action': 'compare',
                     'formatversion': '2',

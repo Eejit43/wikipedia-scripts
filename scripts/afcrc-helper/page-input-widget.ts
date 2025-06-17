@@ -1,13 +1,11 @@
 import type { ApiQueryAllPagesGeneratorParameters } from '../../global-types';
+import { api } from '../../utility';
 import type { LookupElementConfig } from '../redirect-helper/redirect-target-input-widget';
 
 /**
  * An instance of this class is a page lookup element.
  */
 export default class PageInputWidget extends OO.ui.TextInputWidget {
-    // Utility variables
-    private api = new mw.Api();
-
     constructor(config: LookupElementConfig) {
         super(config);
         OO.ui.mixin.LookupElement.call(this as unknown as OO.ui.mixin.LookupElement, config);
@@ -21,15 +19,14 @@ export default class PageInputWidget extends OO.ui.TextInputWidget {
 
         const parsedTitle = mw.Title.newFromText(value);
 
-        this.api
-            .get({
-                action: 'query',
-                formatversion: '2',
-                gaplimit: 20,
-                gapnamespace: parsedTitle?.getNamespaceId() ?? 0,
-                gapprefix: parsedTitle?.getMainText() ?? value,
-                generator: 'allpages',
-            } satisfies ApiQueryAllPagesGeneratorParameters)
+        api.get({
+            action: 'query',
+            formatversion: '2',
+            gaplimit: 20,
+            gapnamespace: parsedTitle?.getNamespaceId() ?? 0,
+            gapprefix: parsedTitle?.getMainText() ?? value,
+            generator: 'allpages',
+        } satisfies ApiQueryAllPagesGeneratorParameters)
             .catch(() => null)
             .then((result: { query?: { pages: { title: string }[] } } | null) => {
                 if (result?.query?.pages) {

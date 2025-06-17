@@ -1,5 +1,6 @@
 import type { ApiQueryLogEventsParams, ApiQueryParams } from 'types-mediawiki/api_params';
 import cssContent from '../styles/deletion-finder.css' with { type: 'css' };
+import { api } from '../utility';
 
 mw.loader.using(['mediawiki.util'], async () => {
     if (mw.config.get('wgNamespaceNumber') !== 0) return;
@@ -12,7 +13,7 @@ mw.loader.using(['mediawiki.util'], async () => {
 
     if (!titleElement) return mw.notify('deletion-finder: Could not find title element!', { type: 'error' });
 
-    const deletionResult = (await new mw.Api().get({
+    const deletionResult = (await api.get({
         action: 'query',
         leaction: 'delete/delete',
         lelimit: 1,
@@ -31,7 +32,7 @@ mw.loader.using(['mediawiki.util'], async () => {
         titleElement.append(link);
     }
 
-    const afdExists = (await new mw.Api().get({
+    const afdExists = (await api.get({
         action: 'query',
         formatversion: '2',
         titles: `Wikipedia:Articles_for_deletion/${mw.config.get('wgPageName')}`,

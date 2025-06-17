@@ -1,5 +1,4 @@
-import type { ApiQueryRevisionsParams } from 'types-mediawiki/api_params';
-import type { PageRevisionsResult } from '../global-types';
+import { getPageContent } from '../utility';
 
 declare global {
     // eslint-disable-next-line @typescript-eslint/no-extraneous-class
@@ -635,18 +634,7 @@ async function formatTemplates(content: string) {
         Draft = 118,
     }
 
-    const templateAliases = JSON.parse(
-        (
-            (await new mw.Api().get({
-                action: 'query',
-                formatversion: '2',
-                prop: 'revisions',
-                rvprop: 'content',
-                rvslots: 'main',
-                titles: 'User:Eejit43/scripts/article-cleaner.json',
-            } satisfies ApiQueryRevisionsParams)) as PageRevisionsResult
-        ).query!.pages[0]?.revisions?.[0]?.slots?.main?.content || '[]',
-    ) as TemplateRedirect[];
+    const templateAliases = JSON.parse((await getPageContent('User:Eejit43/scripts/article-cleaner.json')) ?? '[]') as TemplateRedirect[];
 
     const mappedTemplateAliases = Object.fromEntries(
         templateAliases.flatMap((alias) => alias.from.map((from) => [from.charAt(0).toLowerCase() + from.slice(1), alias.to])),

@@ -1,6 +1,7 @@
 import type { ApiQueryRevisionsParams } from 'types-mediawiki/api_params';
 import type { PageRevisionsResult } from '../global-types';
 import cssContent from '../styles/rmtr-helper.css' with { type: 'css' };
+import { api } from '../utility';
 
 mw.loader.using(['mediawiki.util'], () => {
     if (mw.config.get('wgPageName') !== 'Wikipedia:Requested_moves/Technical_requests') return;
@@ -171,7 +172,7 @@ mw.loader.using(['mediawiki.util'], () => {
                         invalidNamespaceWarning.classList.add('rmtr-review-invalid-warning');
                         invalidNamespaceWarning.textContent = `Warning: original or destination page is in namespace "${mwNewTitle.getNamespaceId() === namespaces.file ? 'file' : 'category'}"!`;
 
-                        const parsedWikitext = await new mw.Api().parse(
+                        const parsedWikitext = await api.parse(
                             `[[:${request.original}]] → ${validTitle ? `[[:${request.destination}]]` : invalidTitleWarning.outerHTML} requested by ${
                                 request.requester
                                     ? mw.util.isIPAddress(request.requester)
@@ -422,7 +423,7 @@ mw.loader.using(['mediawiki.util'], () => {
                     : ''
             }${noRemaining ? ' (no requests remain)' : ''} (via [[User:Eejit43/scripts/rmtr-helper|script]])`;
 
-            await new mw.Api().edit(mw.config.get('wgPageName'), () => ({ text: endResult, summary: editSummary }));
+            await api.edit(mw.config.get('wgPageName'), () => ({ text: endResult, summary: editSummary }));
 
             mw.notify(`Successfully handled ${changes.total} requests, reloading...`, { type: 'success' });
 
@@ -450,13 +451,13 @@ mw.loader.using(['mediawiki.util'], () => {
  */
 async function getPageRevision() {
     return (
-        (await new mw.Api().get({
+        (await api.get({
             action: 'query',
             formatversion: '2',
             prop: 'revisions',
             rvprop: ['content', 'ids'],
             rvslots: 'main',
             titles: mw.config.get('wgPageName'),
-        } satisfies ApiQueryRevisionsParams)) as PageRevisionsResult
-    ).query!.pages[0].revisions[0];
+        } satisfies ApiQueryRevisionsParams)) as PageRevisionsResult & { query: { pages: { revisions: { revid: number }[] }[] } }
+    ).query.pages[0].revisions[0];
 }

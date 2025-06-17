@@ -1,5 +1,4 @@
-import type { ApiQueryRevisionsParams } from 'types-mediawiki/api_params';
-import type { PageRevisionsResult } from '../../global-types';
+import { getPageContent } from '../../utility';
 import type { RedirectTemplateData, TemplateEditorElementInfo } from '../redirect-helper/redirect-helper-dialog';
 import type ActionsDialog from './actions-dialog';
 import HelperDialog, { type RequestAction, type RequestRequester } from './helper-dialog';
@@ -27,17 +26,8 @@ export default class RedirectsDialog extends HelperDialog {
      * Load elements in the window.
      */
     public async load() {
-        const redirectTemplateResponse = (await this.api.get({
-            action: 'query',
-            formatversion: '2',
-            prop: 'revisions',
-            rvprop: 'content',
-            rvslots: 'main',
-            titles: 'User:Eejit43/scripts/redirect-helper.json',
-        } satisfies ApiQueryRevisionsParams)) as PageRevisionsResult;
-
         this.redirectTemplates = JSON.parse(
-            redirectTemplateResponse.query!.pages[0]?.revisions?.[0]?.slots?.main?.content || '{}',
+            (await getPageContent('User:Eejit43/scripts/redirect-helper.json')) ?? '{}',
         ) as RedirectTemplateData;
 
         void super.load();

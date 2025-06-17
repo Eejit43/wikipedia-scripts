@@ -1,3 +1,5 @@
+import { api } from '../utility';
+
 mw.loader.using(['mediawiki.util'], () => {
     if (mw.config.get('wgNamespaceNumber') < 0) return; // Don't run in virtual namespaces
     if (!mw.config.get('wgIsProbablyEditable')) return; // Don't run if user can't edit page
@@ -10,7 +12,7 @@ mw.loader.using(['mediawiki.util'], () => {
         mw.notify('Null editing page...', { tag: 'null-edit-notification' });
 
         try {
-            await new mw.Api().edit(mw.config.get('wgPageName'), (text) => ({
+            await api.edit(mw.config.get('wgPageName'), (text) => ({
                 text: text.content,
                 summary: 'Null edit- if you see this, something went wrong!',
                 minor: true,

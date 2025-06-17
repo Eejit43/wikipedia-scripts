@@ -1,5 +1,6 @@
 import type { ApiParseParams } from 'types-mediawiki/api_params';
 import type { ApiQueryAllPagesGeneratorParameters, PageParseResult } from '../../global-types';
+import { api } from '../../utility';
 
 export interface LookupElementConfig extends OO.ui.TextInputWidget.ConfigOptions, OO.ui.mixin.LookupElement.ConfigOptions {}
 
@@ -7,10 +8,6 @@ export interface LookupElementConfig extends OO.ui.TextInputWidget.ConfigOptions
  * An instance of this class is a title lookup element.
  */
 export default class RedirectTargetInputWidget extends OO.ui.TextInputWidget {
-    // Utility variables
-    private api = new mw.Api();
-
-    // Assigned in constructor
     private pageTitleParsed: mw.Title;
 
     constructor(config: LookupElementConfig, pageTitleParsed: mw.Title) {
@@ -29,8 +26,7 @@ export default class RedirectTargetInputWidget extends OO.ui.TextInputWidget {
         else if (value.includes('#')) {
             const title = value.split('#')[0];
 
-            this.api
-                .get({ action: 'parse', page: title, prop: 'sections', redirects: true } satisfies ApiParseParams)
+            api.get({ action: 'parse', page: title, prop: 'sections', redirects: true } satisfies ApiParseParams)
                 .catch(() => null)
                 .then((result: PageParseResult | null) => {
                     if (result) {
@@ -51,16 +47,15 @@ export default class RedirectTargetInputWidget extends OO.ui.TextInputWidget {
         } else {
             const parsedTitle = mw.Title.newFromText(value);
 
-            this.api
-                .get({
-                    action: 'query',
-                    formatversion: '2',
-                    gaplimit: 20,
-                    gapnamespace: parsedTitle?.getNamespaceId() ?? 0,
-                    gapprefix: parsedTitle?.getMainText() ?? value,
-                    generator: 'allpages',
-                    prop: ['info', 'pageprops'],
-                } satisfies ApiQueryAllPagesGeneratorParameters)
+            api.get({
+                action: 'query',
+                formatversion: '2',
+                gaplimit: 20,
+                gapnamespace: parsedTitle?.getNamespaceId() ?? 0,
+                gapprefix: parsedTitle?.getMainText() ?? value,
+                generator: 'allpages',
+                prop: ['info', 'pageprops'],
+            } satisfies ApiQueryAllPagesGeneratorParameters)
                 .catch(() => null)
                 .then(
                     (

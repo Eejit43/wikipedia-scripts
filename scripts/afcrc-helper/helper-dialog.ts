@@ -1,5 +1,6 @@
-import type { ApiEditPageParams, ApiQueryRevisionsParams } from 'types-mediawiki/api_params';
-import type { MediaWikiDataError, PageRevisionsResult } from '../../global-types';
+import type { ApiEditPageParams } from 'types-mediawiki/api_params';
+import type { MediaWikiDataError } from '../../global-types';
+import { api, getPageContent } from '../../utility';
 import ActionsDialog from './actions-dialog';
 import type { WatchMethod } from './afcrc-helper';
 
@@ -19,8 +20,6 @@ export interface RequestAction {
  * An instance of this class is a dialog that handles redirect and category requests.
  */
 export default class HelperDialog extends OO.ui.ProcessDialog {
-    protected api = new mw.Api();
-
     protected readonly SCRIPT_MESSAGE = ' ([[User:Eejit43/scripts/afcrc-helper|afcrc-helper]])';
 
     private requestPageType: 'redirect' | 'category';
@@ -95,16 +94,7 @@ export default class HelperDialog extends OO.ui.ProcessDialog {
      * Load elements in the window.
      */
     public async load() {
-        const pageRevision = (await this.api.get({
-            action: 'query',
-            formatversion: '2',
-            prop: 'revisions',
-            rvprop: 'content',
-            rvslots: 'main',
-            titles: this.pageTitle,
-        } satisfies ApiQueryRevisionsParams)) as PageRevisionsResult;
-
-        this.pageContent = pageRevision.query!.pages[0].revisions[0].slots.main.content.trim();
+        this.pageContent = (await getPageContent(this.pageTitle)) ?? '';
 
         this.parseRequests();
         this.loadInputElements();
@@ -181,16 +171,7 @@ export default class HelperDialog extends OO.ui.ProcessDialog {
 
         const counts = { 'accepted': 0, 'denied': 0, 'commented on': 0, 'closed': 0 }; // eslint-disable-line @typescript-eslint/naming-convention
 
-        const newPageText = (
-            (await this.api.get({
-                action: 'query',
-                formatversion: '2',
-                prop: 'revisions',
-                rvprop: 'content',
-                rvslots: 'main',
-                titles: this.pageTitle,
-            } satisfies ApiQueryRevisionsParams)) as PageRevisionsResult
-        ).query!.pages[0].revisions[0].slots.main.content.trim();
+        const newPageText = (await getPageContent(this.pageTitle)) ?? '';
 
         void this.performSubtypeActions(actionsDialog, counts, newPageText);
     }
@@ -291,8 +272,8 @@ export default class HelperDialog extends OO.ui.ProcessDialog {
         for (const [index, action] of this.editsCreationsToMake.entries()) {
             const apiFunction =
                 action.type === 'edit'
-                    ? () => this.api.edit(action.title, action.transform)
-                    : () => this.api.create(action.title, { summary: action.summary, watchlist: this.createdPageWatchMethod }, action.text);
+                    ? () => api.edit(action.title, action.transform)
+                    : () => api.create(action.title, { summary: action.summary, watchlist: this.createdPageWatchMethod }, action.text);
 
             const linkElement = document.createElement('a');
             linkElement.target = '_blank';

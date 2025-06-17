@@ -1,5 +1,6 @@
 import type { MediaWikiDataError } from '../global-types';
 import cssContent from '../styles/ajax-undo.css' with { type: 'css' };
+import { api } from '../utility';
 
 mw.loader.using(['mediawiki.util'], () => {
     const isDiff = mw.config.get('wgDiffOldId');
@@ -67,7 +68,7 @@ mw.loader.using(['mediawiki.util'], () => {
                     return;
                 }
 
-                const success = await new mw.Api()
+                const success = await api
                     .postWithEditToken({
                         action: 'edit',
                         title: mw.config.get('wgPageName'),

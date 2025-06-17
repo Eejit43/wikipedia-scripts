@@ -1,17 +1,10 @@
 import type {
     ApiQueryBacklinkspropParams,
     ApiQueryCategoryMembersParams,
-    ApiQueryRevisionsParams,
     TemplateDataApiTemplateDataParams,
 } from 'types-mediawiki/api_params';
-import type {
-    CategoryMembersResult,
-    LinksHereResult,
-    MediaWikiDataError,
-    PageRevisionsResult,
-    RedirectsResult,
-    TemplateDataResult,
-} from '../global-types';
+import type { CategoryMembersResult, LinksHereResult, MediaWikiDataError, RedirectsResult, TemplateDataResult } from '../global-types';
+import { api, getPageContent } from '../utility';
 
 interface Script {
     'name': string;
@@ -62,8 +55,6 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
      * An instance of this class is a dialog that manages updating scripts.
      */
     class ScriptUpdaterDialog extends OO.ui.ProcessDialog {
-        private api = new mw.Api();
-
         private readonly REPO_OWNER = 'Eejit43';
         private readonly REPO_NAME = 'wikipedia-scripts';
 
@@ -352,11 +343,11 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
         private async editOrCreate(title: string, text: string, summary: string) {
             summary += this.SCRIPT_MESSAGE;
 
-            await this.api
+            await api
                 .edit(title, () => ({ text, summary, watchlist: 'watch' }))
                 .catch(async (errorCode, errorInfo) => {
                     if (errorCode === 'nocreate-missing')
-                        await this.api.create(title, { summary, watchlist: 'watch' }, text).catch((errorCode, errorInfo) => {
+                        await api.create(title, { summary, watchlist: 'watch' }, text).catch((errorCode, errorInfo) => {
                             mw.notify(
                                 `Error creating ${title}: ${(errorInfo as MediaWikiDataError)?.error?.info ?? 'Unknown error'} (${errorCode})`,
                                 { type: 'error' },
@@ -417,18 +408,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
  * Gets the script data for article-cleaner.
  */
 async function getArticleCleanerData() {
-    const api = new mw.Api();
-
-    const content = (
-        (await api.get({
-            action: 'query',
-            formatversion: '2',
-            prop: 'revisions',
-            rvprop: 'content',
-            rvslots: 'main',
-            titles: 'Wikipedia:AutoWikiBrowser/Template redirects',
-        } satisfies ApiQueryRevisionsParams)) as PageRevisionsResult
-    ).query!.pages[0].revisions[0].slots.main.content.trim();
+    const content = (await getPageContent('Wikipedia:AutoWikiBrowser/Template redirects')) ?? '';
 
     const replacements = content
         .matchAll(/\* {{tl\|.+/g)
@@ -446,8 +426,6 @@ async function getArticleCleanerData() {
  * Gets the script data for redirect-helper.
  */
 async function getRedirectHelperData() {
-    const api = new mw.Api();
-
     const allRedirectTemplates = (await api.get({
         action: 'query',
         list: 'categorymembers',

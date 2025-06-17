@@ -2,7 +2,6 @@ import type {
     ApiParseParams,
     ApiQueryInfoParams,
     ApiQueryPagePropsParams,
-    ApiQueryRevisionsParams,
     PageTriageApiPageTriageListParams,
 } from 'types-mediawiki/api_params';
 import type {
@@ -10,10 +9,10 @@ import type {
     MediaWikiDataError,
     PageInfoResult,
     PageParseResult,
-    PageRevisionsResult,
     PageTriageListResponse,
     PagepropsResult,
 } from '../../global-types';
+import { api, getPageContent } from '../../utility';
 import type { WatchMethod } from '../afcrc-helper/afcrc-helper';
 import CategoryInputWidget from './category-input-widget';
 import ChangesDialog from './changes-dialog';
@@ -47,7 +46,6 @@ export interface TemplateEditorElementInfo {
  */
 export default class RedirectHelperDialog {
     // Utility variables
-    private api = new mw.Api();
     private readonly REDIRECT_REGEX = /^#.*?:?\s*\[\[\s*:?([^[\]{|}]+?)\s*(?:\|[^[\]{|}]+?)?]]\s*/i;
     private readonly SCRIPT_MESSAGE = ' (via [[w:en:User:Eejit43/scripts/redirect-helper|redirect-helper]])';
 
@@ -132,7 +130,7 @@ export default class RedirectHelperDialog {
         this.editorBox = new OO.ui.PanelLayout({ id: 'redirect-helper-box', padded: true, expanded: false, framed: true });
 
         if (this.pageTitleParsed.isTalkPage()) {
-            const subjectPageData = (await this.api.get({
+            const subjectPageData = (await api.get({
                 action: 'query',
                 formatversion: '2',
                 prop: 'info',
@@ -141,7 +139,7 @@ export default class RedirectHelperDialog {
 
             if (subjectPageData.query!.pages[0].redirect) await this.loadSyncWithSubjectPageButton();
             else if (this.pageTitleParsed.getPrefixedText().includes('/')) {
-                const rootPageData = (await this.api.get({
+                const rootPageData = (await api.get({
                     action: 'query',
                     formatversion: '2',
                     prop: 'info',
@@ -179,7 +177,7 @@ export default class RedirectHelperDialog {
      * Loads the "Sync with subject page" button" on talk pages.
      */
     private async loadSyncWithSubjectPageButton() {
-        const subjectPageContent = await this.getPageContent(this.pageTitleParsed.getSubjectPage()!.getPrefixedText());
+        const subjectPageContent = (await getPageContent(this.pageTitleParsed.getSubjectPage()!.getPrefixedText())) ?? '';
 
         this.syncWithSubjectPageButton = new OO.ui.ButtonWidget({ label: 'Sync with subject page', icon: 'link', flags: ['progressive'] });
         this.syncWithSubjectPageButton.on('click', () => {
@@ -205,7 +203,7 @@ export default class RedirectHelperDialog {
         const currentTitleSplit = this.pageTitleParsed.getPrefixedText().split('/');
         const currentSubpage = currentTitleSplit.slice(1).join('/');
 
-        const rootPageContent = await this.getPageContent(currentTitleSplit[0]);
+        const rootPageContent = (await getPageContent(currentTitleSplit[0])) ?? '';
 
         this.syncWithRootPageButton = new OO.ui.ButtonWidget({ label: 'Sync with root page', icon: 'link', flags: ['progressive'] });
         this.syncWithRootPageButton.on('click', () => {
@@ -531,7 +529,7 @@ export default class RedirectHelperDialog {
 
         this.showChangesButton = new OO.ui.ButtonWidget({ label: 'Show changes', disabled: true });
         this.showChangesButton.on('click', async () => {
-            if (this.exists) this.pageContent = await this.getPageContent(this.pageTitle);
+            if (this.exists) this.pageContent = (await getPageContent(this.pageTitle)) ?? '';
 
             showChangesDialog.setData([
                 this.pageContent,
@@ -548,7 +546,7 @@ export default class RedirectHelperDialog {
 
         /* Set up sync talk checkbox */
         if (!this.pageTitleParsed.isTalkPage()) {
-            this.talkData = (await this.api.get({
+            this.talkData = (await api.get({
                 action: 'query',
                 formatversion: '2',
                 prop: 'info',
@@ -616,7 +614,7 @@ export default class RedirectHelperDialog {
             const userPermissions = await mw.user.getRights();
             if (!userPermissions.includes('patrol')) return false;
 
-            const patrolResponse = (await this.api.get({
+            const patrolResponse = (await api.get({
                 action: 'pagetriagelist',
                 page_id: mw.config.get('wgArticleId'), // eslint-disable-line @typescript-eslint/naming-convention
             } satisfies PageTriageApiPageTriageListParams)) as PageTriageListResponse;
@@ -708,7 +706,7 @@ export default class RedirectHelperDialog {
      * Loads existing page data.
      */
     private async loadExistingData() {
-        if (this.exists) this.pageContent = await this.getPageContent(this.pageTitle);
+        if (this.exists) this.pageContent = (await getPageContent(this.pageTitle)) ?? '';
 
         this.oldRedirectTarget = this.REDIRECT_REGEX.exec(this.pageContent)?.[1];
 
@@ -844,7 +842,7 @@ export default class RedirectHelperDialog {
         if (this.parsedDestination?.getPrefixedText() === this.pageTitleParsed.getPrefixedText())
             errors.push({ message: 'cannot redirect to itself!' });
 
-        const destinationData = (await this.api
+        const destinationData = (await api
             .get({
                 action: 'query',
                 formatversion: '2',
@@ -857,7 +855,7 @@ export default class RedirectHelperDialog {
 
                 return null;
             })) as (PagepropsResult & CategoriesResult) | null;
-        const destinationParseResult = (await this.api.get({
+        const destinationParseResult = (await api.get({
             action: 'parse',
             page: destination,
             prop: 'sections',
@@ -898,16 +896,7 @@ export default class RedirectHelperDialog {
                         autoFixes: [{ type: 'add', tag: 'R to section' }],
                     });
             } else {
-                const destinationContent = (
-                    (await this.api.get({
-                        action: 'query',
-                        formatversion: '2',
-                        prop: 'revisions',
-                        rvprop: 'content',
-                        rvslots: 'main',
-                        titles: this.parsedDestination!.getPrefixedText(),
-                    } satisfies ApiQueryRevisionsParams)) as PageRevisionsResult
-                ).query!.pages[0].revisions[0].slots.main.content;
+                const destinationContent = (await getPageContent(this.parsedDestination!.getPrefixedText())) ?? '';
 
                 const anchors = [
                     ...(destinationContent
@@ -1188,7 +1177,7 @@ export default class RedirectHelperDialog {
             const markReviewedButton = document.querySelector<HTMLButtonElement>('#mwe-pt-mark-as-reviewed-button');
 
             if (patrolLink) {
-                const patrolResult = (await this.api
+                const patrolResult = (await api
                     .postWithToken('patrol', { action: 'patrol', rcid: new URL(patrolLink.href).searchParams.get('rcid')! })
                     .catch((errorCode, errorInfo) => {
                         mw.notify(
@@ -1272,23 +1261,6 @@ export default class RedirectHelperDialog {
     }
 
     /**
-     * Fetches the content of a given page.
-     * @param title The title to fetch.
-     */
-    private async getPageContent(title: string) {
-        return (
-            (await this.api.get({
-                action: 'query',
-                formatversion: '2',
-                prop: 'revisions',
-                rvprop: 'content',
-                rvslots: 'main',
-                titles: title,
-            } satisfies ApiQueryRevisionsParams)) as PageRevisionsResult
-        ).query!.pages[0].revisions[0].slots.main.content.trim();
-    }
-
-    /**
      * Edits or creates a page with given text.
      * @param title The page title.
      * @param text The page text.
@@ -1302,11 +1274,11 @@ export default class RedirectHelperDialog {
             else if (this.watchCheckbox.isSelected()) watchlist = 'watch';
             else watchlist = 'unwatch';
 
-        return (await this.api
+        return (await api
             .edit(title, () => ({ text, summary }))
             .catch((errorCode, errorInfo) => {
                 if (errorCode === 'nocreate-missing')
-                    return this.api.create(title, { summary, watchlist }, text).catch((errorCode, errorInfo) => {
+                    return api.create(title, { summary, watchlist }, text).catch((errorCode, errorInfo) => {
                         mw.notify(
                             `Error creating ${title}: ${(errorInfo as MediaWikiDataError)?.error?.info ?? 'Unknown error'} (${errorCode})`,
                             { type: 'error' },
@@ -1320,6 +1292,6 @@ export default class RedirectHelperDialog {
                     );
                     return null;
                 }
-            })) as ReturnType<typeof this.api.edit> | null;
+            })) as ReturnType<typeof api.edit> | null;
     }
 }

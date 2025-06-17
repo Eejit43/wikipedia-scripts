@@ -1,6 +1,7 @@
-import type { ApiQueryInfoParams, ApiQueryRevisionsParams } from 'types-mediawiki/api_params';
-import type { PageInfoResult, PageRevisionsResult } from '../../global-types';
+import type { ApiQueryInfoParams } from 'types-mediawiki/api_params';
+import type { PageInfoResult } from '../../global-types';
 import cssContent from '../../styles/redirect-helper.css' with { type: 'css' };
+import { api, getPageContent } from '../../utility';
 import type { WatchMethod } from '../afcrc-helper/afcrc-helper';
 import type { RedirectTemplateData } from './redirect-helper-dialog';
 
@@ -26,10 +27,6 @@ mw.loader.using(dependencies, async () => {
      * An instance of this class handles the entire functionality of the redirect-helper script.
      */
     class RedirectHelper {
-        // Utility variables
-        private api = new mw.Api();
-
-        // Assigned during run()
         private redirectTemplates!: RedirectTemplateData;
         private contentText!: HTMLDivElement;
         private pageTitle!: string;
@@ -85,18 +82,7 @@ mw.loader.using(dependencies, async () => {
          * Fetches the redirect templates.
          */
         private async fetchRedirectTemplates() {
-            return JSON.parse(
-                (
-                    (await this.api.get({
-                        action: 'query',
-                        formatversion: '2',
-                        prop: 'revisions',
-                        rvprop: 'content',
-                        rvslots: 'main',
-                        titles: 'User:Eejit43/scripts/redirect-helper.json',
-                    } satisfies ApiQueryRevisionsParams)) as PageRevisionsResult
-                ).query!.pages[0]?.revisions?.[0]?.slots?.main?.content || '{}',
-            ) as RedirectTemplateData;
+            return JSON.parse((await getPageContent('User:Eejit43/scripts/redirect-helper.json')) ?? '{}') as RedirectTemplateData;
         }
 
         /**
@@ -105,7 +91,7 @@ mw.loader.using(dependencies, async () => {
         private async checkPageAndLoad() {
             mw.util.addCSS(cssContent);
 
-            const pageInfo = (await this.api.get({
+            const pageInfo = (await api.get({
                 action: 'query',
                 formatversion: '2',
                 prop: 'info',

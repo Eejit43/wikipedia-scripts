@@ -1,9 +1,10 @@
 import type { ApiQueryInfoParams, ApiQueryRevisionsParams } from 'types-mediawiki/api_params';
 import type { MediaWikiDataError, PageRevisionsResult } from '../global-types';
+import { api } from '../utility';
 
 mw.loader.using(['mediawiki.util'], async () => {
     if (!mw.Title.isTalkNamespace(mw.config.get('wgNamespaceNumber'))) return;
-    const mainPageInfoRevisions = (await new mw.Api().get({
+    const mainPageInfoRevisions = (await api.get({
         action: 'query',
         formatversion: '2',
         prop: ['info', 'revisions'],
@@ -25,7 +26,7 @@ mw.loader.using(['mediawiki.util'], async () => {
 
         mw.notify('Editing...', { tag: 'sync-redirect-notification' });
 
-        const mainPageContent: string = mainPageInfoRevisions.query.pages[0].revisions[0].slots.main.content;
+        const mainPageContent: string = mainPageInfoRevisions.query.pages[0].revisions?.[0].slots.main.content ?? '';
 
         const redirectTarget = /#redirect:? *\[\[(.+)]]/i
             .exec(mainPageContent)?.[1]
@@ -46,7 +47,7 @@ mw.loader.using(['mediawiki.util'], async () => {
 
         const pageMove = /{{ *r(edirect)?( from)?(( a)? page)? (move|rename|pm) *}}/i.test(mainPageContent);
         const destinationTalkNamespaceName = mw.config.get('wgFormattedNamespaces')[mwRedirectTarget.getNamespaceId() + 1];
-        await new mw.Api()
+        await api
             .edit(mw.config.get('wgPageName'), () => ({
                 text: `#REDIRECT [[${destinationTalkNamespaceName}:${mainTargetText}]]${pageMove ? '\n\n{{Redirect category shell|\n{{R from move}}\n}}' : ''}`,
                 summary: `Sync redirect with main page, to [[${destinationTalkNamespaceName}:${mainTargetText}]] (via [[User:Eejit43/scripts/sync-redirect|script]])`,
@@ -54,7 +55,7 @@ mw.loader.using(['mediawiki.util'], async () => {
             }))
             .catch(async (errorCode, errorInfo) => {
                 if (errorCode === 'nocreate-missing')
-                    await new mw.Api()
+                    await api
                         .create(
                             mw.config.get('wgPageName'),
                             {

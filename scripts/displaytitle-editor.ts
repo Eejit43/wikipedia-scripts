@@ -1,5 +1,4 @@
-import type { ApiQueryRevisionsParams } from 'types-mediawiki/api_params';
-import type { PageRevisionsResult } from '../global-types';
+import { api, getPageContent } from '../utility';
 
 mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui.styles.icons-editing-core'], () => {
     if (mw.config.get('wgNamespaceNumber') < 0) return; // Don't run in virtual namespaces
@@ -60,7 +59,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui.styles.icons-editing
             editBox.setDisabled(true);
             editBox.pushPending();
 
-            await new mw.Api().edit(mw.config.get('wgPageName'), (revision) => {
+            await api.edit(mw.config.get('wgPageName'), (revision) => {
                 const text = revision.content.replaceAll(/{{\s*displaytitle\s*:\s*(.*?)\s*}}\n*/gi, '');
 
                 if (!editBox.getValue() || editBox.getValue().replaceAll('_', ' ') === actualTitle)
@@ -96,16 +95,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui.styles.icons-editing
 
         editButton.$element[0].after(editBox.$element[0]);
 
-        const pageContent = (
-            (await new mw.Api().get({
-                action: 'query',
-                formatversion: '2',
-                prop: 'revisions',
-                rvprop: 'content',
-                rvslots: 'main',
-                titles: mw.config.get('wgPageName'),
-            } satisfies ApiQueryRevisionsParams)) as PageRevisionsResult
-        ).query!.pages[0].revisions[0].slots.main.content;
+        const pageContent = (await getPageContent(mw.config.get('wgPageName'))) ?? '';
 
         const foundMagicWords = pageContent.match(/{{\s*displaytitle\s*:\s*(.*?)\s*}}/gi);
         if (foundMagicWords) editBox.setValue(foundMagicWords.at(-1)!.replace(/{{\s*displaytitle\s*:\s*(.*?)\s*}}/i, '$1'));

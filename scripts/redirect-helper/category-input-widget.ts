@@ -1,13 +1,11 @@
 import type { ApiQueryAllPagesGeneratorParameters, CategoriesResult } from '../../global-types';
+import { api } from '../../utility';
 import type { LookupElementConfig } from './redirect-target-input-widget';
 
 /**
  * An instance of this class is a category lookup element.
  */
 export default class CategoryInputWidget extends OO.ui.TextInputWidget {
-    // Utility variables
-    private api = new mw.Api();
-
     public validCategories = new Set<string>();
 
     constructor(config: LookupElementConfig) {
@@ -34,16 +32,15 @@ export default class CategoryInputWidget extends OO.ui.TextInputWidget {
 
         const parsedTitle = mw.Title.newFromText(value);
 
-        this.api
-            .get({
-                action: 'query',
-                formatversion: '2',
-                gaplimit: 20,
-                gapnamespace: 14,
-                gapprefix: parsedTitle?.getMainText() ?? value,
-                generator: 'allpages',
-                prop: 'categories',
-            } satisfies ApiQueryAllPagesGeneratorParameters)
+        api.get({
+            action: 'query',
+            formatversion: '2',
+            gaplimit: 20,
+            gapnamespace: 14,
+            gapprefix: parsedTitle?.getMainText() ?? value,
+            generator: 'allpages',
+            prop: 'categories',
+        } satisfies ApiQueryAllPagesGeneratorParameters)
             .catch(() => null)
             .then((result: CategoriesResult | null) => {
                 if (result?.query?.pages) {

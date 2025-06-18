@@ -616,6 +616,8 @@ interface TemplateRedirect {
     to: string;
 }
 
+let templateAliases: TemplateRedirect[] | undefined;
+
 /**
  * Formats template spacing in an article's content.
  * @param content The article content to format.
@@ -634,7 +636,7 @@ async function formatTemplates(content: string) {
         Draft = 118,
     }
 
-    const templateAliases = JSON.parse((await getPageContent('User:Eejit43/scripts/article-cleaner.json')) ?? '[]') as TemplateRedirect[];
+    templateAliases ??= JSON.parse((await getPageContent('User:Eejit43/scripts/article-cleaner.json')) ?? '[]') as TemplateRedirect[];
 
     const mappedTemplateAliases = Object.fromEntries(
         templateAliases.flatMap((alias) => alias.from.map((from) => [from.charAt(0).toLowerCase() + from.slice(1), alias.to])),

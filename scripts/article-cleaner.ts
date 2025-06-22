@@ -833,7 +833,13 @@ async function formatTemplates(content: string) {
             const nameLowercaseFirst = this.name.charAt(0).toLowerCase() + this.name.slice(1);
 
             // Resolve template alias in name
-            this.name = nameLowercaseFirst in this.templateAliases ? this.templateAliases[nameLowercaseFirst] : this.name;
+            if (nameLowercaseFirst in this.templateAliases) {
+                const isStartLower = this.name.startsWith(this.name.charAt(0).toLowerCase());
+
+                const finalName = this.templateAliases[nameLowercaseFirst];
+
+                this.name = isStartLower ? finalName.charAt(0).toLowerCase() + finalName.slice(1) : finalName;
+            }
 
             const splitParameters = parameters.map((parameters) => {
                 const equalsLocation = parameters.indexOf('=');

@@ -1,9 +1,18 @@
 import type {
     ApiQueryBacklinkspropParams,
     ApiQueryCategoryMembersParams,
+    ApiQueryParams,
     TemplateDataApiTemplateDataParams,
 } from 'types-mediawiki/api_params';
-import type { CategoryMembersResult, LinksHereResult, MediaWikiDataError, RedirectsResult, TemplateDataResult } from '../global-types';
+import type { ApiResponse } from 'types-mediawiki/mw/Api';
+import type {
+    CategoryMembersResult,
+    LinksHereResult,
+    MediaWikiDataError,
+    QueryContinuation,
+    RedirectsResult,
+    TemplateDataResult,
+} from '../global-types';
 import { api, getPageContent } from '../utility';
 
 interface Script {
@@ -423,6 +432,45 @@ async function getArticleCleanerData() {
 }
 
 /**
+ * Chunks an array into smaller arrays of a specified size.
+ * @param array The array to chunk.
+ * @param chunkSize The size of each chunk.
+ */
+function chunkArray<T>(array: T[], chunkSize: number): T[][] {
+    const chunked = [];
+
+    for (let index = 0; index < array.length; index += chunkSize) {
+        const chunk = array.slice(index, index + chunkSize);
+
+        chunked.push(chunk);
+    }
+
+    return chunked;
+}
+
+/**
+ * Gets a continued query result from the API, returning an array of results.
+ * @param query The query parameters to use for the API request.
+ */
+async function getContinuedQuery(query: ApiQueryParams): Promise<ApiResponse[]> {
+    let iteration = 0;
+
+    const returnValue = [];
+
+    let response = { continue: {} } as ApiResponse & QueryContinuation;
+
+    while ('continue' in response && iteration < 10) {
+        response = await api.get({ ...query, ...response.continue } as ApiQueryParams); // eslint-disable-line no-await-in-loop
+
+        returnValue.push(response);
+
+        iteration++;
+    }
+
+    return returnValue;
+}
+
+/**
  * Gets the script data for redirect-helper.
  */
 async function getRedirectHelperData() {
@@ -433,7 +481,7 @@ async function getRedirectHelperData() {
         cmlimit: 'max',
         formatversion: '2',
     } satisfies ApiQueryCategoryMembersParams)) as CategoryMembersResult;
-    const allPossibleTemplates = (await api.get({
+    const allPossibleRedirectTemplates = (await api.get({
         action: 'query',
         list: 'categorymembers',
         cmtitle: 'Category:Template redirects with possibilities',
@@ -444,31 +492,33 @@ async function getRedirectHelperData() {
     const redirectTemplates = allRedirectTemplates.query.categorymembers
         .filter((page) => page.title.startsWith('Template:R ') && page.title !== 'Template:R template index')
         .map((page) => ({ name: page.title.split(':')[1], redirect: false }));
-    const possibleRedirectTemplates = allPossibleTemplates.query.categorymembers
+    const possibleRedirectTemplates = allPossibleRedirectTemplates.query.categorymembers
         .filter((page) => page.title.startsWith('Template:R ') && page.title !== 'Template:R with possibilities')
         .map((page) => ({ name: page.title.split(':')[1], redirect: true }));
 
-    const allAliasesOfRedirects: string[] = [];
+    const allTemplates = [...redirectTemplates, ...possibleRedirectTemplates].sort((a, b) => {
+        // Force comics and Middle Earth templates to the end of the list
+        if (a.name.startsWith('R comics') || a.name.startsWith('R ME')) return 1;
+        else if (b.name.startsWith('R comics') || b.name.startsWith('R ME')) return -1;
+        else return a.name.localeCompare(b.name);
+    });
 
-    const mappedData = await Promise.all(
-        [...redirectTemplates, ...possibleRedirectTemplates]
-            .sort((a, b) => {
-                // Force comics and Middle Earth templates to the end of the list
-                if (a.name.startsWith('R comics') || a.name.startsWith('R ME')) return 1;
-                else if (b.name.startsWith('R comics') || b.name.startsWith('R ME')) return -1;
-                else return a.name.localeCompare(b.name);
-            })
-            .map(async (page) => {
-                const templateDataQuery = (await api.get({
-                    action: 'templatedata',
-                    titles: 'Template:' + page.name,
-                    formatversion: '2',
-                } satisfies TemplateDataApiTemplateDataParams)) as TemplateDataResult;
+    const finalData = Object.fromEntries(
+        allTemplates.map((page) => [page.name, { redirect: page.redirect, parameters: {}, aliases: [] as string[] }]),
+    );
 
-                const parameters = Object.values(templateDataQuery.pages)[0]?.params || {}; // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+    // Fetch the TemplateData for all templates
+    await Promise.all(
+        chunkArray(allTemplates, 50).map(async (chunk) => {
+            const templateDataQueryResult = (await api.get({
+                action: 'templatedata',
+                titles: chunk.map((page) => `Template:${page.name}`),
+                formatversion: '2',
+            } satisfies TemplateDataApiTemplateDataParams)) as TemplateDataResult;
 
+            for (const page of Object.values(templateDataQueryResult.pages)) {
                 const formattedParameters = Object.fromEntries(
-                    Object.entries(parameters).map(([name, data]) => [
+                    Object.entries(page.params).map(([name, data]) => [
                         name,
                         {
                             aliases: data.aliases,
@@ -483,60 +533,80 @@ async function getRedirectHelperData() {
                     ]),
                 );
 
-                let mappedRedirects;
-                if (page.redirect) {
-                    const linksQuery = (await api.get({
-                        action: 'query',
-                        titles: 'Template:' + page.name,
-                        prop: 'linkshere',
-                        lhnamespace: 10,
-                        lhlimit: 'max',
-                        formatversion: '2',
-                    } satisfies ApiQueryBacklinkspropParams)) as LinksHereResult;
-
-                    mappedRedirects =
-                        linksQuery.query.pages[0].linkshere
-                            ?.filter((page) => page.redirect)
-                            .map((page) => page.title.split(':')[1])
-                            .filter(
-                                (page) =>
-                                    ![...redirectTemplates, ...possibleRedirectTemplates].some((template) => template.name === page) &&
-                                    !page.endsWith('/doc') &&
-                                    !page.endsWith('/sandbox'),
-                            )
-                            .sort((a, b) => a.localeCompare(b)) ?? [];
-
-                    allAliasesOfRedirects.push(...mappedRedirects);
-                } else {
-                    const redirectsQuery = (await api.get({
-                        action: 'query',
-                        titles: 'Template:' + page.name,
-                        prop: 'redirects',
-                        rdlimit: 'max',
-                        formatversion: '2',
-                    } satisfies ApiQueryBacklinkspropParams)) as RedirectsResult;
-
-                    mappedRedirects =
-                        redirectsQuery.query.pages[0].redirects
-                            ?.filter((redirect) => redirect.ns === 10)
-                            .map((redirect) => redirect.title.split(':')[1])
-                            .filter((redirect) => !possibleRedirectTemplates.some((template) => template.name === redirect))
-                            .sort((a, b) => a.localeCompare(b)) ?? [];
-                }
-
-                const templateData = {
-                    ...(page.redirect ? { redirect: true } : {}),
-                    parameters: formattedParameters,
-                    aliases: mappedRedirects,
-                };
-
-                return [page.name, templateData] as const;
-            }),
+                finalData[page.title.split(':')[1]].parameters = formattedParameters;
+            }
+        }),
     );
 
-    for (const alias of allAliasesOfRedirects)
-        for (const [, data] of mappedData)
-            if (!data.redirect && data.aliases.includes(alias)) data.aliases = data.aliases.filter((a) => a !== alias);
+    // Find aliases of redirect templates
+    await Promise.all(
+        chunkArray(redirectTemplates, 50).map(async (chunk) => {
+            const allRedirectsQueryResult = (await getContinuedQuery({
+                action: 'query',
+                titles: chunk.map((page) => `Template:${page.name}`),
+                prop: 'redirects',
+                rdnamespace: 10,
+                rdlimit: 'max',
+                formatversion: '2',
+            } satisfies ApiQueryBacklinkspropParams)) as RedirectsResult[];
 
-    return JSON.stringify(Object.fromEntries(mappedData));
+            const redirectsQueryResultPages = allRedirectsQueryResult.flatMap((result) => result.query.pages);
+
+            for (const page of redirectsQueryResultPages) {
+                const mappedRedirects =
+                    page.redirects
+                        ?.map((redirect) => redirect.title.split(':')[1])
+                        .filter((redirect) => !possibleRedirectTemplates.some((template) => template.name === redirect))
+                        .sort((a, b) => a.localeCompare(b)) ?? [];
+
+                finalData[page.title.split(':')[1]].aliases.push(...mappedRedirects); // Data might exist from previous queries, so update instead of overwriting
+            }
+        }),
+    );
+
+    // Find aliases of possible redirect templates
+    const allAliasesOfPossibleTemplates: string[] = [];
+
+    await Promise.all(
+        chunkArray(possibleRedirectTemplates, 50).map(async (chunk) => {
+            const linksQueryResult = (await api.get({
+                action: 'query',
+                titles: chunk.map((page) => `Template:${page.name}`),
+                prop: 'linkshere',
+                lhnamespace: 10,
+                lhlimit: 'max',
+                formatversion: '2',
+            } satisfies ApiQueryBacklinkspropParams)) as LinksHereResult;
+
+            for (const page of linksQueryResult.query.pages) {
+                const mappedRedirects =
+                    page.linkshere
+                        ?.filter((page) => page.redirect)
+                        .map((page) => page.title.split(':')[1])
+                        .filter((page) => !page.endsWith('/doc') && !page.endsWith('/sandbox'))
+                        .sort((a, b) => a.localeCompare(b)) ?? [];
+
+                allAliasesOfPossibleTemplates.push(...mappedRedirects);
+
+                finalData[page.title.split(':')[1]].aliases = mappedRedirects;
+            }
+        }),
+    );
+
+    const mappedFinalData = Object.entries(finalData).map(([name, templateData]) => {
+        const finalTemplateData = {
+            ...(templateData.redirect ? { redirect: true } : {}),
+            parameters: templateData.parameters,
+            aliases: templateData.aliases.sort((a, b) => a.localeCompare(b)),
+        };
+
+        return [name, finalTemplateData] as const;
+    });
+
+    for (const possibleTemplateAlias of allAliasesOfPossibleTemplates)
+        for (const [, data] of mappedFinalData)
+            if (!data.redirect && data.aliases.includes(possibleTemplateAlias))
+                data.aliases = data.aliases.filter((alias) => alias !== possibleTemplateAlias);
+
+    return JSON.stringify(Object.fromEntries(mappedFinalData));
 }

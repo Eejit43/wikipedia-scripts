@@ -39,11 +39,11 @@ export interface CategoryMembersResult {
 }
 
 export interface LinksHereResult {
-    query: { pages: { linkshere?: { title: string; redirect: boolean }[] }[] };
+    query: { pages: { title: string; linkshere?: { title: string; redirect: boolean }[] }[] };
 }
 
 export interface RedirectsResult {
-    query: { pages: { redirects?: { ns: number; title: string }[] }[] };
+    query: { pages: { title: string; redirects?: { ns: number; title: string }[] }[] };
 }
 
 // Page information
@@ -95,7 +95,16 @@ export interface TemplateDataParameterData {
 }
 
 export interface TemplateDataResult {
-    pages: Record<number, { params: Record<number, TemplateDataParameterData> }>;
+    pages: Record<
+        number,
+        {
+            title: string;
+            ns: number;
+            description: { en: string } | null;
+            format: string | null;
+            params: Record<number, TemplateDataParameterData>;
+        }
+    >;
 }
 
 // Other
@@ -104,3 +113,7 @@ export interface PageTriageListResponse {
 }
 
 export type MediaWikiDataError = { error?: { code: string; info: string } } | undefined;
+
+export type QueryContinuation =
+    | { batchcomplete?: true }
+    | { continue: { continue: string; [key: `${string}continue`]: string }; limits: Record<string, number> };

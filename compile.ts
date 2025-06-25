@@ -37,9 +37,9 @@ for (const script of scripts)
         sourcemap: 'inline',
         plugins: [cssImportPlugin],
         banner: {
-            js: `// <nowiki>\n// Note: This script was compiled and minified from TypeScript. For a more readable version, see https://github.com/Eejit43/wikipedia-scripts/blob/main/${script}\n`,
+            js: `// <pre>\n// Note: This script was compiled and minified from TypeScript. For a more readable version, see https://github.com/Eejit43/wikipedia-scripts/blob/main/${script}\n`,
         },
-        footer: { js: '\n// </nowiki>' },
+        footer: { js: '\n// </pre>' },
     });
 
 // eslint-disable-next-line no-console

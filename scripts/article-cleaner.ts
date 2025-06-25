@@ -39,46 +39,34 @@ export {};
     if (!mw.config.get('wgIsProbablyEditable')) return; // Don't run if user can't edit page
 
     mw.loader.using(['mediawiki.util', 'jquery.textSelection'], () => {
-        mw.util.addCSS(`
-#article-cleaner {
-    display: none;
-}
-
-#content:has(#wpTextbox1) #article-cleaner {
-    display: unset;
-}`);
-
-        const link = mw.util.addPortletLink(
-            mw.config.get('skin') === 'minerva' ? 'p-navigation' : 'p-cactions',
-            '#',
-            'Perform article cleanup',
-            'article-cleaner',
-        )!;
-
         let shouldAddScriptMessage = false;
 
         const SCRIPT_MESSAGE = 'Cleaned up article content (via [[User:Eejit43/scripts/article-cleaner|article-cleaner]])';
 
-        mw.hook('ve.saveDialog.stateChanged').add(() => {
-            if (shouldAddScriptMessage) {
-                const summaryInput = document.querySelector<HTMLTextAreaElement>('.ve-ui-mwSaveDialog-summary textarea')!;
+        /**
+         * Updates the summary textarea with the script message if it is not already present.
+         * @param textarea The summary textarea element to update.
+         */
+        function updateSummary(textarea: HTMLTextAreaElement | HTMLInputElement) {
+            if (!textarea.value.includes(SCRIPT_MESSAGE.slice(1)))
+                if (textarea.value && !textarea.value.startsWith('/* ') && !textarea.value.endsWith(' */ '))
+                    textarea.value += `; ${SCRIPT_MESSAGE.charAt(0).toLowerCase() + SCRIPT_MESSAGE.slice(1)}`;
+                else textarea.value = `${textarea.value}${SCRIPT_MESSAGE}`;
 
-                if (!summaryInput.value.includes(SCRIPT_MESSAGE.slice(1)))
-                    if (summaryInput.value && !summaryInput.value.startsWith('/* ') && !summaryInput.value.endsWith(' */ '))
-                        summaryInput.value += `; ${SCRIPT_MESSAGE.charAt(0).toLowerCase() + SCRIPT_MESSAGE.slice(1)}`;
-                    else summaryInput.value = `${summaryInput.value}${SCRIPT_MESSAGE}`;
+            shouldAddScriptMessage = false;
+        }
 
-                shouldAddScriptMessage = false;
-            }
-        });
-
-        link.addEventListener('click', async (event) => {
+        /**
+         * Handles the click event for the activation button.
+         * @param event The mouse event that triggered the click.
+         */
+        async function handleActivation(event: MouseEvent) {
             event.preventDefault();
 
-            const editBox = $('#wpTextbox1');
-            if (editBox.length === 0) return mw.notify('Edit box not found!', { type: 'error', autoHideSeconds: 'short' });
+            const editor = $(mw.config.get('skin') === 'minerva' ? '#wikitext-editor' : '#wpTextbox1');
+            if (editor.length === 0) return mw.notify('Edit box not found!', { type: 'error', autoHideSeconds: 'short' });
 
-            const originalText = editBox.textSelection('getContents');
+            const originalText = editor.textSelection('getContents');
 
             let finalText = originalText;
 
@@ -104,22 +92,71 @@ export {};
                     fragment.insertContent(finalText);
                     surfaceModel.setSelection(new ve.dm.LinearSelection(new ve.Range(0, 0)));
                 } else {
-                    editBox.textSelection('setContents', finalText);
+                    editor.textSelection('setContents', finalText);
 
-                    editBox.textSelection('setSelection', { start: 0 });
+                    editor.textSelection('setSelection', { start: 0 });
                 }
 
                 mw.notify('Article cleanup complete!', { type: 'success', autoHideSeconds: 'short' });
 
                 const summaryInput = document.querySelector<HTMLInputElement>('#wpSummary');
-                if (summaryInput) {
-                    if (!summaryInput.value.includes(SCRIPT_MESSAGE.slice(1)))
-                        if (summaryInput.value)
-                            summaryInput.value += `; ${SCRIPT_MESSAGE.charAt(0).toLowerCase() + SCRIPT_MESSAGE.slice(1)}`;
-                        else summaryInput.value = SCRIPT_MESSAGE;
-                } else shouldAddScriptMessage = true;
+                if (summaryInput) updateSummary(summaryInput);
+                else shouldAddScriptMessage = true;
             }
-        });
+        }
+
+        if (mw.config.get('skin') === 'minerva') {
+            // Set up hook to add button to editing toolbar
+            mw.hook('mobileFrontend.editorOpened').add(() => {
+                const headerSwitcher = document.querySelector<HTMLDivElement>('.overlay-header .switcher-container')!;
+
+                const tool = new OO.ui.ButtonWidget({ icon: 'articleCheck', framed: false });
+
+                const button = tool.$element[0];
+                button.addEventListener('click', handleActivation);
+
+                headerSwitcher.before(button);
+            });
+
+            // Set up hook for updating edit summary
+            mw.hook('wikipage.content').add((content) => {
+                // Ignore if triggered by main content load instead of preview
+                if (!content[0]?.classList.contains('preview')) return; // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+
+                if (shouldAddScriptMessage) {
+                    const summaryInput = document.querySelector<HTMLInputElement>('.summary-input textarea')!;
+
+                    updateSummary(summaryInput);
+                }
+            });
+        } else {
+            // Set up link in side menu
+            mw.util.addCSS(`
+#article-cleaner {
+    display: none;
+}
+
+#content:has(#wpTextbox1) #article-cleaner {
+    display: unset;
+}`);
+
+            const link = mw.util.addPortletLink(
+                mw.config.get('skin') === 'minerva' ? 'p-navigation' : 'p-cactions',
+                '#',
+                'Perform article cleanup',
+                'article-cleaner',
+            )!;
+            link.addEventListener('click', handleActivation);
+
+            // Set up hook for updating edit summary in VisualEditor
+            mw.hook('ve.saveDialog.stateChanged').add(() => {
+                if (shouldAddScriptMessage) {
+                    const summaryInput = document.querySelector<HTMLTextAreaElement>('.ve-ui-mwSaveDialog-summary textarea')!;
+
+                    updateSummary(summaryInput);
+                }
+            });
+        }
     });
 })();
 

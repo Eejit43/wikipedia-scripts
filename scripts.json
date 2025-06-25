@@ -94,7 +94,7 @@
             "timeless": "yes",
             "monobook": "yes",
             "modern": "yes",
-            "minerva": "yes",
+            "minerva": "no",
             "cologne-blue": "yes"
         },
         "released": "2023|01|02",
@@ -103,8 +103,10 @@
     "article-cleaner": {
         "image": false,
         "short-description": "User script to fix stylistic and other minor issues in articles",
-        "description": "This user script adds the ability to fix stylistic and other miscellaneous issues in articles, of which a list can be found below. This script is activated using a link in the \"More\"/\"Tools\" menu, visible when in editing mode on a page.\n\n'''This script can possibly make unexpected changes, please make sure you check the diff before submitting edits.'''\n\n== Features ==\n* Cleans up section headers (fixes capitalization, depth, and spacing)\n* Removes improper or unnecessary magic words\n* Cleans up DISPLAYTITLEs/DEFAULTSORTs (converts templates magic words and removes unnecessary magic words)\n* Cleans up categories (fixes category links or transclusions)\n* Cleans up links (cleans up spacing, optimizes text after links instead of piping, moves punctuation out of alt text, and more)\n* Removes improper characters (replaces smart quotes and ellipses with their standard counterparts, and replaces non-breaking spaces with their HTML tag for readability)\n* Cleans up improper date ranges\n* Removes stray markup (removes empty tags and toolbar markup filler text)\n* Cleans up spacing (removes many types of excess spacing and adds extra spacing where needed)\n* Cleans up references (fixes links in ref tags, corrects spacing, makes tags self-closing, and more)\n* Cleans up templates (resolves [[Wikipedia:AutoWikiBrowser/Template redirects|certain aliases]], aligns parameters in infoboxes and other templates, removes unnecessary templates, and more)\n* Removes unnecessary comments (comments left over from article drafts, etc.)\n* Automatically adds/removes {{tl|Uncategorized}}/{{tl|Improve categories}}",
+        "description": "This user script adds the ability to fix stylistic and other miscellaneous issues in articles, of which a list can be found below.\n\n'''This script can possibly make unexpected changes, please make sure you check the diff before submitting edits.'''\n\n== Features ==\n* Cleans up section headers (fixes capitalization, depth, and spacing)\n* Removes improper or unnecessary magic words\n* Cleans up DISPLAYTITLEs/DEFAULTSORTs (converts templates magic words and removes unnecessary magic words)\n* Cleans up categories (fixes category links or transclusions)\n* Cleans up links (cleans up spacing, optimizes text after links instead of piping, moves punctuation out of alt text, and more)\n* Removes improper characters (replaces smart quotes and ellipses with their standard counterparts, and replaces non-breaking spaces with their HTML tag for readability)\n* Cleans up improper date ranges\n* Removes stray markup (removes empty tags and toolbar markup filler text)\n* Cleans up spacing (removes many types of excess spacing and adds extra spacing where needed)\n* Cleans up references (fixes links in ref tags, corrects spacing, makes tags self-closing, and more)\n* Cleans up templates (resolves [[Wikipedia:AutoWikiBrowser/Template redirects|certain aliases]], aligns parameters in infoboxes and other templates, removes unnecessary templates, and more)\n* Removes unnecessary comments (comments left over from article drafts, etc.)\n* Automatically adds/removes {{tl|Uncategorized}}/{{tl|Improve categories}}",
+        "usage": "This script is be activated using a link in the \"More\"/\"Tools\" menu, visible when in editing mode on a page. On mobile, this script is instead activated by a new button in the editing toolbar.",
         "changelog": {
+            "2025|06|24": "Add support for mobile editing.",
             "2025|06|16": "Automatically resolve [[Wikipedia:AutoWikiBrowser/Template redirects|certain template aliases]].",
             "2025|06|14": [
                 "Remove punctuation in link alt text.",
@@ -123,11 +125,11 @@
             "timeless": "yes",
             "monobook": "yes",
             "modern": "yes",
-            "minerva": "yes",
+            "minerva": "no",
             "cologne-blue": "yes"
         },
         "released": "2025|02|10",
-        "updated": "2025|06|21"
+        "updated": "2025|06|24"
     },
     "copy-search-results": {
         "image": false,

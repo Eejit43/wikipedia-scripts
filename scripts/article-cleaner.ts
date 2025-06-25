@@ -416,7 +416,7 @@ function cleanupLinks(content: string, functionsCalledWhileEscaped: ((content: s
 
         let afterLinkText = '';
 
-        if (/[!',.:;?]$/.test(altText) && !['Image', 'File', 'Category'].includes(linkUppercaseStart.split(':')[0])) {
+        if (/[!,.:;?]$/.test(altText) && !['Image', 'File', 'Category'].includes(linkUppercaseStart.split(':')[0])) {
             const addedPunctuation = altText.slice(-1);
 
             if (!link.endsWith(addedPunctuation)) {

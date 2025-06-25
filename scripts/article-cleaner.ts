@@ -38,7 +38,11 @@ export {};
     if (mw.config.get('wgNamespaceNumber') < 0) return; // Don't run in virtual namespaces
     if (!mw.config.get('wgIsProbablyEditable')) return; // Don't run if user can't edit page
 
-    mw.loader.using(['mediawiki.util', 'jquery.textSelection'], () => {
+    const dependencies = ['mediawiki.util', 'jquery.textSelection'];
+
+    if (mw.config.get('skin') !== 'minerva') dependencies.push('mobile.editor.overlay');
+
+    mw.loader.using(dependencies, () => {
         let shouldAddScriptMessage = false;
 
         const SCRIPT_MESSAGE = 'Cleaned up article content (via [[User:Eejit43/scripts/article-cleaner|article-cleaner]])';

@@ -108,7 +108,7 @@
         "changelog": {
             "2025|06|25": [
                 "Move bold/italic markup outside of link alt text.",
-                "Prevent modifying leading spacing inside {{code|templatedata}}/{{code|pre}}/{{code|poem}} tags."
+                "Prevent modifying leading spacing inside {{code|poem}}/{{code|pre}}/{{code|templatedata}} tags."
             ],
             "2025|06|24": "Add support for mobile editing.",
             "2025|06|16": "Automatically resolve [[Wikipedia:AutoWikiBrowser/Template redirects|certain template aliases]].",

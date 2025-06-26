@@ -185,9 +185,9 @@ function cleanupStrayUnicodeCharacters(content: string) {
     //   - Bidi override and formatting characters (\u202A-\u202E)
     //   - Word joiner and invisible separator (\u2060, \u2063)
     //   - Byte order mark (BOM) (\uFEFF)
-    const strayUnicodeRegex = /[\u0000-\u0009\u000B\u000C\u000E-\u001F\u007F\u00AD\u200B-\u200F\u202A-\u202E\u2060\u2063\uFEFF]/g; // eslint-disable-line no-control-regex
+    const STRAY_UNICODE_REGEX = /[\u0000-\u0009\u000B\u000C\u000E-\u001F\u007F\u00AD\u200B-\u200F\u202A-\u202E\u2060\u2063\uFEFF]/g; // eslint-disable-line no-control-regex
 
-    if (strayUnicodeRegex.test(content)) content = content.replaceAll(strayUnicodeRegex, '');
+    if (STRAY_UNICODE_REGEX.test(content)) content = content.replaceAll(STRAY_UNICODE_REGEX, '');
 
     return content;
 }
@@ -197,7 +197,7 @@ function cleanupStrayUnicodeCharacters(content: string) {
  * @param content The article content to clean up.
  */
 function cleanupSectionHeaders(content: string) {
-    const commonReplacements = {
+    const COMMON_REPLACEMENTS = {
         /* eslint-disable @typescript-eslint/naming-convention */
         'See also': ['also see'],
         'References': ['reference', 'source', 'sources', 'citation', 'citations'],
@@ -206,10 +206,10 @@ function cleanupSectionHeaders(content: string) {
         /* eslint-enable @typescript-eslint/naming-convention */
     };
 
-    const commonMiscapitalizedWords = ['and', 'birth', 'career', 'death', 'education', 'life', 'of', 'or'];
+    const COMMON_MISCAPITALIZED_WORDS = ['and', 'birth', 'career', 'death', 'education', 'life', 'of', 'or'];
 
     const reverseCommonReplacements = Object.fromEntries(
-        Object.entries(commonReplacements).flatMap(([key, values]) => [
+        Object.entries(COMMON_REPLACEMENTS).flatMap(([key, values]) => [
             [key.toLowerCase(), key],
             ...(values.map((value) => [value, key]) as [string, string][]), // eslint-disable-line @typescript-eslint/no-unnecessary-type-assertion
         ]),
@@ -246,7 +246,8 @@ function cleanupSectionHeaders(content: string) {
 
         let capitalizedName = replacedName;
 
-        for (const word of commonMiscapitalizedWords) capitalizedName = capitalizedName.replaceAll(new RegExp(`\\b${word}\\b`, 'gi'), word);
+        for (const word of COMMON_MISCAPITALIZED_WORDS)
+            capitalizedName = capitalizedName.replaceAll(new RegExp(`\\b${word}\\b`, 'gi'), word);
 
         capitalizedName = capitalizedName.charAt(0).toUpperCase() + capitalizedName.slice(1);
 
@@ -488,17 +489,17 @@ function cleanupLinks(content: string, functionsCalledWhileEscaped: ((content: s
  * @param run The run number of the function.
  */
 function cleanupImproperCharacters(content: string, run: 1 | 2) {
-    const elipsisPlaceholder = '\u007F';
-    const nbspPlaceholder = '\u009F';
+    const ELIPSIS_PLACEHOLDER = '\u007F';
+    const NBSP_PLACEHOLDER = '\u009F';
 
     if (run === 1) {
         content = content.replaceAll(/[“”„‟]/g, '"');
         content = content.replaceAll(/[‘’‚‛]/g, "'");
-        content = content.replaceAll('…', elipsisPlaceholder);
-        content = content.replaceAll(' ', nbspPlaceholder);
+        content = content.replaceAll('…', ELIPSIS_PLACEHOLDER);
+        content = content.replaceAll(' ', NBSP_PLACEHOLDER);
     } else {
-        content = content.replaceAll(elipsisPlaceholder, '...');
-        content = content.replaceAll(nbspPlaceholder, '&nbsp;');
+        content = content.replaceAll(ELIPSIS_PLACEHOLDER, '...');
+        content = content.replaceAll(NBSP_PLACEHOLDER, '&nbsp;');
     }
 
     return content;
@@ -523,7 +524,7 @@ function cleanupYearRanges(content: string, run: 1 | 2) {
  * @param content The article content to clean up.
  */
 function cleanupStrayMarkup(content: string) {
-    const strayMarkupRegexes = [
+    const STRAY_MARKUP_REGEXES = [
         /'+(Bold|Italic)( text)?'+ */g,
         /(<big>)+Big( text)?(<\/big>)+ */g,
         /(<small>)+Small( text)?(<\/small>)+ */g,
@@ -542,7 +543,7 @@ function cleanupStrayMarkup(content: string) {
         /<\s*(big|small|sup|sub|s|u|code|nowiki|noinclude|onlyinclude|includeonly|center|blockquote|gallery)\s*(\s+[^<>]*)?>\s*<\s*\/\s*\1\s*>/gi,
     ];
 
-    for (const regex of strayMarkupRegexes) while (regex.test(content)) content = content.replace(regex, '');
+    for (const regex of STRAY_MARKUP_REGEXES) while (regex.test(content)) content = content.replace(regex, '');
 
     return content;
 }
@@ -555,7 +556,7 @@ function cleanupStrayMarkup(content: string) {
 function cleanupSpacing(content: string, secondRun = false) {
     const PLACEHOLDER = '\u{F0000}';
 
-    const TAGS_TO_IGNORE = ['templatedata', 'poem', 'pre'];
+    const TAGS_TO_IGNORE = ['poem', 'pre', 'templatedata'];
 
     const ignoredTagsContent: string[] = [];
 
@@ -1122,7 +1123,7 @@ async function formatTemplates(content: string) {
 function removeComments(content: string) {
     if (mw.config.get('wgNamespaceNumber') !== 0) return content;
 
-    const comments = [
+    const COMMENTS_TO_REMOVE = [
         'Do not remove this line',
         'EDIT BELOW THIS LINE',
         'Important, do not remove anything above this line before article has been created',
@@ -1131,7 +1132,7 @@ function removeComments(content: string) {
         'Note: The following pages were redirects to ',
     ];
 
-    for (const comment of comments)
+    for (const comment of COMMENTS_TO_REMOVE)
         content = content.replaceAll(new RegExp(` *<!-- ?${escapeRegexCharacters(comment)}.*?--> *\n?`, 'gs'), '');
 
     return content;

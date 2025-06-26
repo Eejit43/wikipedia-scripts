@@ -1146,7 +1146,7 @@ function autoTagPage(content: string) {
 
     const numberOfCategories = [...content.matchAll(/\[\[Category:/g)].length;
 
-    content = content.replaceAll(/\n*{{(uncategorized|improve categories)(\|.+?)?}}\n*/gi, '');
+    content = content.replaceAll(/\n*{{(uncategorized|improve categories)(\|.+?)?}}({{|\n+|$)/gi, '');
 
     if (numberOfCategories === 0 && !/{{uncategorized/i.test(content))
         content += '\n\n{{Uncategorized|{{subst:CURRENTMONTHNAME}} {{subst:CURRENTYEAR}}}}';

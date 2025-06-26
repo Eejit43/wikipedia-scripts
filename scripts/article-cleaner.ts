@@ -418,9 +418,9 @@ function cleanupLinks(content: string, functionsCalledWhileEscaped: ((content: s
         let beforeLinkText = '';
         let afterLinkText = '';
 
-        const matchedMarkup = /^('{2,3})([^']+)\1$/.exec(altText);
+        const matchedMarkup = /^('{2,})(.*?)\1$/.exec(altText);
 
-        if (matchedMarkup) {
+        if (matchedMarkup && !matchedMarkup[2].includes("''")) {
             beforeLinkText = matchedMarkup[1];
             altText = matchedMarkup[2].trim();
             afterLinkText = matchedMarkup[1];

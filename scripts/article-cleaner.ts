@@ -1133,6 +1133,8 @@ function removeComments(content: string) {
  * @param content The article content to add tags to.
  */
 function autoTagPage(content: string) {
+    if (mw.config.get('wgNamespaceNumber') !== 0) return content;
+
     const numberOfCategories = [...content.matchAll(/\[\[Category:/g)].length;
 
     content = content.replaceAll(/\n*{{(uncategorized|improve categories)(\|.+?)?}}\n*/gi, '');

@@ -414,13 +414,22 @@ function cleanupLinks(content: string, functionsCalledWhileEscaped: ((content: s
                 shouldFirstCharacterBeColon = true;
         }
 
+        let beforeLinkText = '';
         let afterLinkText = '';
+
+        const matchedMarkup = /^('{2,3})([^']+)\1$/.exec(altText);
+
+        if (matchedMarkup) {
+            beforeLinkText = matchedMarkup[1];
+            altText = matchedMarkup[2].trim();
+            afterLinkText = matchedMarkup[1];
+        }
 
         if (/[!,.:;?]$/.test(altText) && !['Image', 'File', 'Category'].includes(linkUppercaseStart.split(':')[0])) {
             const addedPunctuation = altText.slice(-1);
 
             if (!link.endsWith(addedPunctuation)) {
-                afterLinkText = addedPunctuation;
+                afterLinkText += addedPunctuation;
                 altText = altText.slice(0, -1);
             }
         }
@@ -452,7 +461,7 @@ function cleanupLinks(content: string, functionsCalledWhileEscaped: ((content: s
 
         link = link.padStart(unparsedLink.length, '\0');
 
-        const output = `[[${link}${altText ? `|${altText}` : ''}]]${afterLinkText}`;
+        const output = `${beforeLinkText}[[${link}${altText ? `|${altText}` : ''}]]${afterLinkText}`;
 
         newLinkContent.push([linkLocation, output]);
     }

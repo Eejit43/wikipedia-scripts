@@ -129,7 +129,7 @@
             "timeless": "yes",
             "monobook": "yes",
             "modern": "yes",
-            "minerva": "no",
+            "minerva": "yes-mobile",
             "cologne-blue": "yes"
         },
         "released": "2025|02|10",

@@ -544,6 +544,23 @@ function cleanupStrayMarkup(content: string) {
  * @param secondRun Whether the function is being run for the second time, after other processing.
  */
 function cleanupSpacing(content: string, secondRun = false) {
+    const PLACEHOLDER = '\u{F0000}';
+
+    const TAGS_TO_IGNORE = ['templatedata', 'poem', 'pre'];
+
+    const ignoredTagsContent: string[] = [];
+
+    content = content.replaceAll(
+        new RegExp(`(<(${TAGS_TO_IGNORE.join('|')})(?: [^<>]*?)?>)(.*?)(</\\2>)`, 'gs'),
+        (fullMatch, startTag: string, tagName: string, innerContent: string, endTag: string) => {
+            innerContent = innerContent.replaceAll(/ +$/gm, '').trim();
+
+            ignoredTagsContent.push(`${startTag}\n${innerContent}\n${endTag}`);
+
+            return PLACEHOLDER;
+        },
+    );
+
     content = content.replaceAll(/(\b|\p{Punctuation}|\]\]|\}\}|\w>) {2,}(\b|\p{Punctuation}|\[\[|\{\{|<\w)/gu, '$1 $2'); // Remove extra spaces between words and sentences
     if (!secondRun) content = content.replaceAll(/^ +| +$/gm, ''); // Remove extra spaces at the start or end of lines
     content = content.replaceAll(/\n{3,}/g, '\n\n'); // Remove extra newlines
@@ -555,6 +572,9 @@ function cleanupSpacing(content: string, secondRun = false) {
     content = content.replaceAll(/<\/([A-Za-z]+) +>/g, '</$1>'); // Remove excess space in closing tags
     content = content.replaceAll(/^(=+.*?=+)$\n{2,}(?=^=+.*?=+$)/gm, '$1\n'); // Remove extra newlines between empty section and following section
     content = content.trim(); // Remove whitespace at the start or end of the content
+
+    // Add back ignored tags
+    for (const tagContent of ignoredTagsContent) content = content.replace(PLACEHOLDER, tagContent);
 
     return content;
 }

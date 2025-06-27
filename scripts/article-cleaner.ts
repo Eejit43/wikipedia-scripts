@@ -52,10 +52,14 @@ export {};
          * @param textarea The summary textarea element to update.
          */
         function updateSummary(textarea: HTMLTextAreaElement | HTMLInputElement) {
-            if (!textarea.value.includes(SCRIPT_MESSAGE.slice(1)))
-                if (textarea.value && !textarea.value.startsWith('/* ') && !textarea.value.endsWith(' */ '))
-                    textarea.value += `; ${SCRIPT_MESSAGE.charAt(0).toLowerCase() + SCRIPT_MESSAGE.slice(1)}`;
-                else textarea.value = `${textarea.value}${SCRIPT_MESSAGE}`;
+            // Add timeout before setting textarea value as this is overwritten sometimes for some reason
+            setTimeout(() => {
+                if (!textarea.value.includes(SCRIPT_MESSAGE.slice(1)))
+                    textarea.value +=
+                        textarea.value && !textarea.value.startsWith('/* ') && !textarea.value.endsWith(' */ ')
+                            ? `; ${SCRIPT_MESSAGE.charAt(0).toLowerCase() + SCRIPT_MESSAGE.slice(1)}`
+                            : SCRIPT_MESSAGE;
+            }, 0);
 
             shouldAddScriptMessage = false;
         }
@@ -104,6 +108,7 @@ export {};
                 mw.notify('Article cleanup complete!', { type: 'success', autoHideSeconds: 'short' });
 
                 const summaryInput = document.querySelector<HTMLInputElement>('#wpSummary');
+
                 if (summaryInput) updateSummary(summaryInput);
                 else shouldAddScriptMessage = true;
             }

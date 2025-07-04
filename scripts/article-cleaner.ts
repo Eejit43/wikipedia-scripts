@@ -735,9 +735,9 @@ async function formatTemplates(content: string) {
 
         private TAG_EQUALS_ESCAPE_REGEXES = [/<(\w+)( [^<>]+?)(?<!\/)>.*?<\/\1>/g, /<(\w+)( [^<>]+?)\/>/g];
 
-        private templateAliases = mappedTemplateAliases;
+        private TEMPLATE_ALIASES = mappedTemplateAliases;
 
-        private defaultTemplateStyles = {
+        private DEFAULT_TEMPLATE_STYLES = {
             [FormatStyle.ExpandedAligned]: [
                 'album rating',
                 'album reviews',
@@ -833,7 +833,7 @@ async function formatTemplates(content: string) {
             [FormatStyle.MinimizedSpaced]: ['infobox mapframe'],
         };
 
-        private namespaceSpecificTemplates = {
+        private NAMESPACE_SPECIFIC_TEMPLATES = {
             [Namespace.Draft]: [
                 'afc comment',
                 'afc submission',
@@ -849,9 +849,9 @@ async function formatTemplates(content: string) {
             [Namespace.User]: ['dashboard.wikiedu.org sandbox', 'user sandbox', 'userspace draft'],
         };
 
-        private templatesToKeepContent = ['draft categories'];
+        private TEMPLATES_TO_KEEP_CONTENT = ['draft categories'];
 
-        private templatesToSubst = [
+        private TEMPLATES_TO_SUBST = [
             // Magic words
             'articlepagename',
             'articlespace',
@@ -871,8 +871,12 @@ async function formatTemplates(content: string) {
             'pagenamebase',
         ];
 
+        private IMAGE_PARAMETERS = new Set(['cover', 'image_flag', 'image', 'logo', 'map_image']);
+
         constructor(startLocation: number) {
             this.location = { start: startLocation };
+
+            for (let number = 1; number <= 10; number++) this.IMAGE_PARAMETERS.add(`image${number}`);
         }
 
         public parse() {
@@ -909,10 +913,10 @@ async function formatTemplates(content: string) {
             const nameLowercaseFirst = this.name.charAt(0).toLowerCase() + this.name.slice(1);
 
             // Resolve template alias in name
-            if (nameLowercaseFirst in this.templateAliases) {
+            if (nameLowercaseFirst in this.TEMPLATE_ALIASES) {
                 const isStartLower = this.name.startsWith(this.name.charAt(0).toLowerCase());
 
-                const finalName = this.templateAliases[nameLowercaseFirst];
+                const finalName = this.TEMPLATE_ALIASES[nameLowercaseFirst];
 
                 this.name = isStartLower ? finalName.charAt(0).toLowerCase() + finalName.slice(1) : finalName;
             }
@@ -934,7 +938,7 @@ async function formatTemplates(content: string) {
         }
 
         private shouldBeRemoved() {
-            for (const [namespace, templates] of Object.entries(this.namespaceSpecificTemplates)) {
+            for (const [namespace, templates] of Object.entries(this.NAMESPACE_SPECIFIC_TEMPLATES)) {
                 if (mw.config.get('wgNamespaceNumber') === Number.parseInt(namespace)) continue;
 
                 if (templates.includes(this.name!.toLowerCase())) return true;
@@ -947,7 +951,7 @@ async function formatTemplates(content: string) {
             let mostSpecificDefaultStylePrefixLength = 0;
             let mostSpecificDefaultStyleFormatStyle: FormatStyle | undefined;
 
-            for (const [formatStyle, templatePrefixes] of Object.entries(this.defaultTemplateStyles))
+            for (const [formatStyle, templatePrefixes] of Object.entries(this.DEFAULT_TEMPLATE_STYLES))
                 for (const templatePrefix of templatePrefixes)
                     if (
                         this.name!.toLowerCase().startsWith(templatePrefix) &&
@@ -961,17 +965,23 @@ async function formatTemplates(content: string) {
         }
 
         private cleanupParameters() {
-            const imageParameters = new Set(['cover', 'image_flag', 'image', 'logo', 'map_image']);
-
-            for (let number = 1; number <= 10; number++) imageParameters.add(`image${number}`);
-
             this.parameters = this.parameters.map(({ key, value }) => {
-                if (key && imageParameters.has(key)) {
+                if (key && this.IMAGE_PARAMETERS.has(key)) {
                     value = value.trim();
 
-                    if (value.startsWith('[[') && value.endsWith(']]')) value = /\[\[(.*?)]]/g.exec(value)![1].split('|')[0];
+                    const valueBefore = value;
+
+                    let imageParameters = [];
+
+                    if (value.startsWith('[[') && value.endsWith(']]')) {
+                        imageParameters = value.slice(2, -2).split('|');
+
+                        value = imageParameters[0].trim();
+                    }
 
                     value = value.replace(/^(File|Image):/, '').replaceAll('_', ' ');
+
+                    if (imageParameters.length > 1) value += ` <!-- Previously: "${valueBefore}" -->`;
                 }
 
                 return { key, value };
@@ -982,11 +992,13 @@ async function formatTemplates(content: string) {
             if (!this.fullText) this.parse();
 
             if (this.shouldBeRemoved())
-                return this.templatesToKeepContent.includes(this.name!.toLowerCase()) ? this.parameters[0].value : '';
+                return this.TEMPLATES_TO_KEEP_CONTENT.includes(this.name!.toLowerCase()) ? this.parameters[0].value : '';
 
             const shouldSubst =
                 mw.config.get('wgNamespaceNumber') !== (Namespace.Template as number) &&
-                this.templatesToSubst.some((name) => name === this.name!.toLowerCase() || this.name!.toLowerCase().startsWith(`${name}:`));
+                this.TEMPLATES_TO_SUBST.some(
+                    (name) => name === this.name!.toLowerCase() || this.name!.toLowerCase().startsWith(`${name}:`),
+                );
 
             const style = this.getStyle();
             if (style === undefined) {

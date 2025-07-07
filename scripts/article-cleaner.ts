@@ -873,6 +873,30 @@ async function formatTemplates(content: string) {
 
         private IMAGE_PARAMETERS = new Set(['cover', 'image_flag', 'image', 'logo', 'map_image']);
 
+        private IGNORED_IMAGE_SYNTAX = new Set([
+            // Type
+            'thumb',
+            'thumbnail',
+            'frame',
+            'framed',
+            'frameless',
+            // Border
+            'border',
+            'right',
+            'left',
+            'center',
+            'none',
+            // Alignment
+            'baseline',
+            'middle',
+            'sub',
+            'super',
+            'text-top',
+            'text-bottom',
+            'top',
+            'bottom',
+        ]);
+
         constructor(startLocation: number) {
             this.location = { start: startLocation };
 
@@ -984,7 +1008,15 @@ async function formatTemplates(content: string) {
 
                     value = value.replace(/^(File|Image):/, '').replaceAll('_', ' ');
 
-                    if (imageParameters.length > 1) value += ` <!-- Previously: "${valueBefore}" -->`;
+                    const additionalData = valueBefore
+                        .slice(2, -2)
+                        .split('|')
+                        .slice(1)
+                        .map((parameter) => parameter.trim())
+                        .filter((parameter) => !this.IGNORED_IMAGE_SYNTAX.has(parameter))
+                        .join('|');
+
+                    if (additionalData.length > 0) value += ` <!-- Previous additional data: "${additionalData}" -->`;
                 }
 
                 return { key, value };

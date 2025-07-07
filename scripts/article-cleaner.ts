@@ -918,7 +918,10 @@ async function formatTemplates(content: string) {
 
                 const finalName = this.TEMPLATE_ALIASES[nameLowercaseFirst];
 
-                this.name = isStartLower ? finalName.charAt(0).toLowerCase() + finalName.slice(1) : finalName;
+                const mustStartBeUppercase =
+                    finalName.startsWith(finalName.slice(0, 2).toUpperCase()) && /^[A-Z]+$/.exec(finalName.slice(0, 2));
+
+                this.name = isStartLower && !mustStartBeUppercase ? finalName.charAt(0).toLowerCase() + finalName.slice(1) : finalName;
             }
 
             const splitParameters = parameters.map((parameters) => {

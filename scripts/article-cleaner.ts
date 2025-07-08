@@ -1195,7 +1195,12 @@ function removeComments(content: string) {
  * @param content The article content to add tags to.
  */
 function autoTagPage(content: string) {
-    if (mw.config.get('wgNamespaceNumber') !== 0) return content;
+    const isOutsideMainspace = mw.config.get('wgNamespaceNumber') !== 0;
+    const isEditingSection = !!new URLSearchParams(window.location.search).get('section');
+    const isDisambiguation = mw.config.get('wgCategories').includes('All disambiguation pages');
+    const isRedirect = mw.config.get('wgIsRedirect');
+
+    if (isOutsideMainspace || isEditingSection || isDisambiguation || isRedirect) return content;
 
     const numberOfCategories = [...content.matchAll(/\[\[Category:/g)].length;
 

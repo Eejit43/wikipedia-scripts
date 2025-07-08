@@ -561,7 +561,7 @@ function cleanupStrayMarkup(content: string) {
 function cleanupSpacing(content: string, secondRun = false) {
     const PLACEHOLDER = '\u{F0000}';
 
-    const TAGS_TO_IGNORE = ['poem', 'pre', 'templatedata'];
+    const TAGS_TO_IGNORE = ['poem', 'pre', 'references', 'templatedata'];
 
     const ignoredTagsContent: string[] = [];
 

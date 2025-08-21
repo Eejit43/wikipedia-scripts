@@ -758,6 +758,7 @@ async function formatTemplates(content: string) {
                 'football box',
                 'football kit',
                 'footballbox',
+                'gallery',
                 'handball kit',
                 'hybridbox',
                 'icehockey kit',

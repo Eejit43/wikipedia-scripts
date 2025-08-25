@@ -872,7 +872,7 @@ async function formatTemplates(content: string) {
             'pagenamebase',
         ];
 
-        private IMAGE_PARAMETERS = new Set(['cover', 'image_flag', 'image', 'logo', 'map_image']);
+        private IMAGE_PARAMETERS = new Set(['cover', 'image_flag', 'image_seal', 'image_skyline', 'image', 'logo', 'map_image']);
 
         private IGNORED_IMAGE_SYNTAX = new Set([
             // Type

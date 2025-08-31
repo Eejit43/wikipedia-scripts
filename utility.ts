@@ -1,4 +1,3 @@
-import 'types-mediawiki';
 import type { ApiQueryRevisionsParams } from 'types-mediawiki-api';
 import type { PageRevisionsResult } from './global-types';
 

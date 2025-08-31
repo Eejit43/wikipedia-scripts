@@ -1,4 +1,4 @@
-import type { ApiEditPageParams } from 'types-mediawiki/api_params';
+import type { ApiEditPageParams } from 'types-mediawiki-api';
 import type { MediaWikiDataError } from '../../global-types';
 import { api, getPageContent } from '../../utility';
 import ActionsDialog from './actions-dialog';

@@ -17,6 +17,7 @@
         "postcss-preset-env": "^10.3.1",
         "stylelint": "^16.23.1",
         "types-mediawiki": "^2.0.0",
+        "types-mediawiki-api": "^2.0.0",
         "typescript": "^5.9.2"
     }
 }

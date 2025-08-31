@@ -1,4 +1,4 @@
-import type { ApiQueryInfoParams } from 'types-mediawiki/api_params';
+import type { ApiQueryInfoParams } from 'types-mediawiki-api';
 import type { PageInfoResult } from '../../global-types';
 import cssContent from '../../styles/redirect-helper.css' with { type: 'css' };
 import { api, getPageContent } from '../../utility';

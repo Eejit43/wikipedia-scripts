@@ -1,4 +1,4 @@
-import type { ApiParseParams } from 'types-mediawiki/api_params';
+import type { ApiParseParams } from 'types-mediawiki-api';
 import type { ApiQueryAllPagesGeneratorParameters, PageParseResult } from '../../global-types';
 import { api } from '../../utility';
 

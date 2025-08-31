@@ -1,4 +1,5 @@
-import type { ApiQueryRevisionsParams } from 'types-mediawiki/api_params';
+import 'types-mediawiki';
+import type { ApiQueryRevisionsParams } from 'types-mediawiki-api';
 import type { PageRevisionsResult } from './global-types';
 
 export const api = new mw.Api();

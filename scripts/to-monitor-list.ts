@@ -1,4 +1,4 @@
-import type { ApiQueryBacklinksParams, ApiQuerySearchParams } from 'types-mediawiki/api_params';
+import type { ApiQueryBacklinksParams, ApiQuerySearchParams } from 'types-mediawiki-api';
 import type { BacklinksResult, EmbeddedinResult, MediaWikiDataError, SearchResult } from '../global-types';
 import { api, getPageContent } from '../utility';
 

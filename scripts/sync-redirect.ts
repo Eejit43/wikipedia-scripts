@@ -1,4 +1,4 @@
-import type { ApiQueryInfoParams, ApiQueryRevisionsParams } from 'types-mediawiki/api_params';
+import type { ApiQueryInfoParams, ApiQueryRevisionsParams } from 'types-mediawiki-api';
 import type { MediaWikiDataError, PageRevisionsResult } from '../global-types';
 import { api } from '../utility';
 

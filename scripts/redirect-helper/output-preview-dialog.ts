@@ -1,4 +1,4 @@
-import type { ApiParseParams } from 'types-mediawiki/api_params';
+import type { ApiParseParams } from 'types-mediawiki-api';
 import { api } from '../../utility';
 
 /**

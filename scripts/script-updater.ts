@@ -3,7 +3,7 @@ import type {
     ApiQueryCategoryMembersParams,
     ApiQueryParams,
     TemplateDataApiTemplateDataParams,
-} from 'types-mediawiki/api_params';
+} from 'types-mediawiki-api';
 import type { ApiResponse } from 'types-mediawiki/mw/Api';
 import type {
     CategoryMembersResult,

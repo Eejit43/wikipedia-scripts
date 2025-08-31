@@ -1,4 +1,4 @@
-import type { ApiQueryRevisionsParams } from 'types-mediawiki/api_params';
+import type { ApiQueryRevisionsParams } from 'types-mediawiki-api';
 import type { PageRevisionsResult } from '../global-types';
 import cssContent from '../styles/rmtr-helper.css' with { type: 'css' };
 import { api } from '../utility';

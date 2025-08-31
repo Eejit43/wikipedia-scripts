@@ -1,9 +1,4 @@
-import type {
-    ApiParseParams,
-    ApiQueryInfoParams,
-    ApiQueryPagePropsParams,
-    PageTriageApiPageTriageListParams,
-} from 'types-mediawiki/api_params';
+import type { ApiParseParams, ApiQueryInfoParams, ApiQueryPagePropsParams, PageTriageApiPageTriageListParams } from 'types-mediawiki-api';
 import type {
     CategoriesResult,
     MediaWikiDataError,

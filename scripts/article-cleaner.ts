@@ -751,6 +751,7 @@ async function formatTemplates(content: string) {
                 'chembox',
                 'cricket uniform',
                 'election box',
+                'emblem table',
                 'episode list',
                 'external music video',
                 'extra album cover',

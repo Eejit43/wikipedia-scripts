@@ -717,7 +717,7 @@ export default class RedirectHelperDialog {
                         : null,
                 )
                 .filter(Boolean) as string[]
-        ).toSorted((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
+        ).sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase())); // eslint-disable-line unicorn/no-array-sort
 
         const originalRedirectTags = Object.entries(this.redirectTemplates)
             .flatMap(([tag, tagData]) => [tag, ...tagData.aliases])
@@ -768,7 +768,7 @@ export default class RedirectHelperDialog {
             this.pageContent
                 .match(/\[\[[Cc]ategory:.+?]]/g)
                 ?.map((category) => category.slice(11, -2))
-                .toSorted((a, b) => a.toLowerCase().localeCompare(b.toLowerCase())) ?? [];
+                .sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase())) ?? []; // eslint-disable-line unicorn/no-array-sort
 
         this.oldStrayText = [
             /{{short description\|.*?}}/i.exec(this.pageContent)?.[0],

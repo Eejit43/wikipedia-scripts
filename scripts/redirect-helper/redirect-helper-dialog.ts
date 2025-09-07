@@ -717,7 +717,7 @@ export default class RedirectHelperDialog {
                         : null,
                 )
                 .filter(Boolean) as string[]
-        ).sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
+        ).toSorted((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
 
         const originalRedirectTags = Object.entries(this.redirectTemplates)
             .flatMap(([tag, tagData]) => [tag, ...tagData.aliases])
@@ -768,7 +768,7 @@ export default class RedirectHelperDialog {
             this.pageContent
                 .match(/\[\[[Cc]ategory:.+?]]/g)
                 ?.map((category) => category.slice(11, -2))
-                .sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase())) ?? [];
+                .toSorted((a, b) => a.toLowerCase().localeCompare(b.toLowerCase())) ?? [];
 
         this.oldStrayText = [
             /{{short description\|.*?}}/i.exec(this.pageContent)?.[0],
@@ -896,19 +896,17 @@ export default class RedirectHelperDialog {
                 const anchors = [
                     ...(destinationContent
                         .match(/(?<={{\s*?[Aa](?:nchors?|nchor for redirect|nker|NCHOR|nc)\s*?\|).+?(?=}})/g)
-                        ?.map((anchor: string) => anchor.split('|').map((part) => part.trim()))
-                        .flat() ?? []),
+                        ?.flatMap((anchor: string) => anchor.split('|').map((part) => part.trim())) ?? []),
                     ...(destinationContent
                         .match(
                             /(?<={{\s*?(?:[Vv](?:isible anchors?|isanc|Anch|anchor|isibleanchor|a)|[Aa](?:nchord|chored|nchor\+)|[Tt]ext anchor)\s*?\|).+?(?=(?<!!|=)}})/g,
                         )
-                        ?.map((anchor: string) =>
+                        ?.flatMap((anchor: string) =>
                             anchor
                                 .split('|')
                                 .map((part) => part.trim())
                                 .filter((part) => !/^text\s*?=/.test(part)),
-                        )
-                        .flat() ?? []),
+                        ) ?? []),
                     ...(destinationContent.match(/(?<=id=)"?.+?(?="|>|\|)/g)?.map((anchor: string) => anchor.trim()) ?? []),
                     ...(destinationContent.match(/EpisodeNumber += +\d+/g)?.map((anchor: string) => `ep${anchor.split('=')[1].trim()}`) ??
                         []),

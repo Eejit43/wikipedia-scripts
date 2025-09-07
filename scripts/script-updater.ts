@@ -496,7 +496,7 @@ async function getRedirectHelperData() {
         .filter((page) => page.title.startsWith('Template:R ') && page.title !== 'Template:R with possibilities')
         .map((page) => ({ name: page.title.split(':')[1], redirect: true }));
 
-    const allTemplates = [...redirectTemplates, ...possibleRedirectTemplates].sort((a, b) => {
+    const allTemplates = [...redirectTemplates, ...possibleRedirectTemplates].toSorted((a, b) => {
         // Force comics and Middle Earth templates to the end of the list
         if (a.name.startsWith('R comics') || a.name.startsWith('R ME')) return 1;
         else if (b.name.startsWith('R comics') || b.name.startsWith('R ME')) return -1;
@@ -557,7 +557,7 @@ async function getRedirectHelperData() {
                     page.redirects
                         ?.map((redirect) => redirect.title.split(':')[1])
                         .filter((redirect) => !possibleRedirectTemplates.some((template) => template.name === redirect))
-                        .sort((a, b) => a.localeCompare(b)) ?? [];
+                        .toSorted((a, b) => a.localeCompare(b)) ?? [];
 
                 finalData[page.title.split(':')[1]].aliases.push(...mappedRedirects); // Data might exist from previous queries, so update instead of overwriting
             }
@@ -584,7 +584,7 @@ async function getRedirectHelperData() {
                         ?.filter((page) => page.redirect)
                         .map((page) => page.title.split(':')[1])
                         .filter((page) => !page.endsWith('/doc') && !page.endsWith('/sandbox'))
-                        .sort((a, b) => a.localeCompare(b)) ?? [];
+                        .toSorted((a, b) => a.localeCompare(b)) ?? [];
 
                 allAliasesOfPossibleTemplates.push(...mappedRedirects);
 
@@ -597,7 +597,7 @@ async function getRedirectHelperData() {
         const finalTemplateData = {
             ...(templateData.redirect ? { redirect: true } : {}),
             parameters: templateData.parameters,
-            aliases: templateData.aliases.sort((a, b) => a.localeCompare(b)),
+            aliases: templateData.aliases.toSorted((a, b) => a.localeCompare(b)),
         };
 
         return [name, finalTemplateData] as const;

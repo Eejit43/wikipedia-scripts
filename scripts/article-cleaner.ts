@@ -32,8 +32,6 @@ declare global {
     };
 }
 
-export {};
-
 (() => {
     if (mw.config.get('wgNamespaceNumber') < 0) return; // Don't run in virtual namespaces
     if (!mw.config.get('wgIsProbablyEditable')) return; // Don't run if user can't edit page
@@ -795,6 +793,7 @@ async function formatTemplates(content: string) {
                 'tweet',
                 'virusbox',
                 'volleyball kit',
+                'weather box',
 
                 // Numbered brackets
                 'nteambracket',

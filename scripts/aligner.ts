@@ -41,7 +41,7 @@
 
                 let maxLength = 0;
 
-                const origTemplate = String(template);
+                const origTemplate = template;
                 const lines = template.split('\n');
                 const newLines = [];
 

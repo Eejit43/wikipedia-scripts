@@ -786,6 +786,7 @@ async function formatTemplates(content: string) {
                 'song ratings',
                 'speciesbox',
                 'starbox',
+                'subject bar',
                 'succession box',
                 'taxobox',
                 'team bracket',

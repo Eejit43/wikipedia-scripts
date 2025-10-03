@@ -383,6 +383,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                 wpTextbox1: content,
                 wpSummary: `Updating data${this.SCRIPT_MESSAGE}`,
                 wpDiff: '1', // Any truthy value makes this work
+                wpWatchthis: '1',
                 wpUltimateParam: '1', // Marks the end of form data
             };
 

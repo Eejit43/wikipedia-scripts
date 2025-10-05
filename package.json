@@ -15,9 +15,9 @@
         "esbuild": "^0.25.10",
         "esbuild-postcss": "^0.0.4",
         "postcss-preset-env": "^10.4.0",
-        "stylelint": "^16.24.0",
+        "stylelint": "^16.25.0",
         "types-mediawiki": "^2.0.0",
         "types-mediawiki-api": "^2.0.0",
-        "typescript": "^5.9.2"
+        "typescript": "^5.9.3"
     }
 }

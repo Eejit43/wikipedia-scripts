@@ -69,7 +69,12 @@ export default class RedirectsDialog extends HelperDialog {
             )?.[1]
             .trim();
 
-        const name = requester ? /(?:Special:Contributions\/|User(?: talk)?:)(.*?)\|/.exec(requester)?.[1].trim() : null;
+        const name = requester
+            ? /(?:Special:Contributions\/|User(?: talk)?:)(.*?)\|/
+                  .exec(requester)?.[1]
+                  .trim()
+                  .replace(/^&#126;/, '~')
+            : null;
 
         parsedData.requester = requester && name ? { type: /\[\[User( talk)?:/.test(requester) ? 'user' : 'ip', name } : null;
 

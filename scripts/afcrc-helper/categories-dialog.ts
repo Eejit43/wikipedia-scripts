@@ -435,12 +435,13 @@ export default class CategoriesDialog extends HelperDialog {
         let backgroundColor = '';
 
         // eslint-disable-next-line unicorn/prefer-switch
-        if (action === 'accept') backgroundColor = '#a0ffa0';
-        else if (action === 'deny') backgroundColor = '#ffcece';
+        if (action === 'accept') backgroundColor = 'var(--background-color-success-subtle, #a0ffa0)';
+        else if (action === 'deny') backgroundColor = 'var(--background-color-error-subtle, #ffcece)';
         else if (action === 'close')
-            if (this.actionsToTake[index].closingReason?.id === 'r') backgroundColor = '#ffcece';
-            else if (this.actionsToTake[index].closingReason?.id === 's') backgroundColor = '#90c090';
-            else backgroundColor = '#b8b8b8';
+            if (this.actionsToTake[index].closingReason?.id === 'r') backgroundColor = 'var(--background-color-error-subtle, #ffcece)';
+            else if (this.actionsToTake[index].closingReason?.id === 's')
+                backgroundColor = 'var(--background-color-success-subtle, #90c090)';
+            else backgroundColor = 'var(--background-color-notice-subtle, #b8b8b8)';
 
         detailsElement.style.backgroundColor = backgroundColor;
     }

@@ -261,13 +261,13 @@ export default class RedirectsDialog extends HelperDialog {
             const acceptedCount = actionsToTake.filter((action) => action.action === 'accept').length;
             const deniedCount = actionsToTake.filter((action) => action.action === 'deny').length;
 
-            if (acceptedCount > 0 && deniedCount > 0) backgroundColor = '#fff17e';
-            else if (acceptedCount > 0) backgroundColor = '#a0ffa0';
-            else backgroundColor = '#ffcece';
+            if (acceptedCount > 0 && deniedCount > 0) backgroundColor = 'var(--background-color-warning-subtle, #fff17e)';
+            else if (acceptedCount > 0) backgroundColor = 'var(--background-color-success-subtle, #a0ffa0)';
+            else backgroundColor = 'var(--background-color-error-subtle, #ffcece)';
         } else if (allRequestsClosed)
-            if (firstCloseReason === 'r') backgroundColor = '#ffcece';
-            else if (firstCloseReason === 's') backgroundColor = '#90c090';
-            else backgroundColor = '#b8b8b8';
+            if (firstCloseReason === 'r') backgroundColor = 'var(--background-color-error-subtle, #ffcece)';
+            else if (firstCloseReason === 's') backgroundColor = 'var(--background-color-success-subtle, #90c090)';
+            else backgroundColor = 'var(--background-color-notice-subtle, #b8b8b8)';
 
         detailsElement.style.backgroundColor = backgroundColor;
     }

@@ -7,7 +7,7 @@
     "prettier": "@eejit/prettier-config",
     "devDependencies": {
         "@eejit/eslint-config-typescript": "^15.0.0",
-        "@eejit/prettier-config": "^3.5.0",
+        "@eejit/prettier-config": "^3.6.0",
         "@eejit/stylelint-config": "^6.0.0",
         "@types/node": "latest",
         "@types/oojs": "^7.0.7",
@@ -15,7 +15,7 @@
         "esbuild": "^0.27.0",
         "esbuild-postcss": "^0.0.4",
         "postcss-preset-env": "^10.4.0",
-        "stylelint": "^16.26.0",
+        "stylelint": "^16.26.1",
         "types-mediawiki": "^2.0.0",
         "types-mediawiki-api": "^2.0.0",
         "typescript": "^5.9.3"

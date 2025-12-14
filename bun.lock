@@ -5,7 +5,7 @@
     "": {
       "name": "wikipedia-scripts",
       "devDependencies": {
-        "@eejit/eslint-config-typescript": "^16.0.0",
+        "@eejit/eslint-config-typescript": "^16.0.1",
         "@eejit/prettier-config": "^3.6.1",
         "@eejit/stylelint-config": "^6.0.0",
         "@types/node": "latest",
@@ -130,7 +130,7 @@
 
     "@dual-bundle/import-meta-resolve": ["@dual-bundle/import-meta-resolve@4.2.1", "", {}, "sha512-id+7YRUgoUX6CgV0DtuhirQWodeeA7Lf4i2x71JS/vtA5pRb/hIGWlw+G6MeXvsM+MXrz0VAydTGElX1rAfgPg=="],
 
-    "@eejit/eslint-config-typescript": ["@eejit/eslint-config-typescript@16.0.0", "", { "dependencies": { "@eslint/js": "^9.39.1", "@stylistic/eslint-plugin": "^5.6.1", "eslint": "^9.39.1", "eslint-plugin-jsdoc": "^61.5.0", "eslint-plugin-unicorn": "^62.0.0", "typescript-eslint": "^8.48.1" } }, "sha512-2rmlU7m4NAvtCB6KeFaKbK/pELOY10GK1USiq4iJ+TKLho+zlw0B2RMDqoKbcJfuvbXrXIJLWKtJ+NC7M4nKPw=="],
+    "@eejit/eslint-config-typescript": ["@eejit/eslint-config-typescript@16.0.1", "", { "dependencies": { "@eslint/js": "^9.39.1", "@stylistic/eslint-plugin": "^5.6.1", "eslint": "^9.39.1", "eslint-plugin-jsdoc": "^61.5.0", "eslint-plugin-unicorn": "^62.0.0", "typescript-eslint": "^8.48.1" } }, "sha512-5NkX6KSMGo7TDJ0oeaBPb5YLIRZZ1xq96w0WsmWm73/jyN1TaHQXe8u0M/wtv+YZQtK3jKUEpPsQ9IR7r5JzeQ=="],
 
     "@eejit/prettier-config": ["@eejit/prettier-config@3.6.1", "", { "dependencies": { "prettier": "^3.7.4", "prettier-plugin-css-order": "^2.1.2", "prettier-plugin-organize-imports": "^4.3.0", "prettier-plugin-packagejson": "^2.5.20" } }, "sha512-OO19EES+5r2QUqeL23SqzPirkHXXolPSNGuH3ShLnj7Hm+pj3a6QZ4GbAhpprR0A/wtR99E3d4mIyGB+zR+6Hg=="],
 

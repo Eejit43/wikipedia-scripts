@@ -1,11 +1,11 @@
 #rmtr-review-result {
     margin: 1em;
-    border: 1px solid #a2a9b1;
-    border-radius: 2px;
-    background-color: whitesmoke;
     padding: 2.5%;
     color: #202122;
     font-size: 0.8em;
+    background-color: whitesmoke;
+    border: 1px solid #a2a9b1;
+    border-radius: 2px;
 }
 
 #rmtr-review-header {
@@ -45,19 +45,19 @@
 /* Modified from Max Beier's "text-spinners" (https://github.com/maxbeier/text-spinners) */
 #rmtr-review-loading {
     display: inline-block;
-    vertical-align: text-bottom;
+    height: 1.3em;
     margin-top: -0.3em;
     margin-left: 3px;
-    height: 1.3em;
-    overflow: hidden;
     line-height: 1.5em;
+    vertical-align: text-bottom;
+    overflow: hidden;
 
     &::after {
         display: inline-table;
-        animation: rmtr-review-loading 0.8s steps(10) infinite;
-        content: "⠋\a⠙\a⠹\a⠸\a⠼\a⠴\a⠦\a⠧\a⠇\a⠏";
         text-align: left;
         white-space: pre;
+        animation: rmtr-review-loading 0.8s steps(10) infinite;
+        content: "⠋\a⠙\a⠹\a⠸\a⠼\a⠴\a⠦\a⠧\a⠇\a⠏";
     }
 }
 

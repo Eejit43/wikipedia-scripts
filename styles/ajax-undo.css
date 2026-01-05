@@ -1,17 +1,17 @@
 #ajax-undo-loading {
     display: none;
-    vertical-align: text-bottom;
     height: 1.3em;
-    overflow: hidden;
     line-height: 1.5em;
+    vertical-align: text-bottom;
+    overflow: hidden;
 
     &::after {
         display: inline-table;
-        animation: ajax-undo-loading 0.8s steps(10) infinite;
-        content: "⠋\a⠙\a⠹\a⠸\a⠼\a⠴\a⠦\a⠧\a⠇\a⠏";
         color: gray;
         text-align: left;
         white-space: pre;
+        animation: ajax-undo-loading 0.8s steps(10) infinite;
+        content: "⠋\a⠙\a⠹\a⠸\a⠼\a⠴\a⠦\a⠧\a⠇\a⠏";
     }
 
     &:not(.is-diff) {
@@ -45,9 +45,9 @@
     margin-left: 3px;
 
     &.is-minerva {
-        border: revert;
-        background: revert;
         padding: revert;
+        background: revert;
+        border: revert;
 
         &:not(.is-diff) {
             float: right;

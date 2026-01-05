@@ -5,8 +5,8 @@
 
     &::before {
         display: inline-block;
-        transform: translateY(2px);
         margin-right: 3px;
+        transform: translateY(2px);
     }
 }
 

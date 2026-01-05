@@ -4,10 +4,10 @@ body.afcrc-helper-open #mw-teleport-target {
 
 .afcrc-helper-request {
     margin: 10px;
-    border-radius: 5px;
-    background-color: #eee;
     padding: 5px;
     color: #202122;
+    background-color: #eee;
+    border-radius: 5px;
 
     & summary {
         cursor: pointer;
@@ -76,25 +76,25 @@ body.afcrc-helper-open #mw-teleport-target {
 }
 
 .afcrc-helper-redirect-possibilities::after {
-    content: " (redirect with possibilities)";
     font-style: italic;
+    content: " (redirect with possibilities)";
 }
 
 .afcrc-helper-template-parameters-container,
 .afcrc-helper-template-parameters-container details {
     margin-block: 10px;
+    padding: 5px;
+    background-color: white;
     border: 1px solid #a2a9b1;
     border-radius: 2px;
-    background-color: white;
-    padding: 5px;
 }
 
 .afcrc-helper-template-parameters-container {
     margin-left: 8px;
 
     & summary {
-        cursor: pointer;
         font-weight: bold;
+        cursor: pointer;
     }
 
     & details {

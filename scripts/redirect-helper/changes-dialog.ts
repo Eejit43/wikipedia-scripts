@@ -1,5 +1,5 @@
+import { api } from '@/utility';
 import type { ApiComparePagesParams } from 'types-mediawiki-api';
-import { api } from '../../utility';
 
 /**
  * An instance of this class is a dialog used for showing changes to be made.

@@ -1,6 +1,6 @@
+import type { ApiQueryAllPagesGeneratorParameters, PageParseResult } from '@/global-types';
+import { api } from '@/utility';
 import type { ApiParseParams } from 'types-mediawiki-api';
-import type { ApiQueryAllPagesGeneratorParameters, PageParseResult } from '../../global-types';
-import { api } from '../../utility';
 
 export interface LookupElementConfig extends OO.ui.TextInputWidget.ConfigOptions, OO.ui.mixin.LookupElement.ConfigOptions {}
 

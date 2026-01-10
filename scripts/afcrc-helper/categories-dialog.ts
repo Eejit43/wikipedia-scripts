@@ -1,7 +1,7 @@
-import type ActionsDialog from './actions-dialog';
-import CategoryInputWidget from './category-input-widget';
-import HelperDialog, { type RequestAction, type RequestActionType, type RequestRequester } from './helper-dialog';
-import PageInputWidget from './page-input-widget';
+import type ActionsDialog from '@scripts/afcrc-helper/actions-dialog';
+import CategoryInputWidget from '@scripts/afcrc-helper/category-input-widget';
+import HelperDialog, { type RequestAction, type RequestActionType, type RequestRequester } from '@scripts/afcrc-helper/helper-dialog';
+import PageInputWidget from '@scripts/afcrc-helper/page-input-widget';
 
 interface CategoryRequestData {
     category: string;

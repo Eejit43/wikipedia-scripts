@@ -1,4 +1,4 @@
-import type HelperDialog from './helper-dialog';
+import type HelperDialog from '@scripts/afcrc-helper/helper-dialog';
 
 /**
  * An instance of this class is an action dialog.

@@ -1,4 +1,4 @@
-import { getPageContent } from '../utility';
+import { getPageContent } from '@/utility';
 
 declare global {
     // eslint-disable-next-line @typescript-eslint/no-extraneous-class

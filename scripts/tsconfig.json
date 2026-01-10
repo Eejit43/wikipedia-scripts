@@ -3,6 +3,11 @@
     "include": ["**/*.ts", "../utility.ts", "../global-types.ts", "../global.d.ts", "../node_modules/types-mediawiki"],
 
     "compilerOptions": {
-        "moduleResolution": "bundler" // Allow importing of dependencies for types
+        "moduleResolution": "bundler", // Allow importing of dependencies for types,
+        "paths": {
+            "@/*": ["../*"],
+            "@scripts/*": ["../scripts/*"],
+            "@styles/*": ["../styles/*"]
+        }
     }
 }

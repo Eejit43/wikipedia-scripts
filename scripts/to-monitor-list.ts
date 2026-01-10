@@ -1,6 +1,6 @@
+import type { BacklinksResult, EmbeddedinResult, MediaWikiDataError, SearchResult } from '@/global-types';
+import { api, getPageContent } from '@/utility';
 import type { ApiQueryBacklinksParams, ApiQuerySearchParams } from 'types-mediawiki-api';
-import type { BacklinksResult, EmbeddedinResult, MediaWikiDataError, SearchResult } from '../global-types';
-import { api, getPageContent } from '../utility';
 
 interface SearchData {
     categories: { id: string; category: string; namespaces?: string[]; notNamespaces?: string[] }[];

@@ -1,6 +1,6 @@
+import { api } from '@/utility';
+import cssContent from '@styles/deletion-finder.css' with { type: 'css' };
 import type { ApiQueryLogEventsParams, ApiQueryParams } from 'types-mediawiki-api';
-import cssContent from '../styles/deletion-finder.css' with { type: 'css' };
-import { api } from '../utility';
 
 mw.loader.using(['mediawiki.util'], async () => {
     if (mw.config.get('wgNamespaceNumber') !== 0) return;

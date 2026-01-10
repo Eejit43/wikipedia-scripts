@@ -1,4 +1,3 @@
-import type { ApiParseParams, ApiQueryInfoParams, ApiQueryPagePropsParams, PageTriageApiPageTriageListParams } from 'types-mediawiki-api';
 import type {
     CategoriesResult,
     MediaWikiDataError,
@@ -6,13 +5,14 @@ import type {
     PageParseResult,
     PageTriageListResponse,
     PagepropsResult,
-} from '../../global-types';
-import { api, getPageContent } from '../../utility';
-import type { WatchMethod } from '../afcrc-helper/afcrc-helper';
-import CategoryInputWidget from './category-input-widget';
-import ChangesDialog from './changes-dialog';
-import OutputPreviewDialog from './output-preview-dialog';
-import RedirectTargetInputWidget from './redirect-target-input-widget';
+} from '@/global-types';
+import { api, getPageContent } from '@/utility';
+import type { WatchMethod } from '@scripts/afcrc-helper/afcrc-helper';
+import CategoryInputWidget from '@scripts/redirect-helper/category-input-widget';
+import ChangesDialog from '@scripts/redirect-helper/changes-dialog';
+import OutputPreviewDialog from '@scripts/redirect-helper/output-preview-dialog';
+import RedirectTargetInputWidget from '@scripts/redirect-helper/redirect-target-input-widget';
+import type { ApiParseParams, ApiQueryInfoParams, ApiQueryPagePropsParams, PageTriageApiPageTriageListParams } from 'types-mediawiki-api';
 
 export type RedirectTemplateData = Record<string, { redirect?: true; parameters: RedirectTemplateParameters; aliases: string[] }>;
 

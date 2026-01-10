@@ -1,7 +1,7 @@
+import type { PageRevisionsResult } from '@/global-types';
+import { api } from '@/utility';
+import cssContent from '@styles/rmtr-helper.css' with { type: 'css' };
 import type { ApiQueryRevisionsParams } from 'types-mediawiki-api';
-import type { PageRevisionsResult } from '../global-types';
-import cssContent from '../styles/rmtr-helper.css' with { type: 'css' };
-import { api } from '../utility';
 
 mw.loader.using(['mediawiki.util'], () => {
     if (mw.config.get('wgPageName') !== 'Wikipedia:Requested_moves/Technical_requests') return;

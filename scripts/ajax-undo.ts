@@ -1,6 +1,6 @@
-import type { MediaWikiDataError } from '../global-types';
-import cssContent from '../styles/ajax-undo.css' with { type: 'css' };
-import { api } from '../utility';
+import type { MediaWikiDataError } from '@/global-types';
+import { api } from '@/utility';
+import cssContent from '@styles/ajax-undo.css' with { type: 'css' };
 
 mw.loader.using(['mediawiki.util'], () => {
     const isDiff = mw.config.get('wgDiffOldId');

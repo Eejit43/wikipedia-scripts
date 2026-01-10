@@ -1,9 +1,9 @@
+import type { PageInfoResult } from '@/global-types';
+import { api, getPageContent } from '@/utility';
+import type { WatchMethod } from '@scripts/afcrc-helper/afcrc-helper';
+import type { RedirectTemplateData } from '@scripts/redirect-helper/redirect-helper-dialog';
+import cssContent from '@styles/redirect-helper.css' with { type: 'css' };
 import type { ApiQueryInfoParams } from 'types-mediawiki-api';
-import type { PageInfoResult } from '../../global-types';
-import cssContent from '../../styles/redirect-helper.css' with { type: 'css' };
-import { api, getPageContent } from '../../utility';
-import type { WatchMethod } from '../afcrc-helper/afcrc-helper';
-import type { RedirectTemplateData } from './redirect-helper-dialog';
 
 declare global {
     interface Window {
@@ -21,7 +21,7 @@ const dependencies = [
 ];
 
 mw.loader.using(dependencies, async () => {
-    const { default: RedirectHelperDialog } = await import('./redirect-helper-dialog'); // eslint-disable-line @typescript-eslint/naming-convention
+    const { default: RedirectHelperDialog } = await import('@scripts/redirect-helper/redirect-helper-dialog'); // eslint-disable-line @typescript-eslint/naming-convention
 
     /**
      * An instance of this class handles the entire functionality of the redirect-helper script.

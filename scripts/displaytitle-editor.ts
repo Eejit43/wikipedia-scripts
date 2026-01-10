@@ -1,4 +1,4 @@
-import { api, getPageContent } from '../utility';
+import { api, getPageContent } from '@/utility';
 
 mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui.styles.icons-editing-core'], () => {
     if (mw.config.get('wgNamespaceNumber') < 0) return; // Don't run in virtual namespaces

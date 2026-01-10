@@ -1,8 +1,8 @@
+import type { MediaWikiDataError } from '@/global-types';
+import { api, getPageContent } from '@/utility';
+import ActionsDialog from '@scripts/afcrc-helper/actions-dialog';
+import type { WatchMethod } from '@scripts/afcrc-helper/afcrc-helper';
 import type { ApiEditPageParams } from 'types-mediawiki-api';
-import type { MediaWikiDataError } from '../../global-types';
-import { api, getPageContent } from '../../utility';
-import ActionsDialog from './actions-dialog';
-import type { WatchMethod } from './afcrc-helper';
 
 export type RequestRequester = { type: 'user' | 'ip'; name: string } | null;
 

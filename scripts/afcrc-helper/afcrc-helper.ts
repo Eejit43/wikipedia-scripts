@@ -1,4 +1,4 @@
-import cssContent from '../../styles/afcrc-helper.css' with { type: 'css' };
+import cssContent from '@styles/afcrc-helper.css' with { type: 'css' };
 
 export type WatchMethod = 'nochange' | 'preferences' | 'unwatch' | 'watch';
 
@@ -9,8 +9,8 @@ declare global {
 }
 
 mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-windows'], async () => {
-    const { default: RedirectsDialog } = await import('./redirects-dialog'); // eslint-disable-line @typescript-eslint/naming-convention
-    const { default: CategoriesDialog } = await import('./categories-dialog'); // eslint-disable-line @typescript-eslint/naming-convention
+    const { default: RedirectsDialog } = await import('@scripts/afcrc-helper/redirects-dialog'); // eslint-disable-line @typescript-eslint/naming-convention
+    const { default: CategoriesDialog } = await import('@scripts/afcrc-helper/categories-dialog'); // eslint-disable-line @typescript-eslint/naming-convention
 
     const pageName = mw.config.get('wgPageName').replaceAll('_', ' ');
 

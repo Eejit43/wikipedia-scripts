@@ -1,6 +1,6 @@
-import type { ApiQueryAllPagesGeneratorParameters, CategoriesResult } from '../../global-types';
-import { api } from '../../utility';
-import type { LookupElementConfig } from '../redirect-helper/redirect-target-input-widget';
+import type { ApiQueryAllPagesGeneratorParameters, CategoriesResult } from '@/global-types';
+import { api } from '@/utility';
+import type { LookupElementConfig } from '@scripts/redirect-helper/redirect-target-input-widget';
 
 /**
  * An instance of this class is a category lookup element.

@@ -1,4 +1,4 @@
-import { api } from '../utility';
+import { api } from '@/utility';
 
 mw.loader.using(['mediawiki.util'], () => {
     if (mw.config.get('wgNamespaceNumber') < 0) return; // Don't run in virtual namespaces

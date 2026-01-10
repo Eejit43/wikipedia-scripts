@@ -1,4 +1,9 @@
 {
     "extends": "@eejit/eslint-config-typescript/tsconfig.json",
-    "include": ["compile.ts"]
+    "include": ["compile.ts"],
+    "compilerOptions": {
+        "paths": {
+            "@/*": ["./*"]
+        }
+    }
 }

@@ -1,8 +1,8 @@
-import { getPageContent } from '../../utility';
-import type { RedirectTemplateData, TemplateEditorElementInfo } from '../redirect-helper/redirect-helper-dialog';
-import type ActionsDialog from './actions-dialog';
-import HelperDialog, { type RequestAction, type RequestRequester } from './helper-dialog';
-import RedirectRequestHandler from './redirect-request-handler';
+import { getPageContent } from '@/utility';
+import type ActionsDialog from '@scripts/afcrc-helper/actions-dialog';
+import HelperDialog, { type RequestAction, type RequestRequester } from '@scripts/afcrc-helper/helper-dialog';
+import RedirectRequestHandler from '@scripts/afcrc-helper/redirect-request-handler';
+import type { RedirectTemplateData, TemplateEditorElementInfo } from '@scripts/redirect-helper/redirect-helper-dialog';
 
 interface RedirectRequestData {
     pages: string[];

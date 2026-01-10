@@ -1,7 +1,7 @@
-import type { TemplateEditorElementInfo } from '../redirect-helper/redirect-helper-dialog';
-import type { RequestActionType } from './helper-dialog';
-import type RedirectsDialog from './redirects-dialog';
-import type { RedirectAction } from './redirects-dialog';
+import type { RequestActionType } from '@scripts/afcrc-helper/helper-dialog';
+import type RedirectsDialog from '@scripts/afcrc-helper/redirects-dialog';
+import type { RedirectAction } from '@scripts/afcrc-helper/redirects-dialog';
+import type { TemplateEditorElementInfo } from '@scripts/redirect-helper/redirect-helper-dialog';
 
 export default class RedirectRequestHandler {
     private titleIndex: number;

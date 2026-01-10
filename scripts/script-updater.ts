@@ -1,19 +1,19 @@
 import type {
-    ApiQueryBacklinkspropParams,
-    ApiQueryCategoryMembersParams,
-    ApiQueryParams,
-    TemplateDataApiTemplateDataParams,
-} from 'types-mediawiki-api';
-import type { ApiResponse } from 'types-mediawiki/mw/Api';
-import type {
     CategoryMembersResult,
     LinksHereResult,
     MediaWikiDataError,
     QueryContinuation,
     RedirectsResult,
     TemplateDataResult,
-} from '../global-types';
-import { api, getPageContent } from '../utility';
+} from '@/global-types';
+import { api, getPageContent } from '@/utility';
+import type {
+    ApiQueryBacklinkspropParams,
+    ApiQueryCategoryMembersParams,
+    ApiQueryParams,
+    TemplateDataApiTemplateDataParams,
+} from 'types-mediawiki-api';
+import type { ApiResponse } from 'types-mediawiki/mw/Api';
 
 interface Script {
     'name': string;

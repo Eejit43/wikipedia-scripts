@@ -1,5 +1,5 @@
 import type { MediaWikiDataError } from '@/global-types';
-import { api } from '@/utility';
+import { api, getSystemMessage, interpolateSystemMessage } from '@/utility';
 import cssContent from '@styles/ajax-undo.css' with { type: 'css' };
 
 mw.loader.using(['mediawiki.util'], () => {
@@ -8,6 +8,8 @@ mw.loader.using(['mediawiki.util'], () => {
     if (mw.config.get('wgAction') !== 'history' && !isDiff) return;
 
     mw.util.addCSS(cssContent);
+
+    const pageName = mw.config.get('wgPageName');
 
     const isMinerva = mw.config.get('skin') === 'minerva';
 
@@ -68,15 +70,20 @@ mw.loader.using(['mediawiki.util'], () => {
                     return;
                 }
 
+                const undoSummaryTemplate =
+                    (await getSystemMessage('undo-summary')) ??
+                    'Undid revision [[Special:Diff/$1|$1]] by [[Special:Contributions/$2|$2]] ([[User talk:$2|talk]])';
+
+                let summary = interpolateSystemMessage(undoSummaryTemplate, [undoId, revisionUser]);
+                if (reasonInput.value.trim()) summary += `: ${reasonInput.value.trim()}`;
+
                 const success = await api
                     .postWithEditToken({
                         action: 'edit',
-                        title: mw.config.get('wgPageName'),
+                        title: pageName,
                         undo: undoId,
                         undoafter: undoAfter,
-                        summary: `Undid revision ${undoId} by [[Special:Contributions/${revisionUser}|${revisionUser}]] ([[User talk:${revisionUser}|talk]])${
-                            reasonInput.value ? `: ${reasonInput.value}` : ''
-                        }`,
+                        summary,
                     })
                     .catch((errorCode, errorInfo) => {
                         mw.notify(

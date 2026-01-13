@@ -63,6 +63,10 @@ export interface CategoriesResult {
     query?: { pages: { title: string; categories?: { title: string }[] }[] };
 }
 
+export interface AllMessagesResult {
+    query?: { allmessages: { name: string; content: string }[] };
+}
+
 export interface PageRevisionsResult {
     batchcomplete: true;
     query: {

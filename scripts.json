@@ -67,6 +67,9 @@
         "image-caption": "Top: history view before button click<br>Bottom: diff view after button click",
         "short-description": "User script to easily undo edits",
         "description": "This user script adds a link following \"undo\" on page histories and diff views, allowing the edit to be undone without leaving the history/diff page. It allows for an optional comment to add to the edit summary.",
+        "changelog": {
+            "2026|01|13": "Fetch undo summary message for local language rather than using hardcoded value."
+        },
         "skin-support": {
             "vector-2022": "yes",
             "vector": "yes",
@@ -77,7 +80,7 @@
             "cologne-blue": "yes"
         },
         "released": "2023|02|16",
-        "updated": "2025|06|17"
+        "updated": "2026|01|13"
     },
     "aligner": {
         "use-instead": "article-cleaner",

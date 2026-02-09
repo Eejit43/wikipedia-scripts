@@ -405,7 +405,7 @@ mw.loader.using(['mediawiki.util'], () => {
                 return mw.notify('No changes to make!', { type: 'error' });
             }
 
-            endResult = endResult.replaceAll(new RegExp(`\n{2,}(={3,} ?${sections.join('|')} ?={3,})`), '\n$1');
+            endResult = endResult.replaceAll(new RegExp(`\n{2,}(={3,} ?${sections.join('|')} ?={3,})`, 'g'), '\n$1');
 
             const noRemaining = Object.values(allRequests).every((section) =>
                 section.every((request) => request.result && 'remove' in request.result),

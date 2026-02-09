@@ -302,6 +302,7 @@
         "short-description": "User script to help handle requests at [[WP:RM/TR]]",
         "description": "This user script helps handle requests at [[WP:RM/TR]] (technical move requests). A link is added to the \"More\"/\"Tools\" dropdown menu (or sidebar), which creates a UI at the top of the page, allowing requests to be removed and moved between sections with comments.\n\n'''The script does not currently actually move pages!'''",
         "changelog": {
+            "2026|02|08": "Strip extra newlines in sections per [[WP:LISTGAP]].",
             "2025|05|07": "Prompt before tab closure when modal is open.",
             "2025|01|31": "Add \"Stale\" removal reason.",
             "2025|01|22": "Improve request detection and parsing logic.",
@@ -323,7 +324,7 @@
             "cologne-blue": "yes"
         },
         "released": "2023|02|14",
-        "updated": "2025|06|17"
+        "updated": "2026|02|08"
     },
     "script-updater": {
         "image": false,

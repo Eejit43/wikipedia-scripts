@@ -1,9 +1,16 @@
 {
     "extends": "@eejit/eslint-config-typescript/tsconfig-dom.json",
-    "include": ["**/*.ts", "../utility.ts", "../global-types.ts", "../global.d.ts", "../node_modules/types-mediawiki"],
+    "include": [
+        "**/*.ts",
+        "../utility.ts",
+        "../global-types.ts",
+        "../global.d.ts",
+        "../node_modules/types-mediawiki",
+        "../node_modules/@types/oojs-ui"
+    ],
 
     "compilerOptions": {
-        "moduleResolution": "bundler", // Allow importing of dependencies for types,
+        "moduleResolution": "bundler", // Allow importing of dependencies for types
         "paths": {
             "@/*": ["../*"],
             "@scripts/*": ["../scripts/*"],

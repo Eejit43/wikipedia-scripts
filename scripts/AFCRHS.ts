@@ -30,10 +30,38 @@
         'custom': '',
     };
 
+    const ALLOWED_USER_GROUPS = new Set(['extendedconfirmed', 'sysop']);
+
     /**
      * Initializes the redirect handler.
      */
     async function redirectInit() {
+        if (!mw.config.get('wgUserGroups')?.some((group) => ALLOWED_USER_GROUPS.has(group))) {
+            const messageContainer = document.createElement('span');
+
+            const extendedConfirmedLink = document.createElement('a');
+            extendedConfirmedLink.href = mw.util.getUrl('Wikipedia:Extended confirmed');
+            extendedConfirmedLink.target = '_blank';
+            extendedConfirmedLink.textContent = 'extended confirmed';
+
+            const documentationLink = document.createElement('a');
+            documentationLink.href = mw.util.getUrl('User:Eejit43/scripts/AFCRHS');
+            documentationLink.target = '_blank';
+            documentationLink.textContent = 'script documentation';
+
+            messageContainer.append(
+                'Error: AFCRHS requires ',
+                extendedConfirmedLink,
+                ' permissions to use. For more information see the ',
+                documentationLink,
+                '.',
+            );
+
+            mw.notification.notify(messageContainer, { type: 'error', autoHideSeconds: 'long' });
+
+            return;
+        }
+
         let pageText = await getPageText(redirectPageName);
         // Cleanup the wikipedia links for preventing stuff like https://en.wikipedia.org/w/index.php?diff=576244067&oldid=576221437
         pageText = cleanupLinks(pageText);

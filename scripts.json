@@ -1,9 +1,10 @@
 {
     "afcrc-helper": {
         "short-description": "User script to help handle requests at [[WP:AFC/R]] and [[WP:AFC/C]]",
-        "description": "This user script was inspired by [[User:Enterprisey/AFCRHS|Enterprisey's \"AFCRHS\" script]], and helps to handle requests at [[WP:AFC/R]] and [[WP:AFC/C]] (redirects and categories creation requests). This script features an easier to use interface with improved functionality and new features. It can be run using the link in the \"More\"/\"Tools\" menu.",
+        "description": "This user script was inspired by [[User:Enterprisey/AFCRHS|Enterprisey's \"AFCRHS\" script]], and helps to handle requests at [[WP:AFC/R]] and [[WP:AFC/C]] (redirects and categories creation requests). This script features an easier to use interface with improved functionality and new features. It can be run using the link in the \"More\"/\"Tools\" menu.\n\n\n'''Note:''' This script requires being in the [[WP:EXTENDED|extended confirmed]] or [[WP:SYSOP|sysop]] user groups, following [[Special:Permalink/1339789067#Rights for the AFC/R script|a discussion at WT:AFC]]. If you have any concerns about this requirement, please leave a message on that talk page.",
         "configuration": "This script can be configured via a {{code|window.afcrcConfig}} object to [[Special:MyPage/common.js|your common.js]]. This takes the following form:\n\n<syntaxhighlight lang=\"js\">\nwindow.afcrcConfiguration = {\n    createdPageWatchMethod: 'nochange' | 'preferences' | 'unwatch' | 'watch',\n};\n</syntaxhighlight>\n\nBy default, pages that are created will use the {{code|preferences}} watchlist change method, following the {{myprefs|Watchlist|Watched pages|check={{int:tog-watchdefault}}}} configuration field. This can be changed through {{code|createdPageWatchMethod}} to either {{code|nochange}} (don't change watch settings for the created page), {{code|unwatch}} (unwatch the created page), or {{code|watch}} (watch the created page).\n\nFor example, to not change watch settings for created pages, add the following to your common.js:\n\n<syntaxhighlight lang=\"js\">\nwindow.afcrcConfiguration = {\n    createdPageWatchMethod: 'nochange',\n};\n</syntaxhighlight>",
         "changelog": {
+            "2026|02|22": "Implement extended confirmed/sysop requirement to use script.",
             "2025|11|05": "Update request colors to match new colors utilized by {{tl|AfC-c}}.",
             "2025|05|07": "Prompt before tab closure when modal is open.",
             "2025|04|19": "Support the modification of data for all titles in a redirect request via a new \"sync requests with first\" button.",
@@ -42,13 +43,13 @@
         },
         "source-multiple": true,
         "released": "2024|02|15",
-        "updated": "2025|11|05"
+        "updated": "2026|02|22"
     },
     "AFCRHS": {
         "image": false,
         "use-instead": "afcrc-helper",
         "short-description": "User script to help handle requests at [[WP:AFC/R]] and [[WP:AFC/C]]",
-        "description": "This user script is a fork of [[User:Enterprisey/AFCRHS|Enterprisey's script]], and helps handle requests at [[WP:AFC/R]] and [[WP:AFC/C]] (redirect and category creation requests).\n\n\nThis fork fixes many bugs, and makes some changes from the original script, such as:\n* Automatically uses {{tl|Redirect category shell}} in created redirects\n* Correctly handles partially accepted requests (instead of just using the accepted or declined headers)",
+        "description": "This user script is a fork of [[User:Enterprisey/AFCRHS|Enterprisey's script]], and helps handle requests at [[WP:AFC/R]] and [[WP:AFC/C]] (redirect and category creation requests).\n\n\nThis fork fixes many bugs, and makes some changes from the original script, such as:\n* Automatically uses {{tl|Redirect category shell}} in created redirects\n* Correctly handles partially accepted requests (instead of just using the accepted or declined headers)\n\n\n'''Note:''' This script requires being in the [[WP:EXTENDED|extended confirmed]] or [[WP:SYSOP|sysop]] user groups, following [[Special:Permalink/1339789067#Rights for the AFC/R script|a discussion at WT:AFC]]. If you have any concerns about this requirement, please leave a message on that talk page.",
         "other-authors": ["Enterprisey"],
         "fork": true,
         "skin-support": {
@@ -61,7 +62,7 @@
             "cologne-blue": "yes"
         },
         "released": "2023|02|27",
-        "updated": "2024|08|26"
+        "updated": "2026|02|22"
     },
     "ajax-undo": {
         "image-caption": "Top: history view before button click<br>Bottom: diff view after button click",

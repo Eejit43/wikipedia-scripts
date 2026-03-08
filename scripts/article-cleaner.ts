@@ -1000,10 +1000,8 @@ async function formatTemplates(content: string) {
 
                     const valueBefore = value;
 
-                    let imageParameters = [];
-
                     if (value.startsWith('[[') && value.endsWith(']]')) {
-                        imageParameters = value.slice(2, -2).split('|');
+                        const imageParameters = value.slice(2, -2).split('|');
 
                         value = imageParameters[0].trim();
                     }

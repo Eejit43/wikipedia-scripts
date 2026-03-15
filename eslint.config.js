@@ -5,7 +5,7 @@ import sharedConfig from '@eejit/eslint-config-typescript';
 import { defineConfig, globalIgnores } from 'eslint/config';
 
 export default defineConfig(
-    globalIgnores(['eslint.config.js', 'dist/*', 'scripts/AFCRHS.ts', 'scripts/pageswap.ts']),
+    globalIgnores(['dist/*', 'scripts/AFCRHS.ts', 'scripts/pageswap.ts']),
     sharedConfig,
     {
         languageOptions: { parserOptions: { project: ['./tsconfig.json', './scripts/tsconfig.json'] } },

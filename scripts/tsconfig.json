@@ -8,6 +8,7 @@
         "../node_modules/types-mediawiki",
         "../node_modules/@types/oojs-ui"
     ],
+    "exclude": ["AFCRHS.ts", "pageswap.ts"],
 
     "compilerOptions": {
         "moduleResolution": "bundler", // Allow importing of dependencies for types

@@ -1207,9 +1207,9 @@ function autoTagPage(content: string) {
     content = content.replaceAll(/\n*{{(uncategorized|improve categories)(\|.+?)?}}({{|\n+|$)/gi, '');
 
     if (numberOfCategories === 0 && !/{{uncategorized/i.test(content))
-        content += '\n\n{{Uncategorized|{{subst:CURRENTMONTHNAME}} {{subst:CURRENTYEAR}}}}';
+        content += '\n\n{{Uncategorized|date={{subst:CURRENTMONTHNAME}} {{subst:CURRENTYEAR}}}}';
     else if (numberOfCategories === 1 && !/{{improve categories/i.test(content))
-        content += '\n\n{{Improve categories|{{subst:CURRENTMONTHNAME}} {{subst:CURRENTYEAR}}}}';
+        content += '\n\n{{Improve categories|date={{subst:CURRENTMONTHNAME}} {{subst:CURRENTYEAR}}}}';
 
     return content;
 }

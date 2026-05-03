@@ -11,6 +11,7 @@ import type { WatchMethod } from '@scripts/afcrc-helper/afcrc-helper';
 import CategoryInputWidget from '@scripts/redirect-helper/category-input-widget';
 import ChangesDialog from '@scripts/redirect-helper/changes-dialog';
 import OutputPreviewDialog from '@scripts/redirect-helper/output-preview-dialog';
+import type { RedirectHelperConfig } from '@scripts/redirect-helper/redirect-helper';
 import RedirectTargetInputWidget from '@scripts/redirect-helper/redirect-target-input-widget';
 import type { ApiParseParams, ApiQueryInfoParams, ApiQueryPagePropsParams, PageTriageApiPageTriageListParams } from 'types-mediawiki-api';
 
@@ -51,7 +52,7 @@ export default class RedirectHelperDialog {
     private pageTitleParsed: mw.Title;
 
     private exists: boolean;
-    private defaultCreatedWatchMethod: WatchMethod;
+    private config: RedirectHelperConfig;
 
     // Used during run()
     private needsCheck = true;
@@ -105,7 +106,7 @@ export default class RedirectHelperDialog {
             pageTitleParsed,
         }: { redirectTemplates: RedirectTemplateData; contentText: HTMLDivElement; pageTitle: string; pageTitleParsed: mw.Title },
         exists: boolean,
-        createdWatchMethod: WatchMethod,
+        config: RedirectHelperConfig,
     ) {
         this.redirectTemplates = redirectTemplates;
         this.contentText = contentText;
@@ -114,7 +115,7 @@ export default class RedirectHelperDialog {
 
         this.exists = exists;
 
-        this.defaultCreatedWatchMethod = createdWatchMethod;
+        this.config = config;
     }
 
     /**
@@ -556,13 +557,13 @@ export default class RedirectHelperDialog {
 
         /* Set up watch page checkbox */
         if (!this.exists) {
-            const config: OO.ui.CheckboxInputWidget.ConfigOptions = {};
+            const checkboxConfig: OO.ui.CheckboxInputWidget.ConfigOptions = {};
 
-            if (['nochange', 'preferences'].includes(this.defaultCreatedWatchMethod)) config.indeterminate = true;
-            else if (this.defaultCreatedWatchMethod === 'watch') config.selected = true;
-            else config.selected = false;
+            if (['nochange', 'preferences'].includes(this.config.createdWatchMethod)) checkboxConfig.indeterminate = true;
+            else if (this.config.createdWatchMethod === 'watch') checkboxConfig.selected = true;
+            else checkboxConfig.selected = false;
 
-            this.watchCheckbox = new OO.ui.CheckboxInputWidget(config);
+            this.watchCheckbox = new OO.ui.CheckboxInputWidget(checkboxConfig);
 
             this.watchCheckboxLayout = new OO.ui.Widget({
                 content: [new OO.ui.FieldLayout(this.watchCheckbox, { label: 'Watch page', align: 'inline' })],
@@ -571,7 +572,7 @@ export default class RedirectHelperDialog {
 
         /* Set up patrol checkbox */
         if (await this.checkShouldPromptPatrol()) {
-            this.patrolCheckbox = new OO.ui.CheckboxInputWidget({ selected: true });
+            this.patrolCheckbox = new OO.ui.CheckboxInputWidget({ selected: this.config.patrolByDefault });
 
             this.patrolCheckboxLayout = new OO.ui.Widget({
                 content: [new OO.ui.FieldLayout(this.patrolCheckbox, { label: 'Mark as patrolled', align: 'inline' })],
@@ -1263,7 +1264,7 @@ export default class RedirectHelperDialog {
         let watchlist: WatchMethod = 'preferences';
 
         if (this.watchCheckbox)
-            if (this.watchCheckbox.isIndeterminate()) watchlist = this.defaultCreatedWatchMethod;
+            if (this.watchCheckbox.isIndeterminate()) watchlist = this.config.createdWatchMethod;
             else if (this.watchCheckbox.isSelected()) watchlist = 'watch';
             else watchlist = 'unwatch';
 

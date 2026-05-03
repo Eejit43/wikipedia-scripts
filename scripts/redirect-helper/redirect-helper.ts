@@ -5,9 +5,14 @@ import type { RedirectTemplateData } from '@scripts/redirect-helper/redirect-hel
 import cssContent from '@styles/redirect-helper.css' with { type: 'css' };
 import type { ApiQueryInfoParams } from 'types-mediawiki-api';
 
+export interface RedirectHelperConfig {
+    createdWatchMethod: WatchMethod;
+    patrolByDefault: boolean;
+}
+
 declare global {
     interface Window {
-        redirectHelperConfiguration?: { createdWatchMethod?: WatchMethod };
+        redirectHelperConfiguration?: Partial<RedirectHelperConfig>;
     }
 }
 
@@ -31,7 +36,7 @@ mw.loader.using(dependencies, async () => {
         private contentText!: HTMLDivElement;
         private pageTitle!: string;
         private pageTitleParsed!: mw.Title;
-        private createdWatchMethod!: WatchMethod;
+        private config!: RedirectHelperConfig;
 
         /**
          * Runs the redirect helper.
@@ -53,12 +58,19 @@ mw.loader.using(dependencies, async () => {
 
             this.pageTitleParsed = pageTitleParsed;
 
-            const configCreatedWatchMethod = window.redirectHelperConfiguration?.createdWatchMethod;
+            const configOverrides = window.redirectHelperConfiguration;
 
-            this.createdWatchMethod =
-                configCreatedWatchMethod && ['nochange', 'preferences', 'unwatch', 'watch'].includes(configCreatedWatchMethod)
-                    ? configCreatedWatchMethod
+            this.config.createdWatchMethod =
+                configOverrides?.createdWatchMethod &&
+                ['nochange', 'preferences', 'unwatch', 'watch'].includes(configOverrides.createdWatchMethod)
+                    ? configOverrides.createdWatchMethod
                     : 'preferences';
+
+            this.config.patrolByDefault = !(
+                configOverrides &&
+                'patrolByDefault' in configOverrides &&
+                configOverrides.patrolByDefault === false
+            );
 
             await this.checkPageAndLoad();
         }
@@ -114,11 +126,11 @@ mw.loader.using(dependencies, async () => {
                 });
                 button.on('click', () => {
                     button.$element[0].remove();
-                    void new RedirectHelperDialog(dialogInfo, false, this.createdWatchMethod).load();
+                    void new RedirectHelperDialog(dialogInfo, false, this.config).load();
                 });
 
                 this.contentText.prepend(button.$element[0]);
-            } else if (pageInfo.query!.pages[0].redirect) void new RedirectHelperDialog(dialogInfo, true, this.createdWatchMethod).load();
+            } else if (pageInfo.query!.pages[0].redirect) void new RedirectHelperDialog(dialogInfo, true, this.config).load();
             else {
                 const portletLink = mw.util.addPortletLink(
                     mw.config.get('skin') === 'minerva' ? 'p-tb' : 'p-cactions',
@@ -129,7 +141,7 @@ mw.loader.using(dependencies, async () => {
                 portletLink.addEventListener('click', (event) => {
                     event.preventDefault();
 
-                    void new RedirectHelperDialog(dialogInfo, false, this.createdWatchMethod).load();
+                    void new RedirectHelperDialog(dialogInfo, false, this.config).load();
 
                     window.scrollTo({ top: 0, behavior: 'smooth' });
 

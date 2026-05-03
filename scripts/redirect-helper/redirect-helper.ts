@@ -60,17 +60,15 @@ mw.loader.using(dependencies, async () => {
 
             const configOverrides = window.redirectHelperConfiguration;
 
-            this.config.createdWatchMethod =
+            const createdWatchMethod =
                 configOverrides?.createdWatchMethod &&
                 ['nochange', 'preferences', 'unwatch', 'watch'].includes(configOverrides.createdWatchMethod)
                     ? configOverrides.createdWatchMethod
                     : 'preferences';
 
-            this.config.patrolByDefault = !(
-                configOverrides &&
-                'patrolByDefault' in configOverrides &&
-                configOverrides.patrolByDefault === false
-            );
+            const patrolByDefault = !(configOverrides && 'patrolByDefault' in configOverrides && configOverrides.patrolByDefault === false);
+
+            this.config = { createdWatchMethod, patrolByDefault };
 
             await this.checkPageAndLoad();
         }

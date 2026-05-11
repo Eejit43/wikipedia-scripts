@@ -116,7 +116,7 @@ mw.loader.using(['mediawiki.util'], () => {
 
         for (const section of sections) {
             const sectionContent = pageContent
-                .split(new RegExp(`={3,} ?${section} ?={3,}`))[1]
+                .split(new RegExp(`={3,}[^\n]*${section} *={3,}`))[1]
                 .split(/={3,}/m)[0]
                 .trim();
 
@@ -389,7 +389,7 @@ mw.loader.using(['mediawiki.util'], () => {
 
                         endResult = endResult.replace(request.full + '\n', '').replace(request.full, '');
                         endResult = endResult.replace(
-                            new RegExp(`(\n?\n?(?:={3,} ?${sectionTitleAfter} ?={3,}|$))`),
+                            new RegExp(`(\n?\n?(?:={3,}[^\n]*${sectionTitleAfter} *={3,}|$))`),
                             `\n${request.full}${request.result.reason ? `\n:: ${request.requester && request.requester.length > 0 ? (mw.util.isIPAddress(request.requester) ? '' : `@[[User:${request.requester}|${request.requester}]] `) : ''} ${request.result.reason} ~~~~` : ''}$1`,
                         );
                         if (!(request.result.section in changes.move)) changes.move[request.result.section] = [];
@@ -405,7 +405,7 @@ mw.loader.using(['mediawiki.util'], () => {
                 return mw.notify('No changes to make!', { type: 'error' });
             }
 
-            endResult = endResult.replaceAll(new RegExp(`\n{2,}(={3,} ?${sections.join('|')} ?={3,})`, 'g'), '\n$1');
+            endResult = endResult.replaceAll(new RegExp(`\n{2,}(={3,}[^\n]*${sections.join('|')} *={3,})`, 'g'), '\n$1');
 
             const noRemaining = Object.values(allRequests).every((section) =>
                 section.every((request) => request.result && 'remove' in request.result),

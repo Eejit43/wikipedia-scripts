@@ -53,6 +53,7 @@ export default class RedirectHelperDialog {
 
     private exists: boolean;
     private config: RedirectHelperConfig;
+    private isOnEnwiki: boolean;
 
     // Used during run()
     private needsCheck = true;
@@ -107,6 +108,7 @@ export default class RedirectHelperDialog {
         }: { redirectTemplates: RedirectTemplateData; contentText: HTMLDivElement; pageTitle: string; pageTitleParsed: mw.Title },
         exists: boolean,
         config: RedirectHelperConfig,
+        isOnEnwiki: boolean,
     ) {
         this.redirectTemplates = redirectTemplates;
         this.contentText = contentText;
@@ -116,6 +118,8 @@ export default class RedirectHelperDialog {
         this.exists = exists;
 
         this.config = config;
+
+        this.isOnEnwiki = isOnEnwiki;
     }
 
     /**
@@ -155,8 +159,8 @@ export default class RedirectHelperDialog {
                 this.syncWithSubjectPageButton?.$element[0],
                 this.syncWithRootPageButton?.$element[0],
                 this.redirectInputLayout.$element[0],
-                this.tagSelectLayout.$element[0],
-                this.templateParametersEditor,
+                this.isOnEnwiki ? this.tagSelectLayout.$element[0] : null,
+                this.isOnEnwiki ? this.templateParametersEditor : null,
                 this.defaultSortInputLayout.$element[0],
                 this.categorySelectLayout.$element[0],
                 this.summaryInputLayout.$element[0],

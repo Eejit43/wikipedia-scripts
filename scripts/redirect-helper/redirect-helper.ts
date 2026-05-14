@@ -38,6 +38,8 @@ mw.loader.using(dependencies, async () => {
         private pageTitleParsed!: mw.Title;
         private config!: RedirectHelperConfig;
 
+        private isOnEnwiki = mw.config.get('wgServer') === '//en.wikipedia.org';
+
         /**
          * Runs the redirect helper.
          */
@@ -92,6 +94,8 @@ mw.loader.using(dependencies, async () => {
          * Fetches the redirect templates.
          */
         private async fetchRedirectTemplates() {
+            if (!this.isOnEnwiki) return {};
+
             return JSON.parse((await getPageContent('User:Eejit43/scripts/redirect-helper.json')) ?? '{}') as RedirectTemplateData;
         }
 
@@ -124,11 +128,12 @@ mw.loader.using(dependencies, async () => {
                 });
                 button.on('click', () => {
                     button.$element[0].remove();
-                    void new RedirectHelperDialog(dialogInfo, false, this.config).load();
+                    void new RedirectHelperDialog(dialogInfo, false, this.config, this.isOnEnwiki).load();
                 });
 
                 this.contentText.prepend(button.$element[0]);
-            } else if (pageInfo.query!.pages[0].redirect) void new RedirectHelperDialog(dialogInfo, true, this.config).load();
+            } else if (pageInfo.query!.pages[0].redirect)
+                void new RedirectHelperDialog(dialogInfo, true, this.config, this.isOnEnwiki).load();
             else {
                 const portletLink = mw.util.addPortletLink(
                     mw.config.get('skin') === 'minerva' ? 'p-tb' : 'p-cactions',
@@ -139,7 +144,7 @@ mw.loader.using(dependencies, async () => {
                 portletLink.addEventListener('click', (event) => {
                     event.preventDefault();
 
-                    void new RedirectHelperDialog(dialogInfo, false, this.config).load();
+                    void new RedirectHelperDialog(dialogInfo, false, this.config, this.isOnEnwiki).load();
 
                     window.scrollTo({ top: 0, behavior: 'smooth' });
 

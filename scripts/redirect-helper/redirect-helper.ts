@@ -38,7 +38,7 @@ mw.loader.using(dependencies, async () => {
         private pageTitleParsed!: mw.Title;
         private config!: RedirectHelperConfig;
 
-        private isOnEnwiki = mw.config.get('wgServer') === '//en.wikipedia.org';
+        private isOnEnwiki = mw.config.get('wgDBname') === 'enwiki';
 
         /**
          * Runs the redirect helper.

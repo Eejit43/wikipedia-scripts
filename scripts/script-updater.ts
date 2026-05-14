@@ -31,6 +31,7 @@ interface Script {
     'personal'?: true;
     'skin-support': Record<string, boolean>;
     'source-multiple'?: true;
+    'global-support'?: true;
     'released': string;
     'updated': string;
 }
@@ -293,6 +294,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                     .map(([skin, status]) => `${skin}=${status}`)
                     .join('|')}}}`,
                 script['source-multiple'] ? `| source-multiple   = ${script['source-multiple']}` : null,
+                script['global-support'] ? `| global-support    = ${script['global-support']}` : null,
                 `| released          = {{start date and age|${script.released}}}`,
                 `| updated           = {{start date and age|${script.updated}}}`,
                 '}}',

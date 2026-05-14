@@ -80,6 +80,7 @@
             "minerva": "yes",
             "cologne-blue": "yes"
         },
+        "global-support": true,
         "released": "2023|02|16",
         "updated": "2026|01|13"
     },
@@ -137,6 +138,7 @@
             "minerva": "yes-mobile",
             "cologne-blue": "yes"
         },
+        "global-support": true,
         "released": "2025|02|10",
         "updated": "2026|04|11"
     },
@@ -153,6 +155,7 @@
             "minerva": "yes",
             "cologne-blue": "yes"
         },
+        "global-support": true,
         "released": "2023|05|12",
         "updated": "2024|01|08"
     },
@@ -203,6 +206,7 @@
             "minerva": "yes",
             "cologne-blue": "yes"
         },
+        "global-support": true,
         "released": "2023|05|09",
         "updated": "2025|02|28"
     },
@@ -219,6 +223,7 @@
             "minerva": "yes",
             "cologne-blue": "yes"
         },
+        "global-support": true,
         "released": "2023|02|14",
         "updated": "2025|06|17"
     },
@@ -298,6 +303,7 @@
             "cologne-blue": "yes"
         },
         "source-multiple": true,
+        "global-support": true,
         "released": "2023|05|17",
         "updated": "2026|05|14"
     },
@@ -344,7 +350,7 @@
             "cologne-blue": "yes"
         },
         "released": "2023|04|05",
-        "updated": "2025|10|03"
+        "updated": "2026|05|14"
     },
     "search-links": {
         "image": false,
@@ -359,6 +365,7 @@
             "minerva": "yes",
             "cologne-blue": "yes"
         },
+        "global-support": true,
         "released": "2023|04|27",
         "updated": "2025|02|17"
     },

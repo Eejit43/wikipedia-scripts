@@ -50,6 +50,7 @@ export default class RedirectHelperDialog {
     private contentText: HTMLDivElement;
     private pageTitle: string;
     private pageTitleParsed: mw.Title;
+    private defaultRedirectTarget?: string;
 
     private exists: boolean;
     private config: RedirectHelperConfig;
@@ -105,7 +106,14 @@ export default class RedirectHelperDialog {
             contentText,
             pageTitle,
             pageTitleParsed,
-        }: { redirectTemplates: RedirectTemplateData; contentText: HTMLDivElement; pageTitle: string; pageTitleParsed: mw.Title },
+            defaultRedirectTarget,
+        }: {
+            redirectTemplates: RedirectTemplateData;
+            contentText: HTMLDivElement;
+            pageTitle: string;
+            pageTitleParsed: mw.Title;
+            defaultRedirectTarget?: string;
+        },
         exists: boolean,
         config: RedirectHelperConfig,
         isOnEnwiki: boolean,
@@ -114,6 +122,7 @@ export default class RedirectHelperDialog {
         this.contentText = contentText;
         this.pageTitle = pageTitle;
         this.pageTitleParsed = pageTitleParsed;
+        this.defaultRedirectTarget = defaultRedirectTarget;
 
         this.exists = exists;
 
@@ -152,6 +161,8 @@ export default class RedirectHelperDialog {
 
         this.loadInputElements();
         await this.loadSubmitElements();
+
+        if (this.defaultRedirectTarget) this.redirectInput.setValue(this.defaultRedirectTarget);
 
         /* Add elements to screen and load data (if applicable) */
         this.editorBox.$element[0].append(
@@ -785,8 +796,9 @@ export default class RedirectHelperDialog {
             .filter(Boolean)
             .join('\n');
 
-        if (this.oldRedirectTarget) this.redirectInput.setValue(this.oldRedirectTarget.replaceAll('_', ' '));
-        else mw.notify('redirect-helper: Could not find redirect target!', { type: 'error' });
+        if (!this.defaultRedirectTarget)
+            if (this.oldRedirectTarget) this.redirectInput.setValue(this.oldRedirectTarget.replaceAll('_', ' '));
+            else mw.notify('redirect-helper: Could not find redirect target!', { type: 'error' });
 
         this.tagSelect.setValue(this.oldRedirectTags);
 

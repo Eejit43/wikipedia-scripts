@@ -1,9 +1,7 @@
-import type { PageInfoResult } from '@/global-types';
-import { api, getPageContent } from '@/utility';
+import { getPageContent } from '@/utility';
 import type { WatchMethod } from '@scripts/afcrc-helper/afcrc-helper';
 import type { RedirectTemplateData } from '@scripts/redirect-helper/redirect-helper-dialog';
 import cssContent from '@styles/redirect-helper.css' with { type: 'css' };
-import type { ApiQueryInfoParams } from 'types-mediawiki-api';
 
 export interface RedirectHelperConfig {
     createdWatchMethod: WatchMethod;
@@ -27,6 +25,7 @@ const dependencies = [
 
 mw.loader.using(dependencies, async () => {
     const { default: RedirectHelperDialog } = await import('@scripts/redirect-helper/redirect-helper-dialog'); // eslint-disable-line @typescript-eslint/naming-convention
+    const { default: RedirectPageHereDialog } = await import('@scripts/redirect-helper/redirect-page-here-dialog'); // eslint-disable-line @typescript-eslint/naming-convention
 
     /**
      * An instance of this class handles the entire functionality of the redirect-helper script.
@@ -39,12 +38,25 @@ mw.loader.using(dependencies, async () => {
         private config!: RedirectHelperConfig;
 
         private isOnEnwiki = mw.config.get('wgDBname') === 'enwiki';
+        private isMissing = mw.config.get('wgArticleId') === 0;
+        private isRedirect = mw.config.get('wgIsRedirect');
 
         /**
          * Runs the redirect helper.
          */
         async run() {
-            if (!this.passesPreChecks()) return;
+            this.pageTitle = mw.config.get('wgPageName');
+
+            const pageTitleParsed = mw.Title.newFromText(this.pageTitle);
+            if (!pageTitleParsed) return mw.notify('redirect-helper: Failed to parse page title!', { type: 'error' });
+
+            this.pageTitleParsed = pageTitleParsed;
+
+            if (!this.passesPreChecks()) {
+                this.loadRedirectPageHere();
+
+                return;
+            }
 
             this.redirectTemplates = await this.fetchRedirectTemplates();
 
@@ -52,13 +64,6 @@ mw.loader.using(dependencies, async () => {
             if (!contentText) return mw.notify('redirect-helper: Failed to find content text element!', { type: 'error' });
 
             this.contentText = contentText;
-
-            this.pageTitle = mw.config.get('wgPageName');
-
-            const pageTitleParsed = mw.Title.newFromText(this.pageTitle);
-            if (!pageTitleParsed) return mw.notify('redirect-helper: Failed to parse page title!', { type: 'error' });
-
-            this.pageTitleParsed = pageTitleParsed;
 
             const configOverrides = window.redirectHelperConfiguration;
 
@@ -72,7 +77,7 @@ mw.loader.using(dependencies, async () => {
 
             this.config = { createdWatchMethod, patrolByDefault };
 
-            await this.checkPageAndLoad();
+            this.checkPageAndLoad();
         }
 
         /**
@@ -102,15 +107,8 @@ mw.loader.using(dependencies, async () => {
         /**
          * Checks a page's status and loads the helper appropriately.
          */
-        private async checkPageAndLoad() {
+        private checkPageAndLoad() {
             mw.util.addCSS(cssContent);
-
-            const pageInfo = (await api.get({
-                action: 'query',
-                formatversion: '2',
-                prop: 'info',
-                titles: this.pageTitle,
-            } satisfies ApiQueryInfoParams)) as PageInfoResult;
 
             const dialogInfo = {
                 redirectTemplates: this.redirectTemplates,
@@ -119,36 +117,79 @@ mw.loader.using(dependencies, async () => {
                 pageTitleParsed: this.pageTitleParsed,
             };
 
-            if (pageInfo.query!.pages[0].missing) {
-                const button = new OO.ui.ButtonWidget({
-                    id: 'create-redirect-button',
-                    label: 'Create redirect',
-                    icon: 'articleRedirect',
-                    flags: ['progressive'],
-                });
-                button.on('click', () => {
-                    button.$element[0].remove();
-                    void new RedirectHelperDialog(dialogInfo, false, this.config, this.isOnEnwiki).load();
-                });
+            let hasLoaded = false;
 
-                this.contentText.prepend(button.$element[0]);
-            } else if (pageInfo.query!.pages[0].redirect)
-                void new RedirectHelperDialog(dialogInfo, true, this.config, this.isOnEnwiki).load();
-            else {
-                const portletLink = mw.util.addPortletLink(
-                    mw.config.get('skin') === 'minerva' ? 'p-tb' : 'p-cactions',
+            const redirectHelperTarget = new URLSearchParams(window.location.search).get('redirectHelperTarget');
+            if (redirectHelperTarget) {
+                const parsedTarget = mw.Title.newFromText(redirectHelperTarget);
+                if (parsedTarget) {
+                    void new RedirectHelperDialog(
+                        { ...dialogInfo, defaultRedirectTarget: parsedTarget.getPrefixedText() },
+                        !this.isMissing,
+                        this.config,
+                        this.isOnEnwiki,
+                    ).load();
+                    hasLoaded = true;
+                } else mw.notify('redirect-helper: Invalid redirect target specified in URL.', { type: 'error' });
+            }
+
+            if (!hasLoaded)
+                if (this.isMissing) {
+                    const button = new OO.ui.ButtonWidget({
+                        id: 'create-redirect-button',
+                        label: 'Create redirect',
+                        icon: 'articleRedirect',
+                        flags: ['progressive'],
+                    });
+                    button.on('click', () => {
+                        button.$element[0].remove();
+                        void new RedirectHelperDialog(dialogInfo, false, this.config, this.isOnEnwiki).load();
+                    });
+
+                    this.contentText.prepend(button.$element[0]);
+                } else if (this.isRedirect) void new RedirectHelperDialog(dialogInfo, true, this.config, this.isOnEnwiki).load();
+                else {
+                    const redirectHelperPortletLink = mw.util.addPortletLink(
+                        mw.config.get('skin') === 'minerva' ? 'p-tb' : 'p-cactions',
+                        '#',
+                        'Redirect page',
+                        'redirect-helper',
+                    )!;
+                    redirectHelperPortletLink.addEventListener('click', (event) => {
+                        event.preventDefault();
+
+                        void new RedirectHelperDialog(dialogInfo, false, this.config, this.isOnEnwiki).load();
+
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+
+                        redirectHelperPortletLink.remove();
+                    });
+                }
+
+            this.loadRedirectPageHere();
+        }
+
+        /**
+         * Loads the "Redirect page here" functionality, if not on a redirect.
+         */
+        private loadRedirectPageHere() {
+            if (!this.isMissing && !this.isRedirect) {
+                const redirectPageHerePortletLink = mw.util.addPortletLink(
+                    mw.config.get('skin') === 'minerva' ? 'p-cactions' : 'p-cactions',
                     '#',
-                    'Redirect page',
-                    'redirect-helper',
+                    'Redirect page here',
+                    'redirect-page-here',
                 )!;
-                portletLink.addEventListener('click', (event) => {
+                redirectPageHerePortletLink.addEventListener('click', (event) => {
                     event.preventDefault();
 
-                    void new RedirectHelperDialog(dialogInfo, false, this.config, this.isOnEnwiki).load();
+                    const windowManager = new OO.ui.WindowManager();
+                    document.body.append(windowManager.$element[0]);
 
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    const dialog = new RedirectPageHereDialog(this.pageTitleParsed);
+                    windowManager.addWindows([dialog]);
 
-                    portletLink.remove();
+                    dialog.open();
                 });
             }
         }

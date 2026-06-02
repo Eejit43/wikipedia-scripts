@@ -140,7 +140,7 @@
         },
         "global-support": true,
         "released": "2025|02|10",
-        "updated": "2026|04|11"
+        "updated": "2026|06|02"
     },
     "copy-search-results": {
         "image": false,
@@ -306,7 +306,7 @@
         "source-multiple": true,
         "global-support": true,
         "released": "2023|05|17",
-        "updated": "2026|05|18"
+        "updated": "2026|06|02"
     },
     "rmtr-helper": {
         "short-description": "User script to help handle requests at [[WP:RM/TR]]",

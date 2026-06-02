@@ -987,7 +987,7 @@ async function formatTemplates(content: string) {
                         templatePrefix.length >= mostSpecificDefaultStylePrefixLength
                     ) {
                         mostSpecificDefaultStylePrefixLength = templatePrefix.length;
-                        mostSpecificDefaultStyleFormatStyle = Number.parseInt(formatStyle) as FormatStyle;
+                        mostSpecificDefaultStyleFormatStyle = Number.parseInt(formatStyle);
                     }
 
             return mostSpecificDefaultStyleFormatStyle;
@@ -1030,6 +1030,7 @@ async function formatTemplates(content: string) {
                 return this.TEMPLATES_TO_KEEP_CONTENT.includes(this.name!.toLowerCase()) ? this.parameters[0].value : '';
 
             const shouldSubst =
+                // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
                 mw.config.get('wgNamespaceNumber') !== (Namespace.Template as number) &&
                 this.TEMPLATES_TO_SUBST.some(
                     (name) => name === this.name!.toLowerCase() || this.name!.toLowerCase().startsWith(`${name}:`),

@@ -557,12 +557,12 @@ export default class RedirectHelperDialog {
 
         /* Set up sync talk checkbox */
         if (!this.pageTitleParsed.isTalkPage()) {
-            this.talkData = (await api.get({
+            this.talkData = await api.get({
                 action: 'query',
                 formatversion: '2',
                 prop: 'info',
                 titles: this.pageTitleParsed.getTalkPage()!.getPrefixedText(),
-            } satisfies ApiQueryInfoParams)) as PageInfoResult;
+            } satisfies ApiQueryInfoParams);
             this.syncTalkCheckbox = new OO.ui.CheckboxInputWidget({ selected: !!this.talkData.query!.pages[0].redirect });
 
             this.syncTalkCheckboxLayout = new OO.ui.Widget({

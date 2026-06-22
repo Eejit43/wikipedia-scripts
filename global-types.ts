@@ -56,11 +56,13 @@ export interface PageParseResult {
 }
 
 export interface PagepropsResult {
-    query?: { pages: { pageprops?: { defaultsort?: string; disambiguation?: string; displaytitle?: string } }[] };
+    query?: {
+        pages: { title: string; missing?: true; pageprops?: { defaultsort?: string; disambiguation?: string; displaytitle?: string } }[];
+    };
 }
 
 export interface CategoriesResult {
-    query?: { pages: { title: string; categories?: { title: string }[] }[] };
+    query?: { pages: { title: string; missing?: true; categories?: { title: string }[] }[] };
 }
 
 export interface AllMessagesResult {

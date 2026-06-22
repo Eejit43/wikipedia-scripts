@@ -851,7 +851,7 @@ export default class RedirectHelperDialog {
         if (!this.parsedDestination && errors.length === 0) errors.push({ title: destination, message: 'is not a valid page title!' });
 
         /* Self redirects */
-        if (this.parsedDestination?.getPrefixedText() === this.pageTitleParsed.getPrefixedText())
+        if (this.parsedDestination!.getPrefixedText() === this.pageTitleParsed.getPrefixedText())
             errors.push({ message: 'cannot redirect to itself!' });
 
         const destinationData = (await api
@@ -862,17 +862,29 @@ export default class RedirectHelperDialog {
                 titles: destination,
             } satisfies ApiQueryPagePropsParams)
             .catch((errorCode) => {
-                if (errorCode === 'missingtitle') errors.push({ title: destination, message: 'does not exist!' });
-                else errors.push({ title: destination, message: `was not able to be fetched from the API (${errorCode})!` });
+                errors.push({ title: destination, message: `was not able to be fetched from the API (${errorCode})!` });
 
                 return null;
             })) as (PagepropsResult & CategoriesResult) | null;
-        const destinationParseResult = (await api.get({
-            action: 'parse',
-            page: destination,
-            prop: 'sections',
-            redirects: true,
-        } satisfies ApiParseParams)) as PageParseResult;
+
+        if (destinationData?.query!.pages[0].missing) errors.push({ title: destination, message: 'does not exist!' });
+
+        if (!destinationData || destinationData.query!.pages[0].missing) return errors;
+
+        const destinationParseResult = (await api
+            .get({
+                action: 'parse',
+                page: destination,
+                prop: 'sections',
+                redirects: true,
+            } satisfies ApiParseParams)
+            .catch((errorCode) => {
+                errors.push({ title: destination, message: `was not able to be parsed by the API (${errorCode})!` });
+
+                return null;
+            })) as PageParseResult | null;
+
+        if (!destinationParseResult) return errors;
 
         /* Double redirects */
         if (destinationParseResult.parse!.redirects.length > 0) {
@@ -960,9 +972,9 @@ export default class RedirectHelperDialog {
                     });
 
         const targetIsDisambiguationPage = !!(
-            destinationData!.query!.pages[0].pageprops && 'disambiguation' in destinationData!.query!.pages[0].pageprops
+            destinationData.query!.pages[0].pageprops && 'disambiguation' in destinationData.query!.pages[0].pageprops
         );
-        const targetIsSurnameList = !!destinationData!.query!.pages[0].categories?.some(
+        const targetIsSurnameList = !!destinationData.query!.pages[0].categories?.some(
             (category) => category.title === 'Category:Surnames',
         );
 
@@ -978,7 +990,7 @@ export default class RedirectHelperDialog {
                 message: 'is a redirect to a disambiguation page, but it is not tagged with a disambiguation categorization template!',
             });
 
-        if (destinationData!.query!.pages[0].pageprops && !targetIsDisambiguationPage) {
+        if (destinationData.query!.pages[0].pageprops && !targetIsDisambiguationPage) {
             /* Improperly tagged as redirect to disambiguation page */
             if (
                 (!targetIsSurnameList && (taggedAsRedirectToDisambiguationPage || taggedAsRedirectToSurnameList)) ||

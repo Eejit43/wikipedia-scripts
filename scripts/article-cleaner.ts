@@ -184,11 +184,11 @@ function cleanupStrayUnicodeCharacters(content: string) {
     //   - ASCII control characters (\u0000-\u0009, \u000B-\u000C, \u000E-\u001F)
     //   - DEL (\u007F)
     //   - Soft hyphen (\u00AD)
-    //   - Zero-width characters and directionality marks (\u200B-\u200F)
+    //   - Zero-width space (\u200B)
     //   - Bidi override and formatting characters (\u202A-\u202E)
     //   - Word joiner and invisible separator (\u2060, \u2063)
     //   - Byte order mark (BOM) (\uFEFF)
-    const STRAY_UNICODE_REGEX = /[\u0000-\u0009\u000B\u000C\u000E-\u001F\u007F\u00AD\u200B-\u200F\u202A-\u202E\u2060\u2063\uFEFF]/g; // eslint-disable-line no-control-regex
+    const STRAY_UNICODE_REGEX = /[\u0000-\u0009\u000B\u000C\u000E-\u001F\u007F\u00AD\u200B\u202A-\u202E\u2060\u2063\uFEFF]/g; // eslint-disable-line no-control-regex
 
     if (STRAY_UNICODE_REGEX.test(content)) content = content.replaceAll(STRAY_UNICODE_REGEX, '');
 

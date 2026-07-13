@@ -104,7 +104,7 @@ export default class HelperDialog extends OO.ui.ProcessDialog {
      * Parses requests from the page content.
      */
     private parseRequests() {
-        this.beforeText = /^(.*?)==/s.exec(this.pageContent)![1];
+        this.beforeText = /^(.*?)==/s.exec(this.pageContent)?.[1] ?? this.pageContent;
 
         this.pageContent = this.pageContent.replace(/^.*?==/s, '==');
 

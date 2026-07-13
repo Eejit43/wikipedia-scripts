@@ -473,6 +473,25 @@ async function getContinuedQuery(query: ApiQueryParams): Promise<ApiResponse[]> 
     return returnValue;
 }
 
+const namespaceMapping = mw.config.get('wgNamespaceIds');
+
+const redirectTemplateNamespaceCategoryMapping: Record<string, { numberOrType: number | string; templates: string[] }> = {
+    /* eslint-disable @typescript-eslint/naming-convention */
+    'All namespace redirect templates': { numberOrType: 'ALL', templates: [] },
+    'Category namespace redirect templates': { numberOrType: namespaceMapping.category, templates: [] },
+    'Draft namespace redirect templates': { numberOrType: namespaceMapping.draft, templates: [] },
+    'Help namespace redirect templates': { numberOrType: namespaceMapping.help, templates: [] },
+    'Main namespace redirect templates': { numberOrType: namespaceMapping[''], templates: [] },
+    'Other namespace redirect templates': { numberOrType: 'ALL', templates: [] },
+    'Portal namespace redirect templates': { numberOrType: namespaceMapping.portal, templates: [] },
+    'Talk namespace redirect templates': { numberOrType: 'TALK', templates: [] },
+    'Template namespace redirect templates': { numberOrType: namespaceMapping.template, templates: [] },
+    'Unknown namespace redirect templates': { numberOrType: 'ALL', templates: [] },
+    'User namespace redirect templates': { numberOrType: namespaceMapping.user, templates: [] },
+    'Wikipedia namespace redirect templates': { numberOrType: namespaceMapping.wikipedia, templates: [] },
+    /* eslint-enable @typescript-eslint/naming-convention */
+};
+
 /**
  * Gets the script data for redirect-helper.
  */
@@ -492,6 +511,20 @@ async function getRedirectHelperData() {
         formatversion: '2',
     } satisfies ApiQueryCategoryMembersParams)) as CategoryMembersResult;
 
+    await Promise.all(
+        Object.entries(redirectTemplateNamespaceCategoryMapping).map(async ([categoryName, data]) => {
+            const redirectTemplatesForNamespace = (await api.get({
+                action: 'query',
+                list: 'categorymembers',
+                cmtitle: `Category:${categoryName}`,
+                cmlimit: 'max',
+                formatversion: '2',
+            } satisfies ApiQueryCategoryMembersParams)) as CategoryMembersResult;
+
+            data.templates = redirectTemplatesForNamespace.query.categorymembers.map((page) => page.title.split(':')[1]);
+        }),
+    );
+
     const redirectTemplates = allRedirectTemplates.query.categorymembers
         .filter((page) => page.title.startsWith('Template:R ') && page.title !== 'Template:R template index')
         .map((page) => ({ name: page.title.split(':')[1], redirect: false }));
@@ -508,7 +541,10 @@ async function getRedirectHelperData() {
     });
 
     const finalData = Object.fromEntries(
-        allTemplates.map((page) => [page.name, { redirect: page.redirect, parameters: {}, aliases: [] as string[] }]),
+        allTemplates.map((page) => [
+            page.name,
+            { redirect: page.redirect, namespaceRequirement: [] as (number | string)[], parameters: {}, aliases: [] as string[] },
+        ]),
     );
 
     // Fetch the TemplateData for all templates
@@ -597,9 +633,15 @@ async function getRedirectHelperData() {
         }),
     );
 
+    // Add namespace requirements
+    for (const namespaceRequirementData of Object.values(redirectTemplateNamespaceCategoryMapping))
+        for (const template of namespaceRequirementData.templates)
+            finalData[template].namespaceRequirement.push(namespaceRequirementData.numberOrType);
+
     const mappedFinalData = Object.entries(finalData).map(([name, templateData]) => {
         const finalTemplateData = {
             ...(templateData.redirect ? { redirect: true } : {}),
+            namespaceRequirement: templateData.namespaceRequirement.length > 0 ? templateData.namespaceRequirement.toSorted() : ['ALL'],
             parameters: templateData.parameters,
             aliases: templateData.aliases.sort((a, b) => a.localeCompare(b)), // eslint-disable-line unicorn/no-array-sort
         };

@@ -5,8 +5,8 @@ body.afcrc-helper-open #mw-teleport-target {
 .afcrc-helper-request {
     margin: 10px;
     padding: 5px;
-    color: #202122;
-    background-color: #eee;
+    color: var(--color-base, #202122);
+    background-color: var(--background-color-interactive, #eaecf0);
     border-radius: 5px;
 
     & summary {
@@ -84,8 +84,8 @@ body.afcrc-helper-open #mw-teleport-target {
 .afcrc-helper-template-parameters-container details {
     margin-block: 10px;
     padding: 5px;
-    background-color: white;
-    border: 1px solid #a2a9b1;
+    background-color: var(--background-color-base, white);
+    border: 1px solid var(--border-color-base, #a2a9b1);
     border-radius: 2px;
 }
 
@@ -99,7 +99,7 @@ body.afcrc-helper-open #mw-teleport-target {
 
     & details {
         margin-block: 5px;
-        background-color: #e2e2e2;
+        background-color: var(--background-color-neutral-subtle, #f8f9fa);
 
         /* stylelint-disable-next-line selector-class-pattern */
         & .oo-ui-fieldLayout-header {

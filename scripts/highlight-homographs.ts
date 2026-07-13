@@ -28,7 +28,7 @@
                         /[ԼՏոսօ]/.test(char) ||
                         /* Roman Numerals */
                         /[ⅠⅡⅢⅣⅤⅥⅦⅧⅨⅩⅪⅫⅬⅭⅮⅯ]/i.test(char)
-                        ? `<abbr title="This character is a homograph!" style="text-decoration: none; background-color: #ff5555">${char}</abbr>`
+                        ? `<abbr title="This character is a homograph!" style="text-decoration: none; background-color: var(--color-error, #bf3c2c)">${char}</abbr>`
                         : char
                 );
             })

@@ -7,7 +7,7 @@
 
     &::after {
         display: inline-table;
-        color: gray;
+        color: var(--color-placeholder, #72777d);
         text-align: left;
         white-space: pre;
         animation: ajax-undo-loading 0.8s steps(10) infinite;

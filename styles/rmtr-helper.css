@@ -1,10 +1,10 @@
 #rmtr-review-result {
     margin: 1em;
     padding: 2.5%;
-    color: #202122;
+    color: var(--color-base, #202122);
     font-size: 0.8em;
-    background-color: whitesmoke;
-    border: 1px solid #a2a9b1;
+    background-color: var(--background-color-neutral-subtle, #f8f9fa);
+    border: 1px solid var(--border-color-base, #a2a9b1);
     border-radius: 2px;
 }
 
@@ -21,7 +21,7 @@
 }
 
 .rmtr-review-invalid-warning {
-    color: indianred;
+    color: var(--color-error, #bf3c2c);
     font-weight: bold;
 }
 

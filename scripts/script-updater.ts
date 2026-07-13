@@ -339,8 +339,8 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                 .map(
                     (script) =>
                         `* [[User:Eejit43/scripts/${script.name}${script.personal ? '.js' : ''}|${script.name}]] - ${script['short-description'] || script.description}${
-                            script['in-development'] ? ' (<span style="color: #bd2828">in development</span>)' : ''
-                        }${script['use-instead'] ? ' (<span style="color: #bd2828">deprecated</span>)' : ''}`,
+                            script['in-development'] ? ' (<span style="color: var(--color-warning, #886425)">in development</span>)' : ''
+                        }${script['use-instead'] ? ' (<span style="color: var(--color-error, #bf3c2c)">deprecated</span>)' : ''}`,
                 )
                 .join('\n');
         }

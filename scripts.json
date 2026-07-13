@@ -114,6 +114,7 @@
         "description": "This user script adds the ability to fix stylistic and other miscellaneous issues in articles, of which a list can be found below.\n\n'''This script can possibly make unexpected changes, please make sure you check the diff before submitting edits.'''\n\n== Features ==\n* Cleans up section headers (fixes capitalization, depth, and spacing)\n* Removes improper or unnecessary magic words\n* Cleans up DISPLAYTITLEs/DEFAULTSORTs (converts templates magic words and removes unnecessary magic words)\n* Cleans up categories (fixes category links or transclusions)\n* Cleans up links (cleans up spacing, optimizes text after links instead of piping, moves punctuation out of alt text, and more)\n* Removes improper characters (replaces smart quotes and ellipses with their standard counterparts, and replaces non-breaking spaces with their HTML tag for readability)\n* Cleans up improper date ranges\n* Removes stray markup (removes empty tags and toolbar markup filler text)\n* Cleans up spacing (removes many types of excess spacing and adds extra spacing where needed)\n* Cleans up references (fixes links in ref tags, corrects spacing, makes tags self-closing, and more)\n* Cleans up templates (resolves [[Wikipedia:AutoWikiBrowser/Template redirects|certain aliases]], aligns parameters in infoboxes and other templates, removes unnecessary templates, and more)\n* Removes unnecessary comments (comments left over from article drafts, etc.)\n* Automatically adds/removes {{tl|Uncategorized}}/{{tl|Improve categories}}",
         "usage": "This script is be activated using a link in the \"More\"/\"Tools\" menu, visible when in editing mode on a page. On mobile, this script is instead activated by a new button in the editing toolbar.",
         "changelog": {
+            "2026|07|09": "Fix space removal inside {{code|timeline}} tags.",
             "2025|06|25": [
                 "Move bold/italic markup outside of link alt text.",
                 "Prevent modifying leading spacing inside {{code|poem}}/{{code|pre}}/{{code|templatedata}} tags."
@@ -252,8 +253,8 @@
         "usage": "This script's editor can be accessed in the following ways:\n\n* Using the automatically set up dialog on redirect pages\n* Can be started when clicking \"Create redirect\" on a nonexistent page\n* Can be started by clicking \"Redirect page\" in the \"More\"/\"Tools\" menu on an existing article\n* Can be started in a new page after inputting a title in the \"Redirect page here\" dialog opened in the \"More\"/\"Tools\" menu on an existing non-redirect page.",
         "configuration": "This script can be configured via a {{code|window.redirectHelperConfig}} object to [[Special:MyPage/common.js|your common.js]]. This takes the following form:\n\n<syntaxhighlight lang=\"js\">\nwindow.redirectHelperConfiguration = {\n    createdWatchMethod: 'nochange' | 'preferences' | 'unwatch' | 'watch',\n    patrolByDefault: true | false,\n};\n</syntaxhighlight>\n\nBy default, redirects that are created will use the {{code|preferences}} watchlist change method, following the {{myprefs|Watchlist|Watched pages|check={{int:tog-watchdefault}}}} configuration field. This can be changed by setting {{code|createdWatchMethod}} to either {{code|nochange}} (don't change watch settings for the created page), {{code|unwatch}} (unwatch the created page), or {{code|watch}} (watch the created page).\n\nBy default, redirects that are edited that are patrollable will be patrolled by default. This can be changed by setting {{code|patrolByDefault}} to {{code|false}}.\n\nBoth of the configurable options can also be overridden on a per-page basis using checkboxes in the on-screen modal.\n\n=== Example ===\nFor example, to not change watch settings for created pages and to not patrol pages by default, add the following to your common.js:\n\n<syntaxhighlight lang=\"js\">\nwindow.redirectHelperConfiguration = {\n    createdWatchMethod: 'nochange',\n    patrolByDefault: false,\n};\n</syntaxhighlight>",
         "changelog": {
+            "2026|07|13": "Add namespace validation for redirect templates that have them.",
             "2026|07|12": "Add dark mode support.",
-            "2026|07|09": "Fix space removal inside {{code|timeline}} tags.",
             "2026|06|22": "Fix handling of nonexistent targets.",
             "2026|05|18": ["Remove usage of unnecessary API calls on every page load.", "Add new \"Redirect page here\" button."],
             "2026|05|14": "Hide nonfunctional categorization section on non-enwiki projects.",
@@ -311,7 +312,7 @@
         "source-multiple": true,
         "global-support": true,
         "released": "2023|05|17",
-        "updated": "2026|07|12"
+        "updated": "2026|07|13"
     },
     "rmtr-helper": {
         "short-description": "User script to help handle requests at [[WP:RM/TR]]",

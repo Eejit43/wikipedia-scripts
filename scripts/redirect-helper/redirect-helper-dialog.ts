@@ -15,7 +15,10 @@ import type { RedirectHelperConfig } from '@scripts/redirect-helper/redirect-hel
 import RedirectTargetInputWidget from '@scripts/redirect-helper/redirect-target-input-widget';
 import type { ApiParseParams, ApiQueryInfoParams, ApiQueryPagePropsParams, PageTriageApiPageTriageListParams } from 'types-mediawiki-api';
 
-export type RedirectTemplateData = Record<string, { redirect?: true; parameters: RedirectTemplateParameters; aliases: string[] }>;
+export type RedirectTemplateData = Record<
+    string,
+    { redirect?: true; namespaceRequirement: (number | string)[]; parameters: RedirectTemplateParameters; aliases: string[] }
+>;
 
 type RedirectTemplateParameters = Record<
     string,
@@ -1042,12 +1045,24 @@ export default class RedirectHelperDialog {
                 autoFixes: [{ type: 'remove', tag: 'R with Wikidata item' }],
             });
 
-        /* Missing tag required parameter */
         for (const tag of tags) {
             if (!(tag in this.redirectTemplates)) continue;
 
             const tagData = this.redirectTemplates[tag];
 
+            /* Tag used in incorrect namespace */
+            const meetsNamespaceRequirement = tagData.namespaceRequirement.some((requirement) => {
+                if (requirement === 'ALL') return true;
+                else if (requirement === 'TALK') return this.pageTitleParsed.isTalkPage();
+                else return this.pageTitleParsed.getNamespaceId() === requirement;
+            });
+            if (!meetsNamespaceRequirement)
+                errors.push({
+                    message: `is tagged with <code>{{${tag}}}</code> but that tag is not valid in this namespace!`,
+                    autoFixes: [{ type: 'remove', tag }],
+                });
+
+            /* Missing tag required parameter */
             for (const [parameterName, parameterData] of Object.entries(tagData.parameters)) {
                 const foundParameter = this.templateEditorsInfo
                     .find((editorInfo) => editorInfo.name === tag)
@@ -1234,7 +1249,7 @@ export default class RedirectHelperDialog {
         const parsedTarget = mw.Title.newFromText(target);
 
         const formattedTitle = parsedTarget
-            ? `${parsedTarget.getNamespaceId() === 14 ? ':' : ''}${parsedTarget.getPrefixedText()}${parsedTarget.getFragment() ? `#${parsedTarget.getFragment()}` : ''}`
+            ? `${parsedTarget.getNamespaceId() === 6 || parsedTarget.getNamespaceId() === 14 ? ':' : ''}${parsedTarget.getPrefixedText()}${parsedTarget.getFragment() ? `#${parsedTarget.getFragment()}` : ''}`
             : target.trim();
 
         if (

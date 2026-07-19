@@ -313,7 +313,8 @@
         "source-multiple": true,
         "global-support": true,
         "released": "2023|05|17",
-        "updated": "2026|07|19"
+        "updated": "2026|07|19",
+        "categories": ["Wikipedia redirecting"]
     },
     "rmtr-helper": {
         "short-description": "User script to help handle requests at [[WP:RM/TR]]",
@@ -359,7 +360,7 @@
             "cologne-blue": "yes"
         },
         "released": "2023|04|05",
-        "updated": "2026|07|13"
+        "updated": "2026|07|19"
     },
     "search-links": {
         "image": false,

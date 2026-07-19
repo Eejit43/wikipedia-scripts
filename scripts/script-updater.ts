@@ -34,6 +34,7 @@ interface Script {
     'global-support'?: true;
     'released': string;
     'updated': string;
+    'categories'?: string[];
 }
 
 mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-windows'], () => {
@@ -298,6 +299,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                 `| released          = {{start date and age|${script.released}}}`,
                 `| updated           = {{start date and age|${script.updated}}}`,
                 '}}',
+                script.categories ? `\n${script.categories.map((category) => `[[Category:${category}]]`).join('\n')}` : null,
             ].filter(Boolean);
 
             let scriptContent = null;

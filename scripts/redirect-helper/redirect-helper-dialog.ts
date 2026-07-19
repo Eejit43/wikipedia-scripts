@@ -905,7 +905,7 @@ export default class RedirectHelperDialog {
 
         /* Nonexistent section */
         if (destination.split('#').length > 1) {
-            const fragment = this.parsedDestination!.getFragment() ?? destination.split('#')[1];
+            const fragment = this.parsedDestination!.getFragment() ?? destination.split('#').slice(1).join('#');
 
             const validSections = destinationParseResult.parse!.tocdata.sections.map((section) => section.line.replaceAll(/<\/?i>/g, ''));
             const validSectionsSet = new Set(validSections);

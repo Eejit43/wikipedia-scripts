@@ -12,7 +12,7 @@ import CategoryInputWidget from '@scripts/redirect-helper/category-input-widget'
 import ChangesDialog from '@scripts/redirect-helper/changes-dialog';
 import OutputPreviewDialog from '@scripts/redirect-helper/output-preview-dialog';
 import type { RedirectHelperConfig } from '@scripts/redirect-helper/redirect-helper';
-import RedirectTargetInputWidget from '@scripts/redirect-helper/redirect-target-input-widget';
+import RedirectTargetInputWidget, { getAnchorsFromHtml } from '@scripts/redirect-helper/redirect-target-input-widget';
 import type { ApiParseParams, ApiQueryInfoParams, ApiQueryPagePropsParams, PageTriageApiPageTriageListParams } from 'types-mediawiki-api';
 
 export type RedirectTemplateData = Record<
@@ -878,7 +878,7 @@ export default class RedirectHelperDialog {
             .get({
                 action: 'parse',
                 page: destination,
-                prop: 'sections',
+                prop: ['text', 'tocdata'],
                 redirects: true,
             } satisfies ApiParseParams)
             .catch((errorCode) => {
@@ -905,10 +905,19 @@ export default class RedirectHelperDialog {
 
         /* Nonexistent section */
         if (destination.split('#').length > 1) {
-            const validSection = destinationParseResult.parse!.sections.find(
-                (section) => section.line.replaceAll(/<\/?i>/g, '') === destination.split('#')[1],
-            );
-            if (validSection) {
+            const fragment = this.parsedDestination!.getFragment() ?? destination.split('#')[1];
+
+            const validSections = destinationParseResult.parse!.tocdata.sections.map((section) => section.line.replaceAll(/<\/?i>/g, ''));
+            const validSectionsSet = new Set(validSections);
+
+            const validAnchors = getAnchorsFromHtml(destinationParseResult.parse!.text['*'], destinationParseResult.parse!.title)
+                .filter(({ fragment }) => !validSectionsSet.has(fragment))
+                .map(({ fragment }) => fragment);
+
+            const isValidSection = validSections.includes(fragment);
+            const isValidAnchor = validAnchors.includes(fragment);
+
+            if (isValidSection) {
                 if (tags.includes('R to anchor'))
                     errors.push({
                         message: 'is tagged as a redirect to an anchor, but it is actually a redirect to a section!',
@@ -922,47 +931,25 @@ export default class RedirectHelperDialog {
                         message: 'is a redirect to a section, but it is not tagged with <code>{{R to section}}</code>!',
                         autoFixes: [{ type: 'add', tag: 'R to section' }],
                     });
-            } else {
-                const destinationContent = (await getPageContent(this.parsedDestination!.getPrefixedText())) ?? '';
-
-                const anchors = [
-                    ...(destinationContent
-                        .match(/(?<={{\s*?[Aa](?:nchors?|nchor for redirect|nker|NCHOR|nc)\s*?\|).+?(?=}})/g)
-                        ?.flatMap((anchor: string) => anchor.split('|').map((part) => part.trim())) ?? []),
-                    ...(destinationContent
-                        .match(
-                            /(?<={{\s*?(?:[Vv](?:isible anchors?|isanc|Anch|anchor|isibleanchor|a)|[Aa](?:nchord|chored|nchor\+)|[Tt]ext anchor)\s*?\|).+?(?=(?<!!|=)}})/g,
-                        )
-                        ?.flatMap((anchor: string) =>
-                            anchor
-                                .split('|')
-                                .map((part) => part.trim())
-                                .filter((part) => !/^text\s*?=/.test(part)),
-                        ) ?? []),
-                    ...(destinationContent.match(/(?<=id=)"?.+?(?="|>|\|)/g)?.map((anchor: string) => anchor.trim()) ?? []),
-                    ...(destinationContent.match(/EpisodeNumber += +\d+/g)?.map((anchor: string) => `ep${anchor.split('=')[1].trim()}`) ??
-                        []),
-                ];
-                if (anchors.includes(destination.split('#')[1])) {
-                    if (tags.includes('R to section'))
-                        errors.push({
-                            message: 'is tagged as a redirect to a section, but it is actually a redirect to an anchor!',
-                            autoFixes: [
-                                { type: 'add', tag: 'R to anchor' },
-                                { type: 'remove', tag: 'R to section' },
-                            ],
-                        });
-                    if (!tags.includes('R to anchor'))
-                        errors.push({
-                            message: 'is a redirect to an anchor, but it is not tagged with <code>{{R to anchor}}</code>!',
-                            autoFixes: [{ type: 'add', tag: 'R to anchor' }],
-                        });
-                } else
+            } else if (isValidAnchor) {
+                if (tags.includes('R to section'))
                     errors.push({
-                        message: `is a redirect to <a href="${mw.util.getUrl(destination)}" target="_blank">${destination}</a>, but that section or anchor does not exist!`,
-                        autoFixes: [{ type: 'change-target', target: destination.split('#')[0] }],
+                        message: 'is tagged as a redirect to a section, but it is actually a redirect to an anchor!',
+                        autoFixes: [
+                            { type: 'add', tag: 'R to anchor' },
+                            { type: 'remove', tag: 'R to section' },
+                        ],
                     });
-            }
+                if (!tags.includes('R to anchor'))
+                    errors.push({
+                        message: 'is a redirect to an anchor, but it is not tagged with <code>{{R to anchor}}</code>!',
+                        autoFixes: [{ type: 'add', tag: 'R to anchor' }],
+                    });
+            } else
+                errors.push({
+                    message: `is a redirect to <a href="${mw.util.getUrl(destination)}" target="_blank">${destination}</a>, but that section or anchor does not exist!`,
+                    autoFixes: [{ type: 'change-target', target: destination.split('#')[0] }],
+                });
         }
 
         /* Improperly tagged as redirect to section/anchor */

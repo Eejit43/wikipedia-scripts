@@ -253,6 +253,7 @@
         "usage": "This script's editor can be accessed in the following ways:\n\n* Using the automatically set up dialog on redirect pages\n* Can be started when clicking \"Create redirect\" on a nonexistent page\n* Can be started by clicking \"Redirect page\" in the \"More\"/\"Tools\" menu on an existing article\n* Can be started in a new page after inputting a title in the \"Redirect page here\" dialog opened in the \"More\"/\"Tools\" menu on an existing non-redirect page.",
         "configuration": "This script can be configured via a {{code|window.redirectHelperConfig}} object to [[Special:MyPage/common.js|your common.js]]. This takes the following form:\n\n<syntaxhighlight lang=\"js\">\nwindow.redirectHelperConfiguration = {\n    createdWatchMethod: 'nochange' | 'preferences' | 'unwatch' | 'watch',\n    patrolByDefault: true | false,\n};\n</syntaxhighlight>\n\nBy default, redirects that are created will use the {{code|preferences}} watchlist change method, following the {{myprefs|Watchlist|Watched pages|check={{int:tog-watchdefault}}}} configuration field. This can be changed by setting {{code|createdWatchMethod}} to either {{code|nochange}} (don't change watch settings for the created page), {{code|unwatch}} (unwatch the created page), or {{code|watch}} (watch the created page).\n\nBy default, redirects that are edited that are patrollable will be patrolled by default. This can be changed by setting {{code|patrolByDefault}} to {{code|false}}.\n\nBoth of the configurable options can also be overridden on a per-page basis using checkboxes in the on-screen modal.\n\n=== Example ===\nFor example, to not change watch settings for created pages and to not patrol pages by default, add the following to your common.js:\n\n<syntaxhighlight lang=\"js\">\nwindow.redirectHelperConfiguration = {\n    createdWatchMethod: 'nochange',\n    patrolByDefault: false,\n};\n</syntaxhighlight>",
         "changelog": {
+            "2026|07|19": ["Add support for anchors in target selection.", "Fix many issues in anchor validation."],
             "2026|07|13": "Add namespace validation for redirect templates that have them.",
             "2026|07|12": "Add dark mode support.",
             "2026|06|22": "Fix handling of nonexistent targets.",
@@ -312,7 +313,7 @@
         "source-multiple": true,
         "global-support": true,
         "released": "2023|05|17",
-        "updated": "2026|07|13"
+        "updated": "2026|07|19"
     },
     "rmtr-helper": {
         "short-description": "User script to help handle requests at [[WP:RM/TR]]",

@@ -12,12 +12,12 @@
         "@eejit/stylelint-config": "^6.0.0",
         "@types/oojs": "^7.0.7",
         "@types/oojs-ui": "^0.50.0",
-        "esbuild": "^0.28.0",
+        "esbuild": "^0.28.1",
         "esbuild-postcss": "^0.0.4",
-        "postcss-preset-env": "^11.3.0",
-        "stylelint": "^17.12.0",
-        "types-mediawiki": "^2.0.0",
-        "types-mediawiki-api": "^2.0.0",
+        "postcss-preset-env": "^11.3.2",
+        "stylelint": "^17.14.0",
+        "types-mediawiki": "^2.1.0",
+        "types-mediawiki-api": "^2.1.0",
         "typescript": "^6.0.3"
     }
 }

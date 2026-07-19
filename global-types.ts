@@ -52,7 +52,12 @@ export interface PageInfoResult {
 }
 
 export interface PageParseResult {
-    parse?: { title: string; redirects: { to: string; tofragment: string }[]; sections: { line: string }[] };
+    parse?: {
+        title: string;
+        redirects: { to: string; tofragment: string }[];
+        text: { '*': string }; // eslint-disable-line @typescript-eslint/naming-convention
+        tocdata: { sections: { line: string }[] };
+    };
 }
 
 export interface PagepropsResult {

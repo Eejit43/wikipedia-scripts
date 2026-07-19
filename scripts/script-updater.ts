@@ -523,16 +523,16 @@ async function getRedirectHelperData() {
                 formatversion: '2',
             } satisfies ApiQueryCategoryMembersParams)) as CategoryMembersResult;
 
-            data.templates = redirectTemplatesForNamespace.query.categorymembers.map((page) => page.title.split(':')[1]);
+            data.templates = redirectTemplatesForNamespace.query.categorymembers.map((page) => page.title.split(':').slice(1).join(':'));
         }),
     );
 
     const redirectTemplates = allRedirectTemplates.query.categorymembers
         .filter((page) => page.title.startsWith('Template:R ') && page.title !== 'Template:R template index')
-        .map((page) => ({ name: page.title.split(':')[1], redirect: false }));
+        .map((page) => ({ name: page.title.split(':').slice(1).join(':'), redirect: false }));
     const possibleRedirectTemplates = allPossibleRedirectTemplates.query.categorymembers
         .filter((page) => page.title.startsWith('Template:R ') && page.title !== 'Template:R with possibilities')
-        .map((page) => ({ name: page.title.split(':')[1], redirect: true }));
+        .map((page) => ({ name: page.title.split(':').slice(1).join(':'), redirect: true }));
 
     // eslint-disable-next-line unicorn/no-array-sort
     const allTemplates = [...redirectTemplates, ...possibleRedirectTemplates].sort((a, b) => {
@@ -575,7 +575,7 @@ async function getRedirectHelperData() {
                     ]),
                 );
 
-                finalData[page.title.split(':')[1]].parameters = formattedParameters;
+                finalData[page.title.split(':').slice(1).join(':')].parameters = formattedParameters;
             }
         }),
     );
@@ -597,11 +597,11 @@ async function getRedirectHelperData() {
             for (const page of redirectsQueryResultPages) {
                 const mappedRedirects =
                     page.redirects
-                        ?.map((redirect) => redirect.title.split(':')[1])
+                        ?.map((redirect) => redirect.title.split(':').slice(1).join(':'))
                         .filter((redirect) => !possibleRedirectTemplates.some((template) => template.name === redirect))
                         .sort((a, b) => a.localeCompare(b)) ?? []; // eslint-disable-line unicorn/no-array-sort
 
-                finalData[page.title.split(':')[1]].aliases.push(...mappedRedirects); // Data might exist from previous queries, so update instead of overwriting
+                finalData[page.title.split(':').slice(1).join(':')].aliases.push(...mappedRedirects); // Data might exist from previous queries, so update instead of overwriting
             }
         }),
     );
@@ -624,21 +624,26 @@ async function getRedirectHelperData() {
                 const mappedRedirects =
                     page.linkshere
                         ?.filter((page) => page.redirect)
-                        .map((page) => page.title.split(':')[1])
+                        .map((page) => page.title.split(':').slice(1).join(':'))
                         .filter((page) => !page.endsWith('/doc') && !page.endsWith('/sandbox'))
                         .sort((a, b) => a.localeCompare(b)) ?? []; // eslint-disable-line unicorn/no-array-sort
 
                 allAliasesOfPossibleTemplates.push(...mappedRedirects);
 
-                finalData[page.title.split(':')[1]].aliases = mappedRedirects;
+                finalData[page.title.split(':').slice(1).join(':')].aliases = mappedRedirects;
             }
         }),
     );
 
     // Add namespace requirements
     for (const namespaceRequirementData of Object.values(redirectTemplateNamespaceCategoryMapping))
-        for (const template of namespaceRequirementData.templates)
+        for (const template of namespaceRequirementData.templates) {
+            if (!(template in finalData)) {
+                mw.notify(`Template ${template} is in the namespace requirement mapping but not in the final data.`, { type: 'warn' });
+                continue;
+            }
             finalData[template].namespaceRequirement.push(namespaceRequirementData.numberOrType);
+        }
 
     const mappedFinalData = Object.entries(finalData).map(([name, templateData]) => {
         const finalTemplateData = {

@@ -639,7 +639,9 @@ async function getRedirectHelperData() {
     for (const namespaceRequirementData of Object.values(redirectTemplateNamespaceCategoryMapping))
         for (const template of namespaceRequirementData.templates) {
             if (!(template in finalData)) {
-                mw.notify(`Template ${template} is in the namespace requirement mapping but not in the final data.`, { type: 'warn' });
+                const message = `Template ${template} is in the namespace requirement mapping but not in the final data.`;
+                mw.notify(message, { type: 'warn' });
+                console.warn(message);
                 continue;
             }
             finalData[template].namespaceRequirement.push(namespaceRequirementData.numberOrType);

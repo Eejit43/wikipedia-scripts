@@ -77,7 +77,7 @@ export default class RedirectHelperDialog {
     private defaultSortInput!: OO.ui.TextInputWidget;
     private defaultSortSuggestButton!: OO.ui.ButtonWidget;
     private defaultSortInputLayout!: OO.ui.ActionFieldLayout;
-    private summaryInput!: OO.ui.ComboBoxInputWidget;
+    private summaryInput!: OO.ui.TextInputWidget;
     private summaryInputLayout!: OO.ui.FieldLayout;
     private submitButton!: OO.ui.ButtonWidget;
     private showChangesButton!: OO.ui.ButtonWidget;
@@ -492,13 +492,8 @@ export default class RedirectHelperDialog {
         });
 
         /* Summary input */
-        this.summaryInput = new OO.ui.ComboBoxInputWidget({
-            options: [
-                { data: 'Resolve double redirect' }, //
-                { data: 'Resolve self redirect' },
-                { data: 'Remove incorrect rcats' },
-            ],
-        });
+        this.summaryInput = new OO.ui.TextInputWidget();
+        this.summaryInput.on('enter', () => this.handleSubmitButtonClick());
 
         this.summaryInputLayout = new OO.ui.FieldLayout(this.summaryInput, {
             id: 'redirect-helper-summary-layout',

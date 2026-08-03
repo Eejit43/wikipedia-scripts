@@ -143,7 +143,7 @@ declare global {
     display: none;
 }
 
-#content:has(#wpTextbox1) #article-cleaner {
+body:has(#wpTextbox1) #article-cleaner {
     display: unset;
 }`);
 

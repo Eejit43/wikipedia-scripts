@@ -8,7 +8,7 @@
     display: none;
 }
 
-#content:has(#wpTextbox1) #align-parameters {
+body:has(#wpTextbox1) #align-parameters {
     display: unset;
 }`);
 

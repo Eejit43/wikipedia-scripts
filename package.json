@@ -2,7 +2,8 @@
     "name": "wikipedia-scripts",
     "type": "module",
     "scripts": {
-        "build": "bun compile.ts"
+        "build": "bun compile.ts",
+        "prepare": "husky"
     },
     "prettier": "@eejit/prettier-config",
     "devDependencies": {
@@ -14,6 +15,7 @@
         "@types/oojs-ui": "^0.50.0",
         "esbuild": "^0.28.1",
         "esbuild-postcss": "^0.0.4",
+        "husky": "^9.1.7",
         "postcss-preset-env": "^11.3.2",
         "stylelint": "^17.14.0",
         "types-mediawiki": "^2.1.0",

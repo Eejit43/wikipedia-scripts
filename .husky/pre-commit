@@ -1,0 +1,18 @@
+#!/bin/sh
+
+echo "Running build script"
+
+bun run build
+
+if [ $? -ne 0 ]; then
+    echo "Build failed! Aborting commit."
+    exit 1
+fi
+
+echo "Staging built files"
+
+git add dist/
+
+echo "Process complete, exiting..."
+
+exit 0

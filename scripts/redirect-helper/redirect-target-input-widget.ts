@@ -26,14 +26,10 @@ export function getAnchorsFromHtml(html: string, title: string): PageSectionData
 
     for (const query of ANCHOR_QUERIES_TO_REMOVE) for (const element of document.querySelectorAll(query)) element.remove();
 
-    console.log(document.body.outerHTML);
-
     const anchors = [...document.querySelectorAll<HTMLElement>('[id]')]
         .map((element) => {
             if (ANCHOR_CLASSES_TO_EXCLUDE.some((className) => element.classList.contains(className)) || 'mwCommentStart' in element.dataset)
                 return null;
-
-            // TODO: handle edge cases like cite refs, weird stuff like the .2C on WP:NOT and the image markup on 9/11
 
             const fragment = element.id.replaceAll('_', ' ');
 

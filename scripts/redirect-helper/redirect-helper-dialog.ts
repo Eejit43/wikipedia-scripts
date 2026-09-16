@@ -89,6 +89,8 @@ export default class RedirectHelperDialog {
     private patrolCheckbox?: OO.ui.CheckboxInputWidget;
     private patrolCheckboxLayout?: OO.ui.Widget;
     private submitLayout!: OO.ui.HorizontalLayout;
+    private submissionWarnings!: HTMLDivElement;
+    private autoFixAllButton!: OO.ui.ButtonWidget;
 
     private talkData?: PageInfoResult;
 
@@ -179,6 +181,8 @@ export default class RedirectHelperDialog {
                 this.categorySelectLayout.$element[0],
                 this.summaryInputLayout.$element[0],
                 this.submitLayout.$element[0],
+                this.submissionWarnings,
+                this.autoFixAllButton.$element[0],
             ].filter(Boolean) as HTMLElement[]),
         );
 
@@ -604,6 +608,17 @@ export default class RedirectHelperDialog {
                 this.patrolCheckboxLayout,
             ].filter(Boolean) as OO.ui.Widget[],
         });
+
+        /* Set up submission warnings container */
+        this.submissionWarnings = document.createElement('div');
+
+        /* Set up auto-fix all button */
+        this.autoFixAllButton = new OO.ui.ButtonWidget({
+            label: 'Auto-fix all and resubmit',
+            flags: ['progressive'],
+            classes: ['redirect-helper-autofix-all-button'],
+        });
+        this.autoFixAllButton.$element.hide();
     }
 
     /**
@@ -943,7 +958,6 @@ export default class RedirectHelperDialog {
             } else
                 errors.push({
                     message: `is a redirect to <a href="${mw.util.getUrl(destination)}" target="_blank">${destination}</a>, but that section or anchor does not exist!`,
-                    autoFixes: [{ type: 'change-target', target: destination.split('#')[0] }],
                 });
         }
 
@@ -1087,6 +1101,7 @@ export default class RedirectHelperDialog {
             this.syncTalkCheckbox,
             this.watchCheckbox,
             this.patrolCheckbox,
+            this.autoFixAllButton,
         ].filter(Boolean);
 
         for (const element of elementsToDisable) (element as OO.ui.Widget).setDisabled(true);
@@ -1098,7 +1113,11 @@ export default class RedirectHelperDialog {
         else this.parsedDestination = mw.Title.newFromText(this.redirectInput.getValue());
 
         if (errors.length > 0) {
-            for (const element of document.querySelectorAll('.redirect-helper-warning')) element.remove();
+            this.submissionWarnings.innerHTML = ''; // Clear existing warnings
+            this.autoFixAllButton.$element.hide();
+
+            const autoFixFunctions: (() => void)[] = [];
+
             for (const { title, message, autoFixes } of errors) {
                 const label = new OO.ui.HtmlSnippet(
                     `${title ? `<a href="${mw.util.getUrl(title)}" target="_blank">${title}</a>` : 'This page'} ${message} Click again without making changes to submit anyway.`,
@@ -1116,7 +1135,8 @@ export default class RedirectHelperDialog {
                         flags: ['progressive'],
                         classes: ['redirect-helper-autofix-button'],
                     });
-                    autoFixButton.on('click', () => {
+
+                    const autoFixFunction = () => {
                         const tags = this.tagSelect.getValue() as string[];
 
                         for (const autoFix of autoFixes) {
@@ -1129,12 +1149,23 @@ export default class RedirectHelperDialog {
 
                         warningMessage.$element[0].style.textDecoration = 'line-through 2px black';
                         autoFixButton.$element[0].remove();
-                    });
+                    };
+                    autoFixFunctions.push(autoFixFunction);
+
+                    autoFixButton.on('click', autoFixFunction);
 
                     warningMessage.$element[0].querySelector('.oo-ui-labelElement-label')!.append(autoFixButton.$element[0]);
                 }
 
-                this.editorBox.$element[0].append(warningMessage.$element[0]);
+                this.submissionWarnings.append(warningMessage.$element[0]);
+            }
+
+            if (autoFixFunctions.length > 0) {
+                this.autoFixAllButton.$element.off('click').on('click', () => {
+                    for (const autoFixFunction of autoFixFunctions) autoFixFunction();
+                    void this.handleSubmitButtonClick();
+                });
+                this.autoFixAllButton.$element.show();
             }
 
             for (const element of elementsToDisable) (element as OO.ui.Widget).setDisabled(false);

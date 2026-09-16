@@ -535,12 +535,7 @@ async function getRedirectHelperData() {
         .map((page) => ({ name: page.title.split(':').slice(1).join(':'), redirect: true }));
 
     // eslint-disable-next-line unicorn/no-array-sort
-    const allTemplates = [...redirectTemplates, ...possibleRedirectTemplates].sort((a, b) => {
-        // Force comics and Middle Earth templates to the end of the list
-        if (a.name.startsWith('R comics') || a.name.startsWith('R ME')) return 1;
-        else if (b.name.startsWith('R comics') || b.name.startsWith('R ME')) return -1;
-        else return a.name.localeCompare(b.name);
-    });
+    const allTemplates = [...redirectTemplates, ...possibleRedirectTemplates].sort((a, b) => a.name.localeCompare(b.name));
 
     const finalData = Object.fromEntries(
         allTemplates.map((page) => [

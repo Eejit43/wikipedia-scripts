@@ -872,6 +872,7 @@ export default class RedirectHelperDialog {
                 action: 'query',
                 formatversion: '2',
                 prop: ['pageprops', 'categories'],
+                cllimit: 'max',
                 titles: destination,
             } satisfies ApiQueryPagePropsParams)
             .catch((errorCode) => {

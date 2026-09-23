@@ -40,6 +40,7 @@ export default class CategoryInputWidget extends OO.ui.TextInputWidget {
             gapprefix: parsedTitle?.getMainText() ?? value,
             generator: 'allpages',
             prop: 'categories',
+            cllimit: 'max',
         } satisfies ApiQueryAllPagesGeneratorParameters)
             .catch(() => null)
             .then((result: CategoriesResult | null) => {

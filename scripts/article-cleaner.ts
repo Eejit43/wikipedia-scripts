@@ -130,11 +130,11 @@ declare global {
                 // Ignore if triggered by main content load instead of preview
                 if (!content[0]?.classList.contains('preview')) return; // eslint-disable-line @typescript-eslint/no-unnecessary-condition
 
-                if (shouldAddScriptMessage) {
-                    const summaryInput = document.querySelector<HTMLInputElement>('.summary-input textarea')!;
+                if (!shouldAddScriptMessage) return;
 
-                    updateSummary(summaryInput);
-                }
+                const summaryInput = document.querySelector<HTMLInputElement>('.summary-input textarea')!;
+
+                updateSummary(summaryInput);
             });
         } else {
             // Set up link in side menu
@@ -157,11 +157,11 @@ body:has(#wpTextbox1) #article-cleaner {
 
             // Set up hook for updating edit summary in VisualEditor
             mw.hook('ve.saveDialog.stateChanged').add(() => {
-                if (shouldAddScriptMessage) {
-                    const summaryInput = document.querySelector<HTMLTextAreaElement>('.ve-ui-mwSaveDialog-summary textarea')!;
+                if (!shouldAddScriptMessage) return;
 
-                    updateSummary(summaryInput);
-                }
+                const summaryInput = document.querySelector<HTMLTextAreaElement>('.ve-ui-mwSaveDialog-summary textarea')!;
+
+                updateSummary(summaryInput);
             });
         }
     });
@@ -181,14 +181,14 @@ function escapeRegexCharacters(string: string) {
  */
 function cleanupStrayUnicodeCharacters(content: string) {
     // This regex removes:
-    //   - ASCII control characters (\u0000-\u0009, \u000B-\u000C, \u000E-\u001F)
-    //   - DEL (\u007F)
-    //   - Soft hyphen (\u00AD)
-    //   - Zero-width space (\u200B)
-    //   - Bidi override and formatting characters (\u202A-\u202E)
-    //   - Word joiner and invisible separator (\u2060, \u2063)
-    //   - Byte order mark (BOM) (\uFEFF)
-    const STRAY_UNICODE_REGEX = /[\u0000-\u0009\u000B\u000C\u000E-\u001F\u007F\u00AD\u200B\u202A-\u202E\u2060\u2063\uFEFF]/g; // eslint-disable-line no-control-regex
+    //   - ASCII control characters (\u{0}-\u{9}, \v (\u{B}, vertical tab), \f (\u{C}, form-feed), \u{E}-\u{1F})
+    //   - DEL (\u{7F})
+    //   - Soft hyphen (\u{AD})
+    //   - Zero-width space (\u{200B})
+    //   - Bidi override and formatting characters (\u{202A}-\u{202E})
+    //   - Word joiner and invisible separator (\u{2060}, \u{2063})
+    //   - Byte order mark (BOM) (\u{FEFF})
+    const STRAY_UNICODE_REGEX = /[\u{0}-\u{9}\v\f\u{E}-\u{1F}\u{7F}\u{AD}\u{200B}\u{202A}-\u{202E}\u{2060}\u{2063}\u{FEFF}]/gu; // eslint-disable-line no-control-regex
 
     if (STRAY_UNICODE_REGEX.test(content)) content = content.replaceAll(STRAY_UNICODE_REGEX, '');
 
@@ -218,7 +218,7 @@ function cleanupSectionHeaders(content: string) {
         ]),
     );
 
-    const headers = content.matchAll(/(?<=^|\n)\n*(?<startMarkup>=+) *(?<name>.*?) *(?<endMarkup>=+)(\n+|$)/g);
+    const headers = content.matchAll(/(?<=^|\n)\n*(?<startMarkup>=+)(?!=) *(?<name>.*?) *(?<endMarkup>=+)(?:\n+|$)/g);
 
     const parsedHeaders = [...headers].map((header) => {
         let { name } = header.groups!;
@@ -226,7 +226,7 @@ function cleanupSectionHeaders(content: string) {
 
         name = name.replaceAll(/'{3}/g, '');
 
-        const links = name.matchAll(/\[\[(.+?)]]/g).toArray();
+        const links = name.matchAll(/\[\[(.+?)\]\]/g).toArray();
 
         for (const link of links) name = name.replace(link[0], link[1].split('|').at(-1)!);
 
@@ -237,7 +237,7 @@ function cleanupSectionHeaders(content: string) {
 
     const headersSet = new Set(parsedHeaders.map((header) => header.name));
 
-    const titleSpacer = parsedHeaders.length > 0 ? (/^\n*=+ | =+\n+$/.test(parsedHeaders[0].original) ? ' ' : '') : '';
+    const titleSpacer = parsedHeaders.length > 0 && /^\n*=+ | =+\n+$/.test(parsedHeaders[0].original) ? ' ' : '';
 
     for (const header of parsedHeaders) {
         const lowercaseName = header.name.toLowerCase();
@@ -267,7 +267,10 @@ function cleanupSectionHeaders(content: string) {
  * @param content The article content to clean up.
  */
 function cleanupMagicWords(content: string) {
-    return content.replaceAll(/__(INDEX|NOINDEX|NEWSECTIONLINK|NONEWSECTIONLINK|NOEDITSECTION|DISAMBIG|STATICREDIRECT|FORCETOC)__\n*/g, '');
+    return content.replaceAll(
+        /__(?:INDEX|NOINDEX|NEWSECTIONLINK|NONEWSECTIONLINK|NOEDITSECTION|DISAMBIG|STATICREDIRECT|FORCETOC)__\n*/g,
+        '',
+    );
 }
 
 /**
@@ -275,7 +278,7 @@ function cleanupMagicWords(content: string) {
  * @param content The article content to clean up.
  */
 function cleanupDisplaytitlesAndDefaultsorts(content: string) {
-    const tags = content.matchAll(/{{(displaytitle|defaultsort)[:|](.*?)}}/gi);
+    const tags = content.matchAll(/\{\{(displaytitle|defaultsort)[:|](.*?)\}\}/gi);
 
     const parsedTags = [...tags].map((tag) => {
         const [fullTag, type, value] = tag;
@@ -319,7 +322,7 @@ function cleanupDisplaytitlesAndDefaultsorts(content: string) {
  */
 function cleanupCategories(content: string) {
     return content.replaceAll(
-        /(\[\[|}}):?category:(.*?)(]]|}})/gi,
+        /(\[\[|\}\}):?category:(.*?)(\]\]|\}\})/gi,
         `[[${mw.config.get('wgCanonicalNamespace') === 'Draft' ? ':' : ''}Category:$2]]`,
     );
 }
@@ -345,14 +348,13 @@ function cleanupLinks(content: string, functionsCalledWhileEscaped: ((content: s
     let currentLocation = 0;
 
     /**
-     * Checks if the content following the current location matches the desired string.
+     * Checks if the content following the current location matches the desired string, and increments the current location if so.
      * @param desiredString The string to search for.
-     * @param shouldIncrement Whether to increment the current location if the string is found.
      */
-    function isAtString(desiredString: string, shouldIncrement = true) {
+    function isAtString(desiredString: string) {
         const isAtString = content.slice(currentLocation, currentLocation + desiredString.length) === desiredString;
 
-        if (isAtString && shouldIncrement) currentLocation += desiredString.length;
+        if (isAtString) currentLocation += desiredString.length;
 
         return isAtString;
     }
@@ -475,7 +477,7 @@ function cleanupLinks(content: string, functionsCalledWhileEscaped: ((content: s
     for (let loopCounter = 0; loopCounter < 2; loopCounter++)
         for (const [linkData, linkContent] of newLinkContent) {
             if (loopCounter === 0 && linkData.isNested) continue;
-            else if (loopCounter === 1 && !linkData.isNested) continue;
+            if (loopCounter === 1 && !linkData.isNested) continue;
 
             content =
                 content.slice(0, linkData.start) + linkContent.padEnd(linkData.end - linkData.start, '\0') + content.slice(linkData.end);
@@ -492,14 +494,14 @@ function cleanupLinks(content: string, functionsCalledWhileEscaped: ((content: s
  * @param run The run number of the function.
  */
 function cleanupImproperCharacters(content: string, run: 1 | 2) {
-    const ELIPSIS_PLACEHOLDER = '\u007F';
-    const NBSP_PLACEHOLDER = '\u009F';
+    const ELIPSIS_PLACEHOLDER = '\u{7F}';
+    const NBSP_PLACEHOLDER = '\u{9F}';
 
     if (run === 1) {
         content = content.replaceAll(/[“”„‟]/g, '"');
         content = content.replaceAll(/[‘’‚‛]/g, "'");
         content = content.replaceAll('…', ELIPSIS_PLACEHOLDER);
-        content = content.replaceAll(' ', NBSP_PLACEHOLDER);
+        content = content.replaceAll('\u{A0}', NBSP_PLACEHOLDER);
     } else {
         content = content.replaceAll(ELIPSIS_PLACEHOLDER, '...');
         content = content.replaceAll(NBSP_PLACEHOLDER, '&nbsp;');
@@ -541,9 +543,9 @@ function cleanupStrayMarkup(content: string) {
         /\* Bulleted list item */g,
         /# Numbered list item */g,
         /<gallery>\nExample.jpg\|Caption1\nExample.jpg\|Caption2\n<\/gallery> */g,
-        /#REDIRECT \[\[Target page name]] */g,
+        /#REDIRECT \[\[Target page name\]\] */g,
         /<!-- Invisible comment --> */g,
-        /<\s*(big|small|sup|sub|s|u|code|nowiki|noinclude|onlyinclude|includeonly|center|blockquote|gallery)\s*(\s+[^<>]*)?>\s*<\s*\/\s*\1\s*>/gi,
+        /<\s*(big|small|sup|sub|s|u|code|nowiki|noinclude|onlyinclude|includeonly|center|blockquote|gallery)\s*(\s[^<>]*)?>\s*<\s*\/\s*\1\s*>/gi,
     ];
 
     for (const regex of STRAY_MARKUP_REGEXES) while (regex.test(content)) content = content.replace(regex, '');
@@ -554,9 +556,9 @@ function cleanupStrayMarkup(content: string) {
 /**
  * Cleans up spacing in an article's content.
  * @param content The article content to clean up.
- * @param secondRun Whether the function is being run for the second time, after other processing.
+ * @param isSecondRun Whether the function is being run for the second time, after other processing.
  */
-function cleanupSpacing(content: string, secondRun = false) {
+function cleanupSpacing(content: string, isSecondRun = false) {
     const PLACEHOLDER = '\u{F0000}';
 
     const TAGS_TO_IGNORE = ['poem', 'pre', 'references', 'templatedata', 'timeline'];
@@ -564,7 +566,7 @@ function cleanupSpacing(content: string, secondRun = false) {
     const ignoredTagsContent: string[] = [];
 
     content = content.replaceAll(
-        new RegExp(`(<(${TAGS_TO_IGNORE.join('|')})(?: [^<>]*?)?>)(.*?)(</\\2>)`, 'gs'),
+        new RegExp(`(<(${TAGS_TO_IGNORE.join('|')})(?: [^<>]*)?>)(.*?)(</\\2>)`, 'gs'),
         (fullMatch, startTag: string, tagName: string, innerContent: string, endTag: string) => {
             innerContent = innerContent.replaceAll(/ +$/gm, '').trim();
 
@@ -574,16 +576,16 @@ function cleanupSpacing(content: string, secondRun = false) {
         },
     );
 
-    content = content.replaceAll(/(\b|\p{Punctuation}|\]\]|\}\}|\w>) {2,}(\b|\p{Punctuation}|\[\[|\{\{|<\w)/gu, '$1 $2'); // Remove extra spaces between words and sentences
-    if (!secondRun) content = content.replaceAll(/^ +| +$/gm, ''); // Remove extra spaces at the start or end of lines
+    content = content.replaceAll(/(\b|\p{Punctuation}|\w>) {2,}(\b|\p{Punctuation}|<\w)/gu, '$1 $2'); // Remove extra spaces between words and sentences
+    if (!isSecondRun) content = content.replaceAll(/^ +| +$/gm, ''); // Remove extra spaces at the start or end of lines
     content = content.replaceAll(/\n{3,}/g, '\n\n'); // Remove extra newlines
-    content = content.replace(/\s*({{[^}]*stub}})/i, '\n\n$1'); // Ensure there is one blank line before the first stub template
+    content = content.replace(/\s*(\{\{[^}]*stub\}\})/i, '\n\n$1'); // Ensure there is one blank line before the first stub template
     content = content.replaceAll(/\s+$/g, ''); // Remove trailing spaces
     content = content.replaceAll(/^([#*]+) */gm, '$1 '); // Ensure there is a space after a bullet or hash in a list item
     content = content.replaceAll(/^([#*]+ .*)\n+(?=[#*]+ )/gm, '$1\n'); // Remove newlines between list items
-    if (!secondRun) content = content.replaceAll(/(?<!\|)\s+(?=<ref(?!erences))/g, ''); // Remove spaces before references
-    content = content.replaceAll(/<\/([A-Za-z]+) +>/g, '</$1>'); // Remove excess space in closing tags
-    content = content.replaceAll(/^(=+.*?=+)$\n{2,}(?=^=+.*?=+$)/gm, '$1\n'); // Remove extra newlines between empty section and following section
+    if (!isSecondRun) content = content.replaceAll(/(?<!\|)\s+(?=<ref(?!erences))/g, ''); // Remove spaces before references
+    content = content.replaceAll(/<\/([A-Z]+) +>/gi, '</$1>'); // Remove excess space in closing tags
+    content = content.replaceAll(/^(=+.*?=+)\n{2,}(?==+.*?=+$)/gm, '$1\n'); // Remove extra newlines between empty section and following section
     content = content.trim(); // Remove whitespace at the start or end of the content
 
     // Add back ignored tags
@@ -599,7 +601,7 @@ function cleanupSpacing(content: string, secondRun = false) {
 function cleanupReferences(content: string) {
     content = content.replaceAll(
         /((?:<ref(?!erences)[^/]*?>.*?<\/ref>|<ref(?!erences).*?\/>)+)([!,.;?])?/g,
-        (fullMatch, referenceTag: string, punctuation: string | undefined) => (punctuation ?? '') + referenceTag,
+        (fullMatch, referenceTag: string, punctuation: string | undefined = '') => punctuation + referenceTag,
     ); // Fix punctuation following references
 
     const references: { start: number; end: number; isSelfClosing?: true }[] = [];
@@ -642,7 +644,7 @@ function cleanupReferences(content: string) {
 
                 const isSelfClosing = content
                     .slice(start, currentLocation - 1)
-                    .trim()
+                    .trimEnd()
                     .endsWith('/');
 
                 references.push(isSelfClosing ? { start, end: currentLocation, isSelfClosing } : { start, end: -1 });
@@ -669,7 +671,7 @@ function cleanupReferences(content: string) {
         const tagContent = originalText
             .slice(startTag.length, -6)
             .trim()
-            .replaceAll(/^\[ *([^ \]]*) *]$/gm, '$1')
+            .replaceAll(/^\[ *([^ \]]*) *\]$/gm, '$1')
             .trim();
 
         output =
@@ -710,7 +712,7 @@ async function formatTemplates(content: string) {
         Draft = 118,
     }
 
-    templateAliases ??= JSON.parse((await getPageContent('User:Eejit43/scripts/article-cleaner.json')) ?? '[]') as TemplateRedirect[];
+    templateAliases ??= JSON.parse((await getPageContent('User:Eejit43/scripts/article-cleaner.json')) ?? '[]') as TemplateRedirect[]; // eslint-disable-line unicorn/no-top-level-assignment-in-function
 
     const mappedTemplateAliases = Object.fromEntries(
         templateAliases.flatMap((alias) => alias.from.map((from) => [from.charAt(0).toLowerCase() + from.slice(1), alias.to])),
@@ -721,119 +723,123 @@ async function formatTemplates(content: string) {
         public isNested = false;
 
         public fullText?: string;
+        public subTemplates: Template[] = [];
+
         private fullTextEscaped?: string;
         private rawName?: string;
         private name?: string;
         private parameters: { key: string | null; value: string }[] = [];
-        public subTemplates: Template[] = [];
 
         private PLACEHOLDER_STRINGS = ['\u{F0000}', '\u{10FFFF}', '\u{FFFFE}'];
 
-        private PIPE_ESCAPE_REGEXES = [/(\[\[[^\]]*?)\|(.*?]])/g, /(<!--.*?)\|(.*?-->)/g, /(<nowiki>.*?)\|(.*?<\/nowiki>)/g];
+        private PIPE_ESCAPE_REGEXES = [/(\[\[[^\]]*?)\|(.*?\]\])/g, /(<!--.*?)\|(.*?-->)/g, /(<nowiki>.*?)\|(.*?<\/nowiki>)/g];
 
-        private TAG_EQUALS_ESCAPE_REGEXES = [/<(\w+)( [^<>]+?)(?<!\/)>.*?<\/\1>/g, /<(\w+)( [^<>]+?)\/>/g];
+        private TAG_EQUALS_ESCAPE_REGEXES = [/<(\w+)( [^<>]+)(?<!\/)>.*?<\/\1>/g, /<(\w+)( [^<>]+?)\/>/g];
 
         private TEMPLATE_ALIASES = mappedTemplateAliases;
 
-        private DEFAULT_TEMPLATE_STYLES = {
-            [FormatStyle.ExpandedAligned]: [
-                'album rating',
-                'album reviews',
-                'american football uniform',
-                'australian rules football kit',
-                'automatic taxobox',
-                'baseball uniform',
-                'basketball kit',
-                'beachhandball kit',
-                'blockquote',
-                'chembox',
-                'cricket uniform',
-                'election box',
-                'emblem table',
-                'episode list',
-                'external music video',
-                'extra album cover',
-                'field hockey kit',
-                'football box',
-                'football kit',
-                'footballbox',
-                'gallery',
-                'handball kit',
-                'hybridbox',
-                'icehockey kit',
-                'ichnobox',
-                'infobox',
-                'infraspeciesbox',
-                'judo bracket',
-                'judo repechage',
-                'listen',
-                'location map',
-                'medical resources',
-                'motorsport season',
-                'multiple image',
-                'music ratings',
-                'mycomorphbox',
-                'navbox',
-                'oobox',
-                'orbitbox',
-                'osm location map',
-                'quote box',
-                'repechage',
-                'rugbybox',
-                'sidebar',
-                'single ratings',
-                'singles',
-                'song ratings',
-                'speciesbox',
-                'starbox',
-                'subject bar',
-                'succession box',
-                'taxobox',
-                'team bracket',
-                'track listing',
-                'tweet',
-                'virusbox',
-                'volleyball kit',
-                'weather box',
+        private DEFAULT_TEMPLATE_STYLES: [FormatStyle, string[]][] = [
+            [
+                FormatStyle.ExpandedAligned,
+                [
+                    'album rating',
+                    'album reviews',
+                    'american football uniform',
+                    'australian rules football kit',
+                    'automatic taxobox',
+                    'baseball uniform',
+                    'basketball kit',
+                    'beachhandball kit',
+                    'blockquote',
+                    'chembox',
+                    'cricket uniform',
+                    'election box',
+                    'emblem table',
+                    'episode list',
+                    'external music video',
+                    'extra album cover',
+                    'field hockey kit',
+                    'football box',
+                    'football kit',
+                    'footballbox',
+                    'gallery',
+                    'handball kit',
+                    'hybridbox',
+                    'icehockey kit',
+                    'ichnobox',
+                    'infobox',
+                    'infraspeciesbox',
+                    'judo bracket',
+                    'judo repechage',
+                    'listen',
+                    'location map',
+                    'medical resources',
+                    'motorsport season',
+                    'multiple image',
+                    'music ratings',
+                    'mycomorphbox',
+                    'navbox',
+                    'oobox',
+                    'orbitbox',
+                    'osm location map',
+                    'quote box',
+                    'repechage',
+                    'rugbybox',
+                    'sidebar',
+                    'single ratings',
+                    'singles',
+                    'song ratings',
+                    'speciesbox',
+                    'starbox',
+                    'subject bar',
+                    'succession box',
+                    'taxobox',
+                    'team bracket',
+                    'track listing',
+                    'tweet',
+                    'virusbox',
+                    'volleyball kit',
+                    'weather box',
 
-                // Numbered brackets
-                'nteambracket',
-                '2nteam-nteambracket',
-                '2teambracket',
-                '3teambracket',
-                '3teamrr',
-                '4teambracket',
-                '4teamrr',
-                '5teambracket',
-                '5teamrr',
-                '6teambracket',
-                '6teamrr',
-                '7teambracket',
-                '7teamrr',
-                '8teambracket',
-                '8teamroundrobin',
-                '8teamrr',
-                '9teambracket',
-                '10teambracket',
-                '11teambracket',
-                '12teambracket',
-                '13teambracket',
-                '14teambracket',
-                '15teambracket',
-                '16teambracket',
-                '18teambracket',
-                '20teambracket',
-                '24teambracket',
-                '27teambracket',
-                '32teambracket',
-                '40teambracket',
-                '48teambracket',
-                '64teambracket',
-                '128teambracket',
+                    // Numbered brackets
+                    'nteambracket',
+                    '2nteam-nteambracket',
+                    '2teambracket',
+                    '3teambracket',
+                    '3teamrr',
+                    '4teambracket',
+                    '4teamrr',
+                    '5teambracket',
+                    '5teamrr',
+                    '6teambracket',
+                    '6teamrr',
+                    '7teambracket',
+                    '7teamrr',
+                    '8teambracket',
+                    '8teamroundrobin',
+                    '8teamrr',
+                    '9teambracket',
+                    '10teambracket',
+                    '11teambracket',
+                    '12teambracket',
+                    '13teambracket',
+                    '14teambracket',
+                    '15teambracket',
+                    '16teambracket',
+                    '18teambracket',
+                    '20teambracket',
+                    '24teambracket',
+                    '27teambracket',
+                    '32teambracket',
+                    '40teambracket',
+                    '48teambracket',
+                    '64teambracket',
+                    '128teambracket',
+                ],
             ],
-            [FormatStyle.Minimized]: ['birth date', 'coord', 'death date', 'end date', 'lang', 'start date'],
-            [FormatStyle.MinimizedSpaced]: ['infobox mapframe'],
-        };
+            [FormatStyle.Minimized, ['birth date', 'coord', 'death date', 'end date', 'lang', 'start date']],
+            [FormatStyle.MinimizedSpaced, ['infobox mapframe']],
+        ];
 
         private NAMESPACE_SPECIFIC_TEMPLATES = {
             [Namespace.Draft]: [
@@ -966,63 +972,6 @@ async function formatTemplates(content: string) {
             this.parameters = splitParameters;
         }
 
-        private shouldBeRemoved() {
-            for (const [namespace, templates] of Object.entries(this.NAMESPACE_SPECIFIC_TEMPLATES)) {
-                if (mw.config.get('wgNamespaceNumber') === Number.parseInt(namespace)) continue;
-
-                if (templates.includes(this.name!.toLowerCase())) return true;
-            }
-
-            return false;
-        }
-
-        private getStyle() {
-            let mostSpecificDefaultStylePrefixLength = 0;
-            let mostSpecificDefaultStyleFormatStyle: FormatStyle | undefined;
-
-            for (const [formatStyle, templatePrefixes] of Object.entries(this.DEFAULT_TEMPLATE_STYLES))
-                for (const templatePrefix of templatePrefixes)
-                    if (
-                        this.name!.toLowerCase().startsWith(templatePrefix) &&
-                        templatePrefix.length >= mostSpecificDefaultStylePrefixLength
-                    ) {
-                        mostSpecificDefaultStylePrefixLength = templatePrefix.length;
-                        mostSpecificDefaultStyleFormatStyle = Number.parseInt(formatStyle);
-                    }
-
-            return mostSpecificDefaultStyleFormatStyle;
-        }
-
-        private cleanupParameters() {
-            this.parameters = this.parameters.map(({ key, value }) => {
-                if (key && this.IMAGE_PARAMETERS.has(key)) {
-                    value = value.trim();
-
-                    const valueBefore = value;
-
-                    if (value.startsWith('[[') && value.endsWith(']]')) {
-                        const imageParameters = value.slice(2, -2).split('|');
-
-                        value = imageParameters[0].trim();
-                    }
-
-                    value = value.replace(/^(File|Image):/, '').replaceAll('_', ' ');
-
-                    const additionalData = valueBefore
-                        .slice(2, -2)
-                        .split('|')
-                        .slice(1)
-                        .map((parameter) => parameter.trim())
-                        .filter((parameter) => !this.IGNORED_IMAGE_SYNTAX.has(parameter))
-                        .join('|');
-
-                    if (additionalData.length > 0) value += ` <!-- Previous additional data: "${additionalData}" -->`;
-                }
-
-                return { key, value };
-            });
-        }
-
         public format() {
             if (!this.fullText) this.parse();
 
@@ -1056,10 +1005,8 @@ async function formatTemplates(content: string) {
             this.cleanupParameters();
 
             if (style === FormatStyle.Expanded || style === FormatStyle.ExpandedAligned) {
-                let requiredKeyLength = 0;
-
-                if (style === FormatStyle.ExpandedAligned)
-                    requiredKeyLength = Math.max(...this.parameters.map((parameter) => parameter.key?.length ?? 0));
+                const requiredKeyLength =
+                    style === FormatStyle.ExpandedAligned ? Math.max(...this.parameters.map((parameter) => parameter.key?.length ?? 0)) : 0;
 
                 for (const [index, parameter] of this.parameters.entries()) {
                     if (
@@ -1106,6 +1053,63 @@ async function formatTemplates(content: string) {
                 joinedOutput = joinedOutput.replace(this.PLACEHOLDER_STRINGS[0], subTemplate.format());
 
             return joinedOutput;
+        }
+
+        private shouldBeRemoved() {
+            for (const [namespace, templates] of Object.entries(this.NAMESPACE_SPECIFIC_TEMPLATES)) {
+                if (mw.config.get('wgNamespaceNumber') === Number.parseInt(namespace)) continue;
+
+                if (templates.includes(this.name!.toLowerCase())) return true;
+            }
+
+            return false;
+        }
+
+        private getStyle() {
+            let mostSpecificDefaultStylePrefixLength = 0;
+            let mostSpecificDefaultStyleFormatStyle: FormatStyle | undefined;
+
+            for (const [formatStyle, templatePrefixes] of this.DEFAULT_TEMPLATE_STYLES)
+                for (const templatePrefix of templatePrefixes)
+                    if (
+                        this.name!.toLowerCase().startsWith(templatePrefix) &&
+                        templatePrefix.length >= mostSpecificDefaultStylePrefixLength
+                    ) {
+                        mostSpecificDefaultStylePrefixLength = templatePrefix.length;
+                        mostSpecificDefaultStyleFormatStyle = formatStyle;
+                    }
+
+            return mostSpecificDefaultStyleFormatStyle;
+        }
+
+        private cleanupParameters() {
+            this.parameters = this.parameters.map(({ key, value }) => {
+                if (key && this.IMAGE_PARAMETERS.has(key)) {
+                    value = value.trim();
+
+                    const valueBefore = value;
+
+                    if (value.startsWith('[[') && value.endsWith(']]')) {
+                        const imageParameters = value.slice(2, -2).split('|');
+
+                        value = imageParameters[0].trim();
+                    }
+
+                    value = value.replace(/^(?:File|Image):/, '').replaceAll('_', ' ');
+
+                    const additionalData = valueBefore
+                        .slice(2, -2)
+                        .split('|')
+                        .slice(1)
+                        .map((parameter) => parameter.trim())
+                        .filter((parameter) => !this.IGNORED_IMAGE_SYNTAX.has(parameter))
+                        .join('|');
+
+                    if (additionalData.length > 0) value += ` <!-- Previous additional data: "${additionalData}" -->`;
+                }
+
+                return { key, value };
+            });
         }
     }
 
@@ -1203,13 +1207,13 @@ function autoTagPage(content: string) {
 
     if (isOutsideMainspace || isEditingSection || isDisambiguation || isRedirect) return content;
 
-    const numberOfCategories = [...content.matchAll(/\[\[Category:/g)].length;
+    const numberOfCategories = content.matchAll(/\[\[Category:/g).toArray().length;
 
-    content = content.replaceAll(/\n*{{(uncategorized|improve categories)(\|.+?)?}}({{|\n+|$)/gi, '');
+    content = content.replaceAll(/\n*\{\{(?:uncategorized|improve categories)(?:\|.+?)?\}\}(?:\{\{|\n+|$)/gi, '');
 
-    if (numberOfCategories === 0 && !/{{uncategorized/i.test(content))
+    if (numberOfCategories === 0 && !/\{\{uncategorized/i.test(content))
         content += '\n\n{{Uncategorized|date={{subst:CURRENTMONTHNAME}} {{subst:CURRENTYEAR}}}}';
-    else if (numberOfCategories === 1 && !/{{improve categories/i.test(content))
+    else if (numberOfCategories === 1 && !/\{\{improve categories/i.test(content))
         content += '\n\n{{Improve categories|date={{subst:CURRENTMONTHNAME}} {{subst:CURRENTYEAR}}}}';
 
     return content;

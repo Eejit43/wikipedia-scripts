@@ -10,7 +10,7 @@ mw.loader.using(['mediawiki.util'], () => {
 
     const namespaces = mw.config.get('wgNamespaceIds');
 
-    let displayed = false;
+    let isDisplayed = false;
 
     const link = mw.util.addPortletLink(
         mw.config.get('skin') === 'minerva' ? 'p-tb' : 'p-cactions',
@@ -27,8 +27,8 @@ mw.loader.using(['mediawiki.util'], () => {
             if (shouldStopTabClosure) event.preventDefault();
         });
 
-        if (displayed) return document.querySelector('#rmtr-review-result')?.scrollIntoView();
-        else displayed = true;
+        if (isDisplayed) return document.querySelector('#rmtr-review-result')?.scrollIntoView();
+        isDisplayed = true;
 
         const pageRevision = await getPageRevision();
 
@@ -79,14 +79,13 @@ mw.loader.using(['mediawiki.util'], () => {
             const ignoredStartSymbols = ['[', '{'];
             const ignoredEndSymbols = [']', '}'];
 
-            let insideLinkOrTemplate = false;
+            let isInsideLinkOrTemplate = false;
             let currentText = '';
 
             for (let index = 0; index < template.length; index++) {
                 const character = template[index];
-                const nextCharacter: string | undefined = template[index + 1];
 
-                if ((character === '|' && !insideLinkOrTemplate) || index === template.length - 1) {
+                if ((character === '|' && !isInsideLinkOrTemplate) || index === template.length - 1) {
                     if (character !== '|') currentText += character;
 
                     rawParameters.push(currentText);
@@ -97,8 +96,11 @@ mw.loader.using(['mediawiki.util'], () => {
 
                 currentText += character;
 
-                if (ignoredStartSymbols.some((symbol) => symbol === character && symbol === nextCharacter)) insideLinkOrTemplate = true;
-                else if (ignoredEndSymbols.some((symbol) => symbol === character && symbol === nextCharacter)) insideLinkOrTemplate = false;
+                const nextCharacter: string | undefined = template[index + 1];
+
+                if (ignoredStartSymbols.some((symbol) => symbol === character && symbol === nextCharacter)) isInsideLinkOrTemplate = true;
+                else if (ignoredEndSymbols.some((symbol) => symbol === character && symbol === nextCharacter))
+                    isInsideLinkOrTemplate = false;
             }
 
             const parameters: Record<string, string | undefined> = {};
@@ -117,35 +119,32 @@ mw.loader.using(['mediawiki.util'], () => {
         for (const section of sections) {
             const sectionContent = pageContent
                 .split(new RegExp(`={3,}[^\n]*${section} *={3,}`))[1]
-                .split(/={3,}/m)[0]
+                .split(/={3,}/)[0]
                 .trim();
 
-            const matchedRequests = sectionContent.match(/(?:\* ?\n)?[ *:]*{{rmassist\/core.+?(?=[ *:]*{{rmassist\/core|$)/gis);
+            const matchedRequests = sectionContent.match(/(?:\* ?\n)?[ *:]*\{\{rmassist\/core.+?(?=[ *:]*\{\{rmassist\/core|$)/gis);
 
             if (matchedRequests)
                 allRequests[section] = matchedRequests.map((request) => {
                     request = request.trim();
 
                     const parameters = parseTemplateParameters(
-                        request.replaceAll(/(?:\* ?\n)?[ *:]*{{rmassist\/core\s*\||}}(?![^\n]*}}).*/gis, ''),
+                        request.replaceAll(/(?:\* ?\n)?[ *:]*\{\{rmassist\/core\s*\||\}\}(?![^\n]*\}\}).*/gis, ''),
                     );
 
                     parameters.full = request;
 
-                    parameters.original = parameters[1]?.replace(/^\[+/, '').replace(/]+$/, '') ?? 'UNKNOWN';
-                    parameters.destination = parameters[2]?.replace(/^\[+/, '').replace(/]+$/, '') ?? 'UNKNOWN';
+                    parameters.original = parameters[1]?.replace(/^\[+/, '').replace(/\]+$/, '') ?? 'UNKNOWN';
+                    parameters.destination = parameters[2]?.replace(/^\[+/, '').replace(/\]+$/, '') ?? 'UNKNOWN';
 
-                    parameters.requester ??= parameters.sig?.match(/\[\[User:(.*?)(\||]])/)?.[1].trim();
+                    parameters.requester ??= parameters.sig?.match(/\[\[User:(.*?)(?:\||\]\])/)?.[1].trim();
 
                     delete parameters[1];
                     delete parameters[2];
 
                     return parameters as unknown as Request;
                 });
-            else {
-                allRequests[section] = [];
-                continue;
-            }
+            else allRequests[section] = [];
         }
 
         await Promise.all(
@@ -164,8 +163,8 @@ mw.loader.using(['mediawiki.util'], () => {
                         invalidTitleWarning.classList.add('rmtr-review-invalid-warning');
                         invalidTitleWarning.textContent = `Invalid title "${request.destination}"!`;
 
-                        const validNamespace = ![namespaces.file, namespaces.category].some(
-                            (namespace) => mwOldTitle.getNamespaceId() === namespace || mwNewTitle.getNamespaceId() === namespace,
+                        const isValidNamespace = [namespaces.file, namespaces.category].every(
+                            (namespace) => mwOldTitle.getNamespaceId() !== namespace && mwNewTitle.getNamespaceId() !== namespace,
                         );
 
                         const invalidNamespaceWarning = document.createElement('span');
@@ -178,7 +177,7 @@ mw.loader.using(['mediawiki.util'], () => {
                                     ? mw.util.isIPAddress(request.requester)
                                         ? `[[Special:Contributions/${request.requester}|${request.requester}]]`
                                         : `[[User:${request.requester}|${request.requester}]]`
-                                    : (/(\[{2}Special:Contributions\/(.*?)\|\2]{2})/.exec(request.sig)?.[1] ?? '(unknown)')
+                                    : (/(\[{2}Special:Contributions\/(.*?)\|\2\]{2})/.exec(request.sig)?.[1] ?? '(unknown)')
                             } with reasoning "${request.reason}"`,
                         );
                         const parsedHtml = new DOMParser().parseFromString(parsedWikitext, 'text/html');
@@ -186,7 +185,7 @@ mw.loader.using(['mediawiki.util'], () => {
                         const requestElement = document.createElement('li');
                         requestElement.innerHTML = parsedHtml.querySelector('div.mw-parser-output')!.firstElementChild!.innerHTML!;
 
-                        if (!validNamespace) requestElement.append(invalidNamespaceWarning);
+                        if (!isValidNamespace) requestElement.append(invalidNamespaceWarning);
 
                         request.element = requestElement;
                     }),
@@ -224,7 +223,7 @@ mw.loader.using(['mediawiki.util'], () => {
                 for (const [requestIndex, request] of requests.entries()) {
                     const requestElement = request.element;
 
-                    const removeRequestCheckbox = document.createElement('input');
+                    const removeRequestCheckbox = document.createElement('input'); // eslint-disable-line unicorn/no-non-function-verb-prefix
                     removeRequestCheckbox.type = 'checkbox';
                     removeRequestCheckbox.classList.add('rmtr-review-request-checkbox');
                     removeRequestCheckbox.id = `rmtr-review-remove-request-${sectionIndex}-${requestIndex}`;
@@ -240,24 +239,25 @@ mw.loader.using(['mediawiki.util'], () => {
                         }
                     });
 
-                    const removeRequestLabel = document.createElement('label');
+                    const removeRequestLabel = document.createElement('label'); // eslint-disable-line unicorn/no-non-function-verb-prefix
                     removeRequestLabel.htmlFor = `rmtr-review-remove-request-${sectionIndex}-${requestIndex}`;
                     removeRequestLabel.textContent = 'Remove request';
 
                     requestElement.append(removeRequestCheckbox);
                     requestElement.append(removeRequestLabel);
 
-                    const removeRequestExtraInputs = document.createElement('span');
+                    const removeRequestExtraInputs = document.createElement('span'); // eslint-disable-line unicorn/no-non-function-verb-prefix
                     removeRequestExtraInputs.style.display = 'none';
 
                     removeRequestExtraInputs.append(document.createTextNode(' as '));
 
-                    const removeRequestDropdown = document.createElement('select');
+                    const removeRequestDropdown = document.createElement('select'); // eslint-disable-line unicorn/no-non-function-verb-prefix
                     if (section === 'Contested technical requests') removeRequestDropdown.value = 'Contested';
                     removeRequestDropdown.addEventListener('change', () => {
                         (allRequests[section][requestIndex].result as RequestResultRemove).reason = removeRequestDropdown.value;
                     });
 
+                    // eslint-disable-next-line unicorn/no-non-function-verb-prefix
                     const removeRequestDropdownOptions = [
                         'Completed',
                         'Contested',
@@ -405,9 +405,9 @@ mw.loader.using(['mediawiki.util'], () => {
                 return mw.notify('No changes to make!', { type: 'error' });
             }
 
-            endResult = endResult.replaceAll(new RegExp(`\n{2,}(={3,}[^\n]*${sections.join('|')} *={3,})`, 'g'), '\n$1');
+            endResult = endResult.replaceAll(new RegExp(`\n{2,}(={3,}[^\n]*${sections.join('|')} *={3,})`, 'g'), '\n$1'); // eslint-disable-line regexp/optimal-quantifier-concatenation
 
-            const noRemaining = Object.values(allRequests).every((section) =>
+            const hasNoRemaining = Object.values(allRequests).every((section) =>
                 section.every((request) => request.result && 'remove' in request.result),
             );
 
@@ -423,7 +423,7 @@ mw.loader.using(['mediawiki.util'], () => {
                           .map(([destination, pages]) => `${pages.map((page) => `[[${page.original}]]`).join(', ')} to "${destination}"`)
                           .join(', ')}`
                     : ''
-            }${noRemaining ? ' (no requests remain)' : ''} (via [[User:Eejit43/scripts/rmtr-helper|script]])`;
+            }${hasNoRemaining ? ' (no requests remain)' : ''} (via [[User:Eejit43/scripts/rmtr-helper|script]])`;
 
             await api.edit(mw.config.get('wgPageName'), () => ({ text: endResult, summary: editSummary }));
 

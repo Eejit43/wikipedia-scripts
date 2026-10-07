@@ -99,12 +99,13 @@ body:has(#wpTextbox1) #align-parameters {
             const searches = ['infobox', 'speciesbox', 'taxobox', 'automatic taxobox', 'osm location map', 'motorsport season'];
 
             for (let index = 0; index < text.length; index++) {
-                let foo = false;
+                let isAligned = false;
 
                 for (let search of searches) {
                     search = '{{' + search;
                     const searchLength = search.length;
 
+                    // eslint-disable-next-line unicorn/prefer-continue
                     if (
                         text.length - index > searchLength &&
                         (text.slice(index, index + searchLength).toLowerCase() === search ||
@@ -112,11 +113,12 @@ body:has(#wpTextbox1) #align-parameters {
                     ) {
                         open++;
                         template += text[index];
-                        foo = true;
+                        isAligned = true;
                     }
                 }
 
-                if (open >= 1 && !foo) {
+                // eslint-disable-next-line unicorn/prefer-continue
+                if (!isAligned && open >= 1) {
                     template += text[index];
 
                     if (text[index] === '{') open++;

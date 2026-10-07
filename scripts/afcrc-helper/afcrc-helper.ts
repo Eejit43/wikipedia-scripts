@@ -66,7 +66,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
 
         const helper = requestPageType === 'redirect' ? RedirectsDialog : CategoriesDialog;
 
-        const afcrcHelperDialog = new helper(requestPageType, pageName, window.afcrcConfiguration?.createdPageWatchMethod);
+        const afcrcHelperDialog = new helper(requestPageType, pageName, window.afcrcConfiguration?.createdPageWatchMethod); // eslint-disable-line unicorn/no-optional-chaining-on-undeclared-variable
 
         windowManager.addWindows([afcrcHelperDialog]);
 

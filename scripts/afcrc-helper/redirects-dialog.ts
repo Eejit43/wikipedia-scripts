@@ -42,15 +42,15 @@ export default class RedirectsDialog extends HelperDialog {
         const parsedData = {} as RedirectRequestData;
 
         const requestedPages = sectionHeader
-            .matchAll(/\[\[(.*?)]]/g)
-            .toArray()
+            .matchAll(/\[\[(.*?)\]\]/g)
             .map((match) => match[1].trim().replace(/^:/, '').replaceAll('_', ' '))
+            .toArray()
             .filter(Boolean);
         if (requestedPages.length === 0) return;
 
         parsedData.pages = requestedPages;
 
-        const parsedTarget = /Target of redirect: ?\[\[(.*?)]]/.exec(sectionText)?.[1].trim().replace(/^:/, '').replaceAll('_', ' ');
+        const parsedTarget = /Target of redirect: ?\[\[(.*?)\]\]/.exec(sectionText)?.[1].trim().replace(/^:/, '').replaceAll('_', ' ');
         if (!parsedTarget) return;
 
         parsedData.target = parsedTarget;
@@ -76,7 +76,7 @@ export default class RedirectsDialog extends HelperDialog {
                   .replace(/^&#126;/, '~')
             : null;
 
-        parsedData.requester = requester && name ? { type: /\[\[User( talk)?:/.test(requester) ? 'user' : 'ip', name } : null;
+        parsedData.requester = requester && name ? { type: /\[\[User(?: talk)?:/.test(requester) ? 'user' : 'ip', name } : null;
 
         this.parsedRequests.push(parsedData);
 
@@ -111,7 +111,7 @@ export default class RedirectsDialog extends HelperDialog {
         const summaryElement = document.createElement('summary');
         summaryElement.innerHTML = request.pages.map((page) => `<b>${page}</b>`).join(', ') + ' → ';
         summaryElement.addEventListener('keyup', (event) => {
-            if (document.activeElement?.tagName === 'INPUT' && event.key === ' ') event.preventDefault();
+            if (document.activeElement?.tagName === 'INPUT' && event.key === ' ') event.preventDefault(); // eslint-disable-line unicorn/no-optional-chaining-on-undeclared-variable
         });
 
         const targetEditorElement = document.createElement('input');
@@ -253,23 +253,23 @@ export default class RedirectsDialog extends HelperDialog {
     public updateRequestColor(detailsElement: HTMLDetailsElement, index: number) {
         const actionsToTake = Object.values(this.actionsToTake[index].requests);
 
-        const allRequestsAcceptedDenied = actionsToTake.every((action) => action.action === 'accept' || action.action === 'deny');
+        const areAllRequestsAcceptedOrDenied = actionsToTake.every((action) => action.action === 'accept' || action.action === 'deny');
 
         const firstCloseReason = actionsToTake.find((action) => action.action === 'close')?.closingReason?.id;
-        const allRequestsClosed = actionsToTake.every(
+        const areAllRequestsClosed = actionsToTake.every(
             (action) => action.action === 'close' && action.closingReason?.id === firstCloseReason,
         );
 
         let backgroundColor = '';
 
-        if (allRequestsAcceptedDenied) {
+        if (areAllRequestsAcceptedOrDenied) {
             const acceptedCount = actionsToTake.filter((action) => action.action === 'accept').length;
             const deniedCount = actionsToTake.filter((action) => action.action === 'deny').length;
 
             if (acceptedCount > 0 && deniedCount > 0) backgroundColor = 'var(--background-color-warning-subtle, #fff17e)';
             else if (acceptedCount > 0) backgroundColor = 'var(--background-color-success-subtle, #a0ffa0)';
             else backgroundColor = 'var(--background-color-error-subtle, #ffcece)';
-        } else if (allRequestsClosed)
+        } else if (areAllRequestsClosed)
             if (firstCloseReason === 'r') backgroundColor = 'var(--background-color-error-subtle, #ffcece)';
             else if (firstCloseReason === 's') backgroundColor = 'var(--background-color-success-subtle, #90c090)';
             else backgroundColor = 'var(--background-color-notice-subtle, #b8b8b8)';
@@ -284,21 +284,21 @@ export default class RedirectsDialog extends HelperDialog {
      * @param newPageText The new page text.
      */
     protected async performSubtypeActions(actionsDialog: ActionsDialog, counts: Record<string, number>, newPageText: string) {
-        const anyRequestHandled = this.actionsToTake.some((actionData) =>
+        const isAnyRequestHandled = this.actionsToTake.some((actionData) =>
             Object.values(actionData.requests).some((action) => action.action !== 'none'),
         );
 
-        if (anyRequestHandled) {
+        if (isAnyRequestHandled) {
             for (const { target, requests } of this.actionsToTake) {
-                const someRequestAcceptedDenied = Object.values(requests).some(
+                const isSomeRequestAcceptedDenied = Object.values(requests).some(
                     (action) => action.action === 'accept' || action.action === 'deny',
                 );
-                const allRequestsAcceptedDenied = Object.values(requests).every(
+                const areAllRequestsAcceptedDenied = Object.values(requests).every(
                     (action) => action.action === 'accept' || action.action === 'deny',
                 );
 
                 const firstCloseReason = Object.values(requests).find((action) => action.action === 'close')?.closingReason?.id;
-                const allRequestsClosed = Object.values(requests).every(
+                const areAllRequestsClosed = Object.values(requests).every(
                     (action) => action.action === 'close' && action.closingReason?.id === firstCloseReason,
                 );
 
@@ -309,9 +309,9 @@ export default class RedirectsDialog extends HelperDialog {
                 const amountOfPages = Object.keys(requests).length;
 
                 for (const [requestedTitle, action] of Object.entries(requests))
-                    switch (action.action) {
+                    actionSwitch: switch (action.action) {
                         case 'accept': {
-                            if (someRequestAcceptedDenied && !allRequestsAcceptedDenied)
+                            if (isSomeRequestAcceptedDenied && !areAllRequestsAcceptedDenied)
                                 actionsDialog.addLogEntry(
                                     `Not all requests to "${target}" were accepted or denied, the handling of "${requestedTitle}" will be ignored.`,
                                     'warning',
@@ -322,10 +322,10 @@ export default class RedirectsDialog extends HelperDialog {
                                 counts.accepted++;
                             }
 
-                            break;
+                            break actionSwitch;
                         }
                         case 'deny': {
-                            if (someRequestAcceptedDenied && !allRequestsAcceptedDenied)
+                            if (isSomeRequestAcceptedDenied && !areAllRequestsAcceptedDenied)
                                 actionsDialog.addLogEntry(
                                     `Not all requests to "${target}" were accepted or denied, the handling of "${requestedTitle}" is being ignored.`,
                                     'warning',
@@ -335,7 +335,7 @@ export default class RedirectsDialog extends HelperDialog {
                                 counts.denied++;
                             }
 
-                            break;
+                            break actionSwitch;
                         }
                         case 'comment': {
                             if (action.comment) {
@@ -347,10 +347,10 @@ export default class RedirectsDialog extends HelperDialog {
                                     'warning',
                                 );
 
-                            break;
+                            break actionSwitch;
                         }
                         case 'close': {
-                            if (allRequestsClosed) {
+                            if (areAllRequestsClosed) {
                                 if (action.comment) comments.push([requestedTitle, action.comment]);
                                 counts.closed++;
                             } else
@@ -358,7 +358,8 @@ export default class RedirectsDialog extends HelperDialog {
                                     `Not all requests to "${target}" were closed with the same reason, the handling of "${requestedTitle}" is being ignored.`,
                                     'warning',
                                 );
-                            break;
+
+                            break actionSwitch;
                         }
                     }
 
@@ -369,7 +370,7 @@ export default class RedirectsDialog extends HelperDialog {
                         append: this.mapComments(comments, amountOfPages === 1, comments.length === amountOfPages),
                     });
 
-                if (allRequestsAcceptedDenied) {
+                if (areAllRequestsAcceptedDenied) {
                     let closingId: string;
 
                     if (acceptedPages.length > 0 && deniedPages.length > 0) {
@@ -400,7 +401,7 @@ export default class RedirectsDialog extends HelperDialog {
                     }
 
                     sectionData = this.modifySectionData(sectionData, { prepend: `{{AfC-c|${closingId}}}`, append: '{{AfC-c|b}}' });
-                } else if (allRequestsClosed)
+                } else if (areAllRequestsClosed)
                     sectionData = this.modifySectionData(sectionData, {
                         prepend: `{{AfC-c|${firstCloseReason}}}`,
                         append: '{{AfC-c|b}}',

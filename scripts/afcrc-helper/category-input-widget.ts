@@ -6,24 +6,25 @@ import type { LookupElementConfig } from '@scripts/redirect-helper/redirect-targ
  * An instance of this class is a category lookup element.
  */
 export default class CategoryInputWidget extends OO.ui.TextInputWidget {
-    private supportsSortKey: boolean;
-
     public validCategories = new Set<string>();
 
-    constructor(config: LookupElementConfig, supportsSortKey = false) {
+    private doesSupportSortKey: boolean;
+
+    constructor(config: LookupElementConfig, doesSupportSortKey = false) {
         super(config);
         OO.ui.mixin.LookupElement.call(this as unknown as OO.ui.mixin.LookupElement, config);
 
-        this.supportsSortKey = supportsSortKey;
+        this.doesSupportSortKey = doesSupportSortKey;
     }
 
+    // eslint-disable-next-line unicorn/consistent-class-member-order
     getLookupRequest = () => {
         const value = this.getValue().split('|')[0];
         const deferred = $.Deferred();
 
         if (!value) deferred.resolve([]);
 
-        if (this.supportsSortKey) {
+        if (this.doesSupportSortKey) {
             const sortKey = this.getValue().split('|')[1];
 
             if (sortKey && this.validCategories.has(value)) {
@@ -58,7 +59,7 @@ export default class CategoryInputWidget extends OO.ui.TextInputWidget {
                         .map((page) => {
                             const titleWithoutNamespace = page.title.split(':')[1];
 
-                            if (this.supportsSortKey) this.validCategories.add(titleWithoutNamespace);
+                            if (this.doesSupportSortKey) this.validCategories.add(titleWithoutNamespace);
 
                             return { data: titleWithoutNamespace, label: titleWithoutNamespace };
                         });
@@ -78,4 +79,4 @@ export default class CategoryInputWidget extends OO.ui.TextInputWidget {
         data.map(({ data, label }) => new OO.ui.MenuOptionWidget({ data, label }));
 }
 
-Object.assign(CategoryInputWidget.prototype, OO.ui.mixin.LookupElement.prototype);
+Object.assign(CategoryInputWidget.prototype, OO.ui.mixin.LookupElement.prototype); // eslint-disable-line unicorn/no-top-level-side-effects

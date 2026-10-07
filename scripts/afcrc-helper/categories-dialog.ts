@@ -26,27 +26,27 @@ export default class CategoriesDialog extends HelperDialog {
     protected parseSubtypeRequests(sectionText: string, sectionHeader: string) {
         const parsedData = {} as CategoryRequestData;
 
-        const foundCategory = /:?Category:(.*?)(]]|$)/.exec(sectionHeader)?.[1].trim();
+        const foundCategory = /:?Category:(.*?)(?:\]\]|$)/.exec(sectionHeader)?.[1].trim();
         if (!foundCategory) return;
 
         parsedData.category = foundCategory.replaceAll('_', ' ');
 
-        parsedData.examples = [
-            ...(
-                /example pages which belong to this category:(.*?)(parent category\/categories:|\n\[\[(special:contributions\/|user:))/is.exec(
-                    sectionText,
-                )?.[1] ?? ''
-            ).matchAll(/\*\s*(?:\[\[)?(.*?)(\||]]|\s*?\n)/g),
-        ]
+        parsedData.examples = (
+            /example pages which belong to this category:(.*?)(?:parent category\/categories:|\n\[\[(?:special:contributions\/|user:))/is.exec(
+                sectionText,
+            )?.[1] ?? ''
+        )
+            .matchAll(/\*\s*(?:\[\[)?(.*?)(?:\||\]\]|\s*?\n)/g)
             .map((match) => match[1].trim().replace(/^:/, '').replaceAll('_', ' '))
+            .toArray()
             .filter(Boolean);
 
-        parsedData.parents = [
-            ...(/parent category\/categories:(.*?)(\n\n|\n\[\[(special:contributions\/|user:))/is.exec(sectionText)?.[1] ?? '').matchAll(
-                /(?<!\|)#?:?Category:(.*?)(\||]]|\s*?\n)/g,
-            ),
-        ]
+        parsedData.parents = (
+            /parent category\/categories:(.*?)(?:\n\n|\n\[\[(?:special:contributions\/|user:))/is.exec(sectionText)?.[1] ?? ''
+        )
+            .matchAll(/(?<!\|)#?:?Category:(.*?)(?:\||\]\]|\s*?\n)/g)
             .map((match) => match[1].trim().replace(/^:/, '').replaceAll('_', ' '))
+            .toArray()
             .filter(Boolean);
 
         const firstUserIndex = sectionText.indexOf('[[User:');
@@ -56,11 +56,11 @@ export default class CategoriesDialog extends HelperDialog {
         const firstIndex = Math.min(...[firstUserIndex, firstUserTalkIndex, firstIpIndex].filter((index) => index !== -1));
 
         parsedData.requester =
-            firstIndex === Number.POSITIVE_INFINITY
+            firstIndex === Infinity
                 ? null
                 : firstIndex === firstIpIndex
-                  ? { type: 'ip', name: /\[\[Special:Contributions\/(.*?)(\||]])/.exec(sectionText)![1].trim() }
-                  : { type: 'user', name: /\[\[User(?: talk)?:(.*?)(\||]])/.exec(sectionText)![1].trim() };
+                  ? { type: 'ip', name: /\[\[Special:Contributions\/(.*?)(?:\||\]\])/.exec(sectionText)![1].trim() }
+                  : { type: 'user', name: /\[\[User(?: talk)?:(.*?)(?:\||\]\])/.exec(sectionText)![1].trim() };
         if (!parsedData.requester?.name) parsedData.requester = null;
 
         this.parsedRequests.push(parsedData);
@@ -453,13 +453,13 @@ export default class CategoriesDialog extends HelperDialog {
      * @param newPageText The new page text.
      */
     protected async performSubtypeActions(actionsDialog: ActionsDialog, counts: Record<string, number>, newPageText: string) {
-        const anyRequestHandled = this.actionsToTake.some((actionData) => actionData.action !== 'none');
+        const areAnyRequestHandled = this.actionsToTake.some((actionData) => actionData.action !== 'none');
 
-        if (anyRequestHandled) {
+        if (areAnyRequestHandled) {
             for (const actionData of this.actionsToTake) {
                 let sectionData = { pageText: newPageText, ...actionData.originalText };
 
-                switch (actionData.action) {
+                actionSwitch: switch (actionData.action) {
                     case 'accept': {
                         sectionData = this.modifySectionData(sectionData, {
                             prepend: '{{AfC-c|a}}',
@@ -470,7 +470,7 @@ export default class CategoriesDialog extends HelperDialog {
 
                         counts.accepted++;
 
-                        break;
+                        break actionSwitch;
                     }
                     case 'deny': {
                         sectionData = this.modifySectionData(sectionData, {
@@ -480,7 +480,7 @@ export default class CategoriesDialog extends HelperDialog {
 
                         counts.denied++;
 
-                        break;
+                        break actionSwitch;
                     }
                     case 'comment': {
                         if (actionData.comment) {
@@ -495,7 +495,7 @@ export default class CategoriesDialog extends HelperDialog {
                                 'warning',
                             );
 
-                        break;
+                        break actionSwitch;
                     }
                     case 'close': {
                         sectionData = this.modifySectionData(sectionData, {
@@ -505,7 +505,7 @@ export default class CategoriesDialog extends HelperDialog {
 
                         counts.closed++;
 
-                        break;
+                        break actionSwitch;
                     }
                 }
 
@@ -566,12 +566,12 @@ export default class CategoriesDialog extends HelperDialog {
                 transform: ({ content }: { content: string }) => {
                     let didReplaceCategory = false;
 
-                    content = content.replace(/((\[\[:?[Cc]ategory:.+?]]\n?)+)/, (match) => {
+                    content = content.replace(/(?:\[\[:?[Cc]ategory:.+?\]\]\n?)+/, (match) => {
                         didReplaceCategory = true;
 
-                        const matchEndsWithNewline = match.endsWith('\n');
+                        const doesMatchEndsWithNewline = match.endsWith('\n');
 
-                        return `${match}${matchEndsWithNewline ? '' : '\n'}[[Category:${data.category}]]${matchEndsWithNewline ? '\n' : ''}`;
+                        return `${match}${doesMatchEndsWithNewline ? '' : '\n'}[[Category:${data.category}]]${doesMatchEndsWithNewline ? '\n' : ''}`;
                     });
 
                     if (!didReplaceCategory) content += `\n[[Category:${data.category}]]`; // eslint-disable-line @typescript-eslint/no-unnecessary-condition

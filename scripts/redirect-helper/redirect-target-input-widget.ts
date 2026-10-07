@@ -62,21 +62,7 @@ export default class RedirectTargetInputWidget extends OO.ui.TextInputWidget {
         this.pageTitleParsed = pageTitleParsed;
     }
 
-    private getMatchingFragmentResults = (allSections: PageSectionData[], allAnchors: PageSectionData[], searchedFragment: string) => {
-        const matchedSections = allSections.filter(({ fragment }) => fragment.toLowerCase().startsWith(searchedFragment));
-        const matchedSectionsSet = new Set(matchedSections.map(({ fragment }) => fragment.toLowerCase()));
-
-        const matchedAnchors = allAnchors.filter(
-            ({ fragment }) => fragment.toLowerCase().startsWith(searchedFragment) && !matchedSectionsSet.has(fragment.toLowerCase()),
-        );
-
-        const mappedMatchedSections = matchedSections.map(({ result }) => result);
-
-        const mappedMatchedAnchors = matchedAnchors.map(({ result }) => result);
-
-        return [...mappedMatchedSections, ...mappedMatchedAnchors];
-    };
-
+    // eslint-disable-next-line unicorn/consistent-class-member-order
     getLookupRequest = () => {
         const value = this.getValue();
         const deferred = $.Deferred();
@@ -155,6 +141,21 @@ export default class RedirectTargetInputWidget extends OO.ui.TextInputWidget {
 
     getLookupMenuOptionsFromData = (data: { data: string; label: string }[]) =>
         data.map(({ data, label }) => new OO.ui.MenuOptionWidget({ data, label }));
+
+    private getMatchingFragmentResults = (allSections: PageSectionData[], allAnchors: PageSectionData[], searchedFragment: string) => {
+        const matchedSections = allSections.filter(({ fragment }) => fragment.toLowerCase().startsWith(searchedFragment));
+        const matchedSectionsSet = new Set(matchedSections.map(({ fragment }) => fragment.toLowerCase()));
+
+        const matchedAnchors = allAnchors.filter(
+            ({ fragment }) => fragment.toLowerCase().startsWith(searchedFragment) && !matchedSectionsSet.has(fragment.toLowerCase()),
+        );
+
+        const mappedMatchedSections = matchedSections.map(({ result }) => result);
+
+        const mappedMatchedAnchors = matchedAnchors.map(({ result }) => result);
+
+        return [...mappedMatchedSections, ...mappedMatchedAnchors];
+    };
 }
 
-Object.assign(RedirectTargetInputWidget.prototype, OO.ui.mixin.LookupElement.prototype);
+Object.assign(RedirectTargetInputWidget.prototype, OO.ui.mixin.LookupElement.prototype); // eslint-disable-line unicorn/no-top-level-side-effects

@@ -9,7 +9,10 @@ export default defineConfig(
     sharedConfig,
     {
         languageOptions: { parserOptions: { project: ['./tsconfig.json', './scripts/tsconfig.json'] } },
-        rules: { 'unicorn/catch-error-name': ['error', { ignore: ['errorCode'] }] },
+        rules: {
+            'unicorn/catch-error-name': ['error', { ignore: ['errorCode'] }],
+            'unicorn/prefer-await': 'off',
+        },
     },
     importAlias.configs.recommended,
     {

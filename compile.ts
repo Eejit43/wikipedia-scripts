@@ -5,19 +5,19 @@ import { readdirSync } from 'node:fs';
 const cssImportPlugin: Plugin = {
     name: 'css-import',
     setup(builder) {
-        // eslint-disable-next-line unicorn/prevent-abbreviations
+        // eslint-disable-next-line unicorn/name-replacements
         builder.onLoad({ filter: /\.css$/ }, async (args) => {
-            if (args.with.type === 'css') {
-                const result = await build({
-                    bundle: true,
-                    entryPoints: [args.path],
-                    minify: builder.initialOptions.minify,
-                    plugins: [postcss()],
-                    write: false,
-                });
+            if (args.with.type !== 'css') return;
 
-                return { contents: result.outputFiles[0].text, loader: 'text' };
-            }
+            const result = await build({
+                bundle: true,
+                entryPoints: [args.path],
+                minify: builder.initialOptions.minify,
+                plugins: [postcss()],
+                write: false,
+            });
+
+            return { contents: result.outputFiles[0].text, loader: 'text' };
         });
     },
 };

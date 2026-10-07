@@ -45,7 +45,7 @@ export interface TemplateEditorElementInfo {
  */
 export default class RedirectHelperDialog {
     // Utility variables
-    private readonly REDIRECT_REGEX = /^#.*?:?\s*\[\[\s*:?([^[\]{|}]+?)\s*(?:\|[^[\]{|}]+?)?]]\s*/i;
+    private readonly REDIRECT_REGEX = /^#.*?:?\s*\[\[\s*:?([^[\]{|}]+?)\s*(?:\|[^[\]{|}]+)?\]\]\s*/;
     private readonly SCRIPT_MESSAGE = ' (via [[w:en:User:Eejit43/scripts/redirect-helper|redirect-helper]])';
 
     // Assigned in constructor
@@ -55,7 +55,7 @@ export default class RedirectHelperDialog {
     private pageTitleParsed: mw.Title;
     private defaultRedirectTarget?: string;
 
-    private exists: boolean;
+    private doesExist: boolean;
     private config: RedirectHelperConfig;
     private isOnEnwiki: boolean;
 
@@ -119,7 +119,7 @@ export default class RedirectHelperDialog {
             pageTitleParsed: mw.Title;
             defaultRedirectTarget?: string;
         },
-        exists: boolean,
+        doesExist: boolean,
         config: RedirectHelperConfig,
         isOnEnwiki: boolean,
     ) {
@@ -129,7 +129,7 @@ export default class RedirectHelperDialog {
         this.pageTitleParsed = pageTitleParsed;
         this.defaultRedirectTarget = defaultRedirectTarget;
 
-        this.exists = exists;
+        this.doesExist = doesExist;
 
         this.config = config;
 
@@ -188,7 +188,7 @@ export default class RedirectHelperDialog {
 
         this.contentText.prepend(this.editorBox.$element[0]);
 
-        if (this.exists) void this.loadExistingData();
+        if (this.doesExist) void this.loadExistingData();
     }
 
     /**
@@ -310,11 +310,10 @@ export default class RedirectHelperDialog {
             let shownTemplateEditors = 0;
             for (const tag of this.tagSelect.getValue() as string[]) {
                 const editorInfo = this.templateEditorsInfo.find((editorInfo) => editorInfo.name === tag);
+                if (!editorInfo) continue;
 
-                if (editorInfo) {
-                    editorInfo.details.style.display = 'block';
-                    shownTemplateEditors++;
-                }
+                editorInfo.details.style.display = 'block';
+                shownTemplateEditors++;
             }
 
             summaryElement.textContent = `Template parameters (${shownTemplateEditors > 0 ? `for ${shownTemplateEditors} template${shownTemplateEditors > 1 ? 's' : ''}` : 'none to show'})`;
@@ -542,7 +541,7 @@ export default class RedirectHelperDialog {
 
         this.showChangesButton = new OO.ui.ButtonWidget({ label: 'Show changes', disabled: true });
         this.showChangesButton.on('click', async () => {
-            if (this.exists) this.pageContent = (await getPageContent(this.pageTitle)) ?? '';
+            if (this.doesExist) this.pageContent = (await getPageContent(this.pageTitle)) ?? '';
 
             showChangesDialog.setData([
                 this.pageContent,
@@ -573,7 +572,7 @@ export default class RedirectHelperDialog {
         }
 
         /* Set up watch page checkbox */
-        if (!this.exists) {
+        if (!this.doesExist) {
             const checkboxConfig: OO.ui.CheckboxInputWidget.ConfigOptions = {};
 
             if (['nochange', 'preferences'].includes(this.config.createdWatchMethod)) checkboxConfig.indeterminate = true;
@@ -630,23 +629,27 @@ export default class RedirectHelperDialog {
         pageTriageMarkButton?.click();
 
         if (mw.config.get('wgNamespaceNumber') !== 0) return false;
-        else if (document.querySelector('.patrollink')) return true;
-        else if (document.querySelector('#mwe-pt-mark-as-reviewed-button')) return true;
-        else if (document.querySelector('#mwe-pt-mark-as-unreviewed-button')) return false;
-        else {
-            if (!mw.config.get('wgArticleId')) return false;
-            const userPermissions = await mw.user.getRights();
-            if (!userPermissions.includes('patrol')) return false;
+        if (document.querySelector('.patrollink')) return true;
+        if (document.querySelector('#mwe-pt-mark-as-reviewed-button')) return true; // eslint-disable-line unicorn/prefer-combined-guards
+        if (document.querySelector('#mwe-pt-mark-as-unreviewed-button')) return false;
 
-            const patrolResponse = (await api.get({
-                action: 'pagetriagelist',
-                page_id: mw.config.get('wgArticleId'), // eslint-disable-line @typescript-eslint/naming-convention
-            } satisfies PageTriageApiPageTriageListParams)) as PageTriageListResponse;
+        if (!mw.config.get('wgArticleId')) return false; // eslint-disable-line unicorn/prefer-combined-guards
+        const userPermissions = await mw.user.getRights();
+        if (!userPermissions.includes('patrol')) return false;
 
-            if (patrolResponse.pagetriagelist.pages[0]?.user_name === mw.config.get('wgUserName')) return false;
-            else if (patrolResponse.pagetriagelist.result !== 'success' || patrolResponse.pagetriagelist.pages.length === 0) return false;
-            else return !Number.parseInt(patrolResponse.pagetriagelist.pages[0]?.patrol_status);
-        }
+        const patrolResponse = (await api.get({
+            action: 'pagetriagelist',
+            page_id: mw.config.get('wgArticleId'), // eslint-disable-line @typescript-eslint/naming-convention
+        } satisfies PageTriageApiPageTriageListParams)) as PageTriageListResponse;
+
+        // eslint-disable-next-line unicorn/prefer-ternary
+        if (
+            patrolResponse.pagetriagelist.pages[0]?.user_name === mw.config.get('wgUserName') ||
+            patrolResponse.pagetriagelist.result !== 'success' ||
+            patrolResponse.pagetriagelist.pages.length === 0
+        )
+            return false;
+        return !Number.parseInt(patrolResponse.pagetriagelist.pages[0]?.patrol_status);
     }
 
     /**
@@ -656,63 +659,63 @@ export default class RedirectHelperDialog {
         const redirectValue = this.redirectInput.getValue().trim();
 
         if (!redirectValue) (this.summaryInput.$tabIndexed[0] as HTMLInputElement).placeholder = '';
-        else if (this.exists) {
+        else if (this.doesExist) {
             let oldTarget = this.oldRedirectTarget?.replaceAll('_', ' ');
             if (oldTarget) oldTarget = oldTarget[0].toUpperCase() + oldTarget.slice(1);
 
-            const targetChanged = redirectValue !== oldTarget;
+            const isTargetChanged = redirectValue !== oldTarget;
 
-            const tagsChanged =
+            const areTagsChanged =
                 this.tagSelect.getValue().some((tag) => !this.oldRedirectTags!.includes(tag as string)) ||
                 this.oldRedirectTags!.some((tag) => !this.tagSelect.getValue().includes(tag));
 
-            let tagArgumentsChanged = false;
+            let areTagArgumentsChanged = false;
             if (this.oldRedirectTagData) {
                 const tagsWithParameters = Object.entries(this.redirectTemplates).filter(
                     ([, data]) => Object.entries(data.parameters).length > 0,
                 );
 
                 for (const [tag, data] of tagsWithParameters) {
-                    const tagWasSelected = this.oldRedirectTags!.includes(tag);
-                    if (!tagWasSelected || !this.tagSelect.getValue().includes(tag)) continue;
+                    const wasTagSelected = this.oldRedirectTags!.includes(tag);
+                    if (!wasTagSelected || !this.tagSelect.getValue().includes(tag)) continue;
 
-                    const oldTagData = this.oldRedirectTagData[tag] ?? Object.entries(data.parameters).map(([name]) => [name, '']);
+                    const oldTagData = this.oldRedirectTagData[tag] ?? Object.keys(data.parameters).map((name) => [name, '']);
 
                     const foundTagEditorData = this.templateEditorsInfo.find((template) => template.name === tag)!;
 
-                    for (const parameter of foundTagEditorData.parameters) {
+                    parameterLoop: for (const parameter of foundTagEditorData.parameters) {
                         const oldArgument = oldTagData.find((argument) => argument[0] === parameter.name)?.[1] ?? '';
                         const newArgument = parameter.editor.getValue().trim();
 
                         if (oldArgument !== newArgument) {
-                            tagArgumentsChanged = true;
-                            break;
+                            areTagArgumentsChanged = true;
+                            break parameterLoop;
                         }
                     }
 
-                    if (tagArgumentsChanged) break;
+                    if (areTagArgumentsChanged) break;
                 }
             }
 
-            const defaultSortChanged = this.defaultSortInput.getValue().trim() !== this.oldDefaultSort!.replaceAll('_', ' ');
+            const isDefaultSortChanged = this.defaultSortInput.getValue().trim() !== this.oldDefaultSort!.replaceAll('_', ' ');
 
-            const categoriesChanged =
+            const areCategoriesChanged =
                 this.categorySelect.getValue().some((category) => !this.oldCategories!.includes(category as string)) ||
                 this.oldCategories!.some((category) => !this.categorySelect.getValue().includes(category));
 
             const changes = [];
 
-            if (targetChanged) changes.push(`retarget to [[${redirectValue}]]`);
-            if (tagsChanged)
+            if (isTargetChanged) changes.push(`retarget to [[${redirectValue}]]`);
+            if (areTagsChanged)
                 changes.push(
                     `${this.tagSelect.getValue().length > 0 && this.oldRedirectTags!.length > 0 ? 'change' : this.tagSelect.getValue().length > 0 ? 'add' : 'remove'} categorization templates`,
                 );
-            if (tagArgumentsChanged) changes.push('change categorization template arguments');
-            if (defaultSortChanged)
+            if (areTagArgumentsChanged) changes.push('change categorization template arguments');
+            if (isDefaultSortChanged)
                 changes.push(
                     `${this.defaultSortInput.getValue().trim().length > 0 && this.oldDefaultSort!.replaceAll('_', ' ').length > 0 ? 'change' : this.defaultSortInput.getValue().trim().length > 0 ? 'add' : 'remove'} default sort key`,
                 );
-            if (categoriesChanged)
+            if (areCategoriesChanged)
                 changes.push(
                     `${this.categorySelect.getValue().length > 0 && this.oldCategories!.length > 0 ? 'change' : this.categorySelect.getValue().length > 0 ? 'add' : 'remove'} categories`,
                 );
@@ -730,7 +733,7 @@ export default class RedirectHelperDialog {
      * Loads existing page data.
      */
     private async loadExistingData() {
-        if (this.exists) this.pageContent = (await getPageContent(this.pageTitle)) ?? '';
+        if (this.doesExist) this.pageContent = (await getPageContent(this.pageTitle)) ?? '';
 
         this.oldRedirectTarget = this.REDIRECT_REGEX.exec(this.pageContent)?.[1];
 
@@ -788,23 +791,23 @@ export default class RedirectHelperDialog {
 
         this.oldDefaultSort =
             this.pageContent
-                .match(/{{DEFAULTSORT:.*?}}/g)
+                .match(/\{\{DEFAULTSORT:.*?\}\}/g)
                 ?.at(-1)
                 ?.slice(14, -2)
                 .trim() ?? '';
 
         this.oldCategories =
             this.pageContent
-                .match(/\[\[[Cc]ategory:.+?]]/g)
+                .match(/\[\[[Cc]ategory:.+?\]\]/g)
                 ?.map((category) => category.slice(11, -2))
                 .sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase())) ?? []; // eslint-disable-line unicorn/no-array-sort
 
         this.oldStrayText = [
-            /{{short description\|.*?}}/i.exec(this.pageContent)?.[0],
-            /{{DISPLAYTITLE:.*?}}/.exec(this.pageContent)?.[0],
-            /{{italic title\|?.*?}}/i.exec(this.pageContent)?.[0],
-            /{{title language\|.*?}}/.exec(this.pageContent)?.[0],
-            /{{authority control(\|.*?)?}}/i.exec(this.pageContent)?.[0],
+            /\{\{short description\|.*?\}\}/i.exec(this.pageContent)?.[0],
+            /\{\{DISPLAYTITLE:.*?\}\}/.exec(this.pageContent)?.[0],
+            /\{\{italic title\|?.*?\}\}/i.exec(this.pageContent)?.[0],
+            /\{\{title language\|.*?\}\}/.exec(this.pageContent)?.[0],
+            /\{\{authority control(?:\|.*?)?\}\}/i.exec(this.pageContent)?.[0],
         ]
             .filter(Boolean)
             .join('\n');
@@ -853,7 +856,7 @@ export default class RedirectHelperDialog {
         const tags = this.tagSelect.getValue() as string[];
 
         /* Invalid characters */
-        if (!/^\s*[^[\]{|}]+\s*$/.test(destination)) errors.push({ title: destination, message: 'is not a valid page title!' });
+        if (!/^[^[\]{|}]+$/.test(destination)) errors.push({ title: destination, message: 'is not a valid page title!' });
 
         /* Failed during title parsing */
         try {
@@ -971,30 +974,30 @@ export default class RedirectHelperDialog {
                         autoFixes: [{ type: 'remove', tag }],
                     });
 
-        const targetIsDisambiguationPage = !!(
+        const isTargetDisambiguationPage = !!(
             destinationData.query!.pages[0].pageprops && 'disambiguation' in destinationData.query!.pages[0].pageprops
         );
-        const targetIsSurnameList = !!destinationData.query!.pages[0].categories?.some(
+        const isTargetSurnameList = !!destinationData.query!.pages[0].categories?.some(
             (category) => category.title === 'Category:Surnames',
         );
 
         const toDisambiguationPageTags = ['R to disambiguation page', 'R from incomplete disambiguation'];
         const toSurnameListTags = ['R from ambiguous sort name', 'R from ambiguous term'];
 
-        const taggedAsRedirectToDisambiguationPage = toDisambiguationPageTags.some((template) => tags.includes(template));
-        const taggedAsRedirectToSurnameList = toSurnameListTags.some((template) => tags.includes(template));
+        const isTaggedAsRedirectToDisambiguationPage = toDisambiguationPageTags.some((template) => tags.includes(template));
+        const isTaggedAsRedirectToSurnameList = toSurnameListTags.some((template) => tags.includes(template));
 
         /* Redirect to disambiguation page without template */
-        if (targetIsDisambiguationPage && !taggedAsRedirectToDisambiguationPage && !taggedAsRedirectToSurnameList)
+        if (isTargetDisambiguationPage && !isTaggedAsRedirectToDisambiguationPage && !isTaggedAsRedirectToSurnameList)
             errors.push({
                 message: 'is a redirect to a disambiguation page, but it is not tagged with a disambiguation categorization template!',
             });
 
-        if (destinationData.query!.pages[0].pageprops && !targetIsDisambiguationPage) {
+        if (!isTargetDisambiguationPage && destinationData.query!.pages[0].pageprops) {
             /* Improperly tagged as redirect to disambiguation page */
             if (
-                (!targetIsSurnameList && (taggedAsRedirectToDisambiguationPage || taggedAsRedirectToSurnameList)) ||
-                (targetIsSurnameList && taggedAsRedirectToDisambiguationPage)
+                (!isTargetSurnameList && (isTaggedAsRedirectToDisambiguationPage || isTaggedAsRedirectToSurnameList)) ||
+                (isTargetSurnameList && isTaggedAsRedirectToDisambiguationPage)
             )
                 errors.push({
                     message: 'is not a redirect to a disambiguation page, but it is tagged with a disambiguation categorization template!',
@@ -1002,7 +1005,7 @@ export default class RedirectHelperDialog {
                 });
 
             /* Redirect to surname list without template */
-            if (targetIsSurnameList && !taggedAsRedirectToSurnameList)
+            if (isTargetSurnameList && !isTaggedAsRedirectToSurnameList)
                 errors.push({
                     message: 'is a redirect to a surname list, but it is not tagged with a correct disambiguation categorization template!',
                 });
@@ -1010,7 +1013,7 @@ export default class RedirectHelperDialog {
 
         /* {{R to disambiguation page}} without " (disambiguation)" at end of title */
         if (
-            targetIsDisambiguationPage &&
+            isTargetDisambiguationPage &&
             tags.includes('R to disambiguation page') &&
             !this.pageTitleParsed.getMainText().endsWith(' (disambiguation)')
         )
@@ -1048,12 +1051,12 @@ export default class RedirectHelperDialog {
             const tagData = this.redirectTemplates[tag];
 
             /* Tag used in incorrect namespace */
-            const meetsNamespaceRequirement = tagData.namespaceRequirement.some((requirement) => {
+            const doesMeetNamespaceRequirement = tagData.namespaceRequirement.some((requirement) => {
                 if (requirement === 'ALL') return true;
-                else if (requirement === 'TALK') return this.pageTitleParsed.isTalkPage();
-                else return this.pageTitleParsed.getNamespaceId() === requirement;
+                if (requirement === 'TALK') return this.pageTitleParsed.isTalkPage(); // eslint-disable-line unicorn/prefer-ternary
+                return this.pageTitleParsed.getNamespaceId() === requirement;
             });
-            if (!meetsNamespaceRequirement)
+            if (!doesMeetNamespaceRequirement)
                 errors.push({
                     message: `is tagged with <code>{{${tag}}}</code> but that tag is not valid in this namespace!`,
                     autoFixes: [{ type: 'remove', tag }],
@@ -1114,7 +1117,7 @@ export default class RedirectHelperDialog {
         else this.parsedDestination = mw.Title.newFromText(this.redirectInput.getValue());
 
         if (errors.length > 0) {
-            this.submissionWarnings.innerHTML = ''; // Clear existing warnings
+            this.submissionWarnings.replaceChildren(); // Clear existing warnings
             this.autoFixAllButton.$element.hide();
 
             const autoFixFunctions: (() => void)[] = [];
@@ -1178,7 +1181,7 @@ export default class RedirectHelperDialog {
         }
 
         /* Edit/create redirect */
-        this.submitButton.setLabel(`${this.exists ? 'Editing' : 'Creating'} redirect...`);
+        this.submitButton.setLabel(`${this.doesExist ? 'Editing' : 'Creating'} redirect...`);
 
         const output = this.createOutput(
             this.redirectInput.getValue(),
@@ -1194,17 +1197,17 @@ export default class RedirectHelperDialog {
         const result = await this.editOrCreate(this.pageTitle, output, summary);
         if (!result) return;
 
-        mw.notify(`Redirect ${this.exists ? 'edited' : 'created'} successfully!`, { type: 'success' });
+        mw.notify(`Redirect ${this.doesExist ? 'edited' : 'created'} successfully!`, { type: 'success' });
 
         /* Sync talk page checkbox handler */
         if (this.syncTalkCheckbox?.isSelected()) {
             this.submitButton.setLabel('Editing talk page...');
 
-            const fromMove = this.tagSelect.getValue().includes('R from move');
+            const isFromMove = this.tagSelect.getValue().includes('R from move');
 
             const output = this.createOutput(
                 this.parsedDestination!.getTalkPage()!.getPrefixedText(),
-                fromMove ? ['R from move'] : [],
+                isFromMove ? ['R from move'] : [],
                 undefined,
                 undefined,
                 [],
@@ -1247,7 +1250,7 @@ export default class RedirectHelperDialog {
 
         this.submitButton.setLabel('Complete, reloading...');
 
-        window.location.href = mw.util.getUrl(this.pageTitle, { redirect: 'no' });
+        window.location.assign(mw.util.getUrl(this.pageTitle, { redirect: 'no' }));
     }
 
     /*
@@ -1271,11 +1274,11 @@ export default class RedirectHelperDialog {
                 .getMainText()
                 .toLocaleLowerCase()
                 .normalize('NFD')
-                .replaceAll(/[\u0300-\u036F]/g, '') ===
+                .replaceAll(/[\u{300}-\u{36F}]/gu, '') ===
             defaultSort
                 ?.toLowerCase()
                 .normalize('NFD')
-                .replaceAll(/[\u0300-\u036F]/g, '')
+                .replaceAll(/[\u{300}-\u{36F}]/gu, '')
         )
             defaultSort = undefined; // Check if titles normalize to the same text, and removes the DEFAULTSORT if so
 
@@ -1336,13 +1339,12 @@ export default class RedirectHelperDialog {
                         );
                         return null;
                     });
-                else {
-                    mw.notify(
-                        `Error editing or creating ${title}: ${(errorInfo as MediaWikiDataError)?.error?.info ?? 'Unknown error'} (${errorCode})`,
-                        { type: 'error' },
-                    );
-                    return null;
-                }
+
+                mw.notify(
+                    `Error editing or creating ${title}: ${(errorInfo as MediaWikiDataError)?.error?.info ?? 'Unknown error'} (${errorCode})`,
+                    { type: 'error' },
+                );
+                return null;
             })) as ReturnType<typeof api.edit> | null;
     }
 }

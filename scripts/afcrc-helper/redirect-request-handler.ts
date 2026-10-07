@@ -289,8 +289,8 @@ export default class RedirectRequestHandler {
             ].map(([value, label]) => ({ data: `autofill:${value}`, label: `Autofilled text for ${label}` })),
         });
 
-        this.denyReasonInput.on('change', (value) => {
-            this.updateActionsToTake({ denyReason: value || 'autofill:unlikely' });
+        this.denyReasonInput.on('change', (value = 'autofill:unlikely') => {
+            this.updateActionsToTake({ denyReason: value });
         });
 
         this.denyReasonInput.setValue('autofill:unlikely');

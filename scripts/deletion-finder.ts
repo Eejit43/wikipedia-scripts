@@ -3,9 +3,12 @@ import cssContent from '@styles/deletion-finder.css' with { type: 'css' };
 import type { ApiQueryLogEventsParams, ApiQueryParams } from 'types-mediawiki-api';
 
 mw.loader.using(['mediawiki.util'], async () => {
-    if (mw.config.get('wgNamespaceNumber') !== 0) return;
-    if (mw.config.get('wgAction') !== 'view') return;
-    if (mw.config.get('wgPageName') === 'Main_Page') return;
+    if (
+        mw.config.get('wgNamespaceNumber') !== 0 || // Only run in the main namespace
+        mw.config.get('wgAction') !== 'view' || // Only run when viewing the page
+        mw.config.get('wgPageName') === 'Main_Page' // Don't run on the main page
+    )
+        return;
 
     mw.util.addCSS(cssContent);
 
@@ -40,6 +43,7 @@ mw.loader.using(['mediawiki.util'], async () => {
         query: { pages: { missing?: true }[] };
     };
 
+    // eslint-disable-next-line unicorn/prefer-early-return
     if (!afdExists.query.pages[0].missing) {
         const link = document.createElement('a');
         link.id = 'deletion-finder-previous-afd';

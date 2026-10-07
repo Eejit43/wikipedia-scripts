@@ -8,7 +8,7 @@ mw.loader.using(['mediawiki.util'], () => {
         'copy-search-results',
     )!;
 
-    link.addEventListener('click', (event) => {
+    link.addEventListener('click', async (event) => {
         event.preventDefault();
 
         const titles = [...document.querySelectorAll('.mw-search-result-heading a[data-serp-pos]')]
@@ -17,9 +17,11 @@ mw.loader.using(['mediawiki.util'], () => {
 
         if (!titles) return mw.notify('No search results to copy!', { type: 'error' });
 
-        navigator.clipboard.writeText(titles).then(
-            () => mw.notify('Successfully copied search results to clipboard!', { type: 'success' }),
-            () => mw.notify('An error occurred when copying search results to clipboard!', { type: 'error' }),
-        );
+        try {
+            await navigator.clipboard.writeText(titles);
+            mw.notify('Successfully copied search results to clipboard!', { type: 'success' });
+        } catch {
+            mw.notify('An error occurred when copying search results to clipboard!', { type: 'error' });
+        }
     });
 });

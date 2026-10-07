@@ -94,6 +94,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
             ];
         }
 
+        // eslint-disable-next-line unicorn/consistent-class-member-order
         getSetupProcess = () => {
             return ScriptUpdaterDialog.super.prototype.getSetupProcess.call(this).next(() => {
                 return this.wrapAsyncMethod(this.loadScriptData).then((error?: string) => {
@@ -128,8 +129,8 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                             { id: 'script', name: 'Update script code' },
                             { id: 'talk', name: 'Create talk redirect', selectedDefault: false },
                         ].map(
-                            ({ id, name, selectedDefault }) =>
-                                new OO.ui.CheckboxMultioptionWidget({ data: id, label: name, selected: selectedDefault ?? true }),
+                            ({ id, name, selectedDefault = true }) =>
+                                new OO.ui.CheckboxMultioptionWidget({ data: id, label: name, selected: selectedDefault }),
                         ),
                     });
 
@@ -182,10 +183,11 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                 return new OO.ui.Process(() => {
                     this.close();
                 });
-            else if (action === 'save')
+
+            if (action === 'save')
                 return new OO.ui.Process(() => {
-                    const selectedScripts = (this.scriptsMultiselect.findSelectedItemsData() as string[]).map(
-                        (scriptName) => this.scripts.find((script) => script.name === scriptName)!,
+                    const selectedScripts = (this.scriptsMultiselect.findSelectedItemsData() as string[]).map((scriptName) =>
+                        this.scripts.find((script) => script.name === scriptName)!,
                     );
 
                     this.close();
@@ -215,7 +217,8 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
                         });
                     })();
                 });
-            else return ScriptUpdaterDialog.super.prototype.getActionProcess.call(this, action);
+
+            return ScriptUpdaterDialog.super.prototype.getActionProcess.call(this, action);
         };
 
         getTeardownProcess = () => {
@@ -396,7 +399,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-w
             formUrl.searchParams.set('action', 'submit');
 
             const form = document.createElement('form');
-            form.action = formUrl.toString();
+            form.action = formUrl.href;
             form.method = 'POST';
             form.target = '_blank';
 
@@ -425,13 +428,13 @@ async function getArticleCleanerData() {
     const content = (await getPageContent('Wikipedia:AutoWikiBrowser/Template redirects')) ?? '';
 
     const replacements = content
-        .matchAll(/\* {{tl\|.+/g)
-        .toArray()
+        .matchAll(/\* \{\{tl\|.+/g)
         .map((line) => {
-            const templates = line[0].matchAll(/{{tl\|(.+?)}}/g).toArray();
+            const templates = line[0].matchAll(/\{\{tl\|(.+?)\}\}/g).toArray();
 
             return { from: templates.slice(0, -1).map((template) => template[1]), to: templates.at(-1)![1] };
-        });
+        })
+        .toArray();
 
     return JSON.stringify(replacements);
 }
@@ -441,6 +444,7 @@ async function getArticleCleanerData() {
  * @param array The array to chunk.
  * @param chunkSize The size of each chunk.
  */
+// eslint-disable-next-line unicorn/no-unnecessary-parameters
 function chunkArray<T>(array: T[], chunkSize: number): T[][] {
     const chunked = [];
 
@@ -593,7 +597,7 @@ async function getRedirectHelperData() {
                 const mappedRedirects =
                     page.redirects
                         ?.map((redirect) => redirect.title.split(':').slice(1).join(':'))
-                        .filter((redirect) => !possibleRedirectTemplates.some((template) => template.name === redirect))
+                        .filter((redirect) => possibleRedirectTemplates.every((template) => template.name !== redirect))
                         .sort((a, b) => a.localeCompare(b)) ?? []; // eslint-disable-line unicorn/no-array-sort
 
                 finalData[page.title.split(':').slice(1).join(':')].aliases.push(...mappedRedirects); // Data might exist from previous queries, so update instead of overwriting
@@ -644,8 +648,13 @@ async function getRedirectHelperData() {
 
     const mappedFinalData = Object.entries(finalData).map(([name, templateData]) => {
         const finalTemplateData = {
-            ...(templateData.redirect ? { redirect: true } : {}),
-            namespaceRequirement: templateData.namespaceRequirement.length > 0 ? templateData.namespaceRequirement.toSorted() : ['ALL'],
+            ...(templateData.redirect && { redirect: true }),
+            namespaceRequirement:
+                templateData.namespaceRequirement.length > 0
+                    ? templateData.namespaceRequirement.toSorted((a, b) =>
+                          typeof a === 'number' && typeof b === 'number' ? a - b : String(a).localeCompare(String(b)),
+                      )
+                    : ['ALL'],
             parameters: templateData.parameters,
             aliases: templateData.aliases.sort((a, b) => a.localeCompare(b)), // eslint-disable-line unicorn/no-array-sort
         };

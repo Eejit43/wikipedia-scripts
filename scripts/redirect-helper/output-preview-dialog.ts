@@ -17,6 +17,7 @@ export default class OutputPreviewDialog extends OO.ui.ProcessDialog {
         OutputPreviewDialog.static.actions = [{ action: 'cancel', label: 'Close', flags: ['safe', 'close'] }];
     }
 
+    // eslint-disable-next-line unicorn/consistent-class-member-order
     getSetupProcess = () => {
         return OutputPreviewDialog.super.prototype.getSetupProcess.call(this).next(() => {
             return api
@@ -55,4 +56,4 @@ export default class OutputPreviewDialog extends OO.ui.ProcessDialog {
     };
 }
 
-Object.assign(OutputPreviewDialog.prototype, OO.ui.ProcessDialog.prototype);
+Object.assign(OutputPreviewDialog.prototype, OO.ui.ProcessDialog.prototype); // eslint-disable-line unicorn/no-top-level-side-effects

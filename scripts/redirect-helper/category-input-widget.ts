@@ -14,6 +14,7 @@ export default class CategoryInputWidget extends OO.ui.TextInputWidget {
         OO.ui.mixin.LookupElement.call(this as unknown as OO.ui.mixin.LookupElement, config);
     }
 
+    // eslint-disable-next-line unicorn/consistent-class-member-order
     getLookupRequest = () => {
         const value = this.getValue().split('|')[0];
         const deferred = $.Deferred();
@@ -73,4 +74,4 @@ export default class CategoryInputWidget extends OO.ui.TextInputWidget {
         data.map(({ data, label }) => new OO.ui.MenuOptionWidget({ data, label }));
 }
 
-Object.assign(CategoryInputWidget.prototype, OO.ui.mixin.LookupElement.prototype);
+Object.assign(CategoryInputWidget.prototype, OO.ui.mixin.LookupElement.prototype); // eslint-disable-line unicorn/no-top-level-side-effects

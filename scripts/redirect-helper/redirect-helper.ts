@@ -73,9 +73,13 @@ mw.loader.using(dependencies, async () => {
                     ? configOverrides.createdWatchMethod
                     : 'preferences';
 
-            const patrolByDefault = !(configOverrides && 'patrolByDefault' in configOverrides && configOverrides.patrolByDefault === false);
+            const shouldPatrolByDefault = !(
+                configOverrides &&
+                'patrolByDefault' in configOverrides &&
+                configOverrides.patrolByDefault === false
+            );
 
-            this.config = { createdWatchMethod, patrolByDefault };
+            this.config = { createdWatchMethod, patrolByDefault: shouldPatrolByDefault };
 
             this.checkPageAndLoad();
         }
@@ -99,9 +103,9 @@ mw.loader.using(dependencies, async () => {
          * Fetches the redirect templates.
          */
         private async fetchRedirectTemplates() {
-            if (!this.isOnEnwiki) return {};
-
-            return JSON.parse((await getPageContent('User:Eejit43/scripts/redirect-helper.json')) ?? '{}') as RedirectTemplateData;
+            return this.isOnEnwiki
+                ? (JSON.parse((await getPageContent('User:Eejit43/scripts/redirect-helper.json')) ?? '{}') as RedirectTemplateData)
+                : {};
         }
 
         /**
@@ -173,25 +177,25 @@ mw.loader.using(dependencies, async () => {
          * Loads the "Redirect page here" functionality, if not on a redirect.
          */
         private loadRedirectPageHere() {
-            if (!this.isMissing && !this.isRedirect) {
-                const redirectPageHerePortletLink = mw.util.addPortletLink(
-                    mw.config.get('skin') === 'minerva' ? 'p-cactions' : 'p-cactions',
-                    '#',
-                    'Redirect page here',
-                    'redirect-page-here',
-                )!;
-                redirectPageHerePortletLink.addEventListener('click', (event) => {
-                    event.preventDefault();
+            if (this.isMissing || this.isRedirect) return;
 
-                    const windowManager = new OO.ui.WindowManager();
-                    document.body.append(windowManager.$element[0]);
+            const redirectPageHerePortletLink = mw.util.addPortletLink(
+                mw.config.get('skin') === 'minerva' ? 'p-cactions' : 'p-cactions',
+                '#',
+                'Redirect page here',
+                'redirect-page-here',
+            )!;
+            redirectPageHerePortletLink.addEventListener('click', (event) => {
+                event.preventDefault();
 
-                    const dialog = new RedirectPageHereDialog(this.pageTitleParsed);
-                    windowManager.addWindows([dialog]);
+                const windowManager = new OO.ui.WindowManager();
+                document.body.append(windowManager.$element[0]);
 
-                    dialog.open();
-                });
-            }
+                const dialog = new RedirectPageHereDialog(this.pageTitleParsed);
+                windowManager.addWindows([dialog]);
+
+                dialog.open();
+            });
         }
     }
 

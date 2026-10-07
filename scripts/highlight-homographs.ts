@@ -21,7 +21,7 @@
             .map((char) => {
                 return (
                     /* Cyrillics */
-                    /[\u0400-\u052F\u1D2B\u1D78\u2DE0-\u2DFF\uA640-\uA69F]/.test(char) || // eslint-disable-line no-misleading-character-class
+                    /[\u{400}-\u{52F}\u{1D2B}\u{1D78}\u{2DE0}-\u{2DFF}\u{A640}-\u{A69F}]/u.test(char) || // eslint-disable-line no-misleading-character-class
                         /* Greek */
                         /[ɑΑΒΕΖΗΙΚΜΝΟΡΤΥΧνο]/.test(char) ||
                         /* Armenian */

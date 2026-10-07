@@ -3,9 +3,9 @@ import { api, getSystemMessage, interpolateSystemMessage } from '@/utility';
 import cssContent from '@styles/ajax-undo.css' with { type: 'css' };
 
 mw.loader.using(['mediawiki.util'], () => {
-    const isDiff = mw.config.get('wgDiffOldId');
+    const isDiff = !!mw.config.get('wgDiffOldId');
 
-    if (mw.config.get('wgAction') !== 'history' && !isDiff) return;
+    if (!isDiff && mw.config.get('wgAction') !== 'history') return;
 
     mw.util.addCSS(cssContent);
 
@@ -77,7 +77,7 @@ mw.loader.using(['mediawiki.util'], () => {
                 let summary = interpolateSystemMessage(undoSummaryTemplate, [undoId, revisionUser]);
                 if (reasonInput.value.trim()) summary += `: ${reasonInput.value.trim()}`;
 
-                const success = await api
+                const wasSuccessful = await api
                     .postWithEditToken({
                         action: 'edit',
                         title: pageName,
@@ -96,7 +96,7 @@ mw.loader.using(['mediawiki.util'], () => {
                         return false;
                     });
 
-                if (!success) return;
+                if (!wasSuccessful) return;
 
                 mw.notify('Revision successfully undone, reloading...', { type: 'success' });
                 window.location.reload();
@@ -110,8 +110,7 @@ mw.loader.using(['mediawiki.util'], () => {
         loadingSpinner.id = 'ajax-undo-loading';
         if (isDiff) loadingSpinner.classList.add('is-diff');
         if (isMinerva) loadingSpinner.classList.add('is-minerva');
-
-        if (!isMinerva) span.append(loadingSpinner);
+        else span.append(loadingSpinner);
 
         const reasonInput = document.createElement('input');
         reasonInput.type = 'text';

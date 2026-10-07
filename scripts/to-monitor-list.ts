@@ -195,7 +195,8 @@ class MonitoringListManager {
      */
     private getCategory({ namespaces, notNamespaces }: { namespaces?: string[]; notNamespaces?: string[] }) {
         if (!namespaces && !notNamespaces) return 0;
-        else if (namespaces) {
+
+        if (namespaces) {
             const foundNamespaces = namespaces
                 .map((namespace) =>
                     Object.entries(mw.config.get('wgFormattedNamespaces')).find(([, namespaceName]) => namespaceName === namespace),
@@ -203,10 +204,11 @@ class MonitoringListManager {
                 .filter(Boolean) as [string, string][];
 
             return foundNamespaces.length > 0 ? foundNamespaces.map((foundNamespace) => Number.parseInt(foundNamespace[0])) : 0;
-        } else
-            return Object.entries(mw.config.get('wgFormattedNamespaces'))
-                .filter(([, namespaceName]) => !notNamespaces!.includes(namespaceName || 'Article'))
-                .map(([namespaceId]) => Number.parseInt(namespaceId));
+        }
+
+        return Object.entries(mw.config.get('wgFormattedNamespaces'))
+            .filter(([, namespaceName]) => !notNamespaces!.includes(namespaceName || 'Article')) // eslint-disable-line unicorn/prefer-default-parameters
+            .map(([namespaceId]) => Number.parseInt(namespaceId));
     }
 }
 

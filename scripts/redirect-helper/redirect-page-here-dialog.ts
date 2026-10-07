@@ -19,6 +19,7 @@ export default class RedirectPageHereDialog extends OO.ui.ProcessDialog {
         ];
     }
 
+    // eslint-disable-next-line unicorn/consistent-class-member-order
     getSetupProcess = () => {
         return RedirectPageHereDialog.super.prototype.getSetupProcess.call(this).next(() => {
             const panelLayout = new OO.ui.PanelLayout({ padded: true, expanded: false });
@@ -81,4 +82,4 @@ export default class RedirectPageHereDialog extends OO.ui.ProcessDialog {
     };
 }
 
-Object.assign(RedirectPageHereDialog.prototype, OO.ui.ProcessDialog.prototype);
+Object.assign(RedirectPageHereDialog.prototype, OO.ui.ProcessDialog.prototype); // eslint-disable-line unicorn/no-top-level-side-effects

@@ -22,11 +22,7 @@ export interface RequestAction {
 export default class HelperDialog extends OO.ui.ProcessDialog {
     protected readonly SCRIPT_MESSAGE = ' ([[User:Eejit43/scripts/afcrc-helper|afcrc-helper]])';
 
-    private requestPageType: 'redirect' | 'category';
     protected pageTitle: string;
-
-    private createdPageWatchMethod: WatchMethod;
-
     protected beforeText!: string;
     protected pageContent!: string;
 
@@ -36,6 +32,8 @@ export default class HelperDialog extends OO.ui.ProcessDialog {
         | { type: 'create'; isRedirect: boolean; title: string; text: string; summary: string }
     )[] = [];
 
+    private requestPageType: 'redirect' | 'category';
+    private createdPageWatchMethod: WatchMethod;
     private shouldStopTabClosure = true;
 
     constructor(requestPageType: 'redirect' | 'category', pageTitle: string, createdWatchMethod: WatchMethod | undefined) {
@@ -63,6 +61,7 @@ export default class HelperDialog extends OO.ui.ProcessDialog {
         });
     }
 
+    // eslint-disable-next-line unicorn/consistent-class-member-order
     getActionProcess = (action: string) => {
         if (!action || action === 'cancel')
             return new OO.ui.Process(() => {
@@ -75,11 +74,13 @@ export default class HelperDialog extends OO.ui.ProcessDialog {
                     });
                 else this.close();
             });
-        else if (action === 'save')
+
+        if (action === 'save')
             return new OO.ui.Process(() => {
                 void this.performActions();
             });
-        else return HelperDialog.super.prototype.getActionProcess.call(this, action);
+
+        return HelperDialog.super.prototype.getActionProcess.call(this, action);
     };
 
     getTeardownProcess = () => {
@@ -108,10 +109,13 @@ export default class HelperDialog extends OO.ui.ProcessDialog {
 
         this.pageContent = this.pageContent.replace(/^.*?==/s, '==');
 
-        const sections = [...this.pageContent.matchAll(/^==.*?==$(\s*(?!==[^=]).*)*/gim)].map((match) => match[0]);
+        const sections = this.pageContent
+            .matchAll(/^==.*?==$(?:\s*(?!==[^=]).*)*/gm)
+            .map((match) => match[0])
+            .toArray();
 
         for (const sectionText of sections) {
-            const isClosed = /{{afc-c\|/i.test(sectionText);
+            const isClosed = /\{\{afc-c\|/i.test(sectionText);
             if (isClosed) continue;
 
             const sectionHeader = /^==(.*?)==$/m.exec(sectionText)![1].trim();
@@ -192,11 +196,11 @@ export default class HelperDialog extends OO.ui.ProcessDialog {
     /**
      * Maps a group of denied reasons.
      * @param deniedPages The pages to map.
-     * @param singularRequest Whether the request is the only request.
-     * @param allRequests Whether all requests are being mapped.
+     * @param isSingularRequest Whether the request is the only request.
+     * @param areAllRequests Whether all requests are being mapped.
      */
-    protected mapDeniedReasons(deniedPages: string[][], singularRequest: boolean, allRequests: boolean) {
-        if (singularRequest) return `* ${this.formatDeniedReason(deniedPages[0][1])} ~~~~`;
+    protected mapDeniedReasons(deniedPages: string[][], isSingularRequest: boolean, areAllRequests: boolean) {
+        if (isSingularRequest) return `* ${this.formatDeniedReason(deniedPages[0][1])} ~~~~`;
 
         const reasons: Record<string, string[]> = {};
 
@@ -210,7 +214,7 @@ export default class HelperDialog extends OO.ui.ProcessDialog {
         return reasonsArray
             .map(
                 ([reason, pages]) =>
-                    `* ${this.formatDeniedReason(reason)}${reasonsArray.length > 1 || !allRequests ? ` (${pages.map((page) => `[[${page}]]`).join(', ')})` : ''} ~~~~`,
+                    `* ${this.formatDeniedReason(reason)}${!areAllRequests || reasonsArray.length > 1 ? ` (${pages.map((page) => `[[${page}]]`).join(', ')})` : ''} ~~~~`,
             )
             .join('\n');
     }
@@ -218,11 +222,11 @@ export default class HelperDialog extends OO.ui.ProcessDialog {
     /**
      * Maps a group of comments.
      * @param comments The comments to map.
-     * @param singularRequest Whether the request is the only request.
-     * @param allRequests Whether all requests are being mapped.
+     * @param isSingularRequest Whether the request is the only request.
+     * @param areAllRequests Whether all requests are being mapped.
      */
-    protected mapComments(comments: string[][], singularRequest: boolean, allRequests: boolean) {
-        if (singularRequest) return `* {{AfC comment|1=${comments[0][1]}}} ~~~~`;
+    protected mapComments(comments: string[][], isSingularRequest: boolean, areAllRequests: boolean) {
+        if (isSingularRequest) return `* {{AfC comment|1=${comments[0][1]}}} ~~~~`;
 
         const commentMessages: Record<string, string[]> = {};
 
@@ -236,7 +240,7 @@ export default class HelperDialog extends OO.ui.ProcessDialog {
         return commentsArray
             .map(
                 ([comment, pages]) =>
-                    `* {{AfC comment|1=${comment}}}${commentsArray.length > 1 || !allRequests ? ` (${pages.map((page) => `[[${page}]]`).join(', ')})` : ''} ~~~~`,
+                    `* {{AfC comment|1=${comment}}}${!areAllRequests || commentsArray.length > 1 ? ` (${pages.map((page) => `[[${page}]]`).join(', ')})` : ''} ~~~~`,
             )
             .join('\n');
     }
@@ -289,22 +293,22 @@ export default class HelperDialog extends OO.ui.ProcessDialog {
             // eslint-disable-next-line no-await-in-loop
             await apiFunction()
                 .then((result) => {
-                    if (result.result === 'Success') {
-                        let linkElement: HTMLAnchorElement | undefined;
-                        if (!('nochange' in result)) {
-                            linkElement = document.createElement('a');
-                            linkElement.target = '_blank';
-                            linkElement.href = mw.util.getUrl(
-                                `Special:Diff/${result.oldrevid ? `${result.oldrevid}/` : ''}${result.newrevid}`, // oldrevid is 0 on page creations, and is thus unneeded
-                            );
-                            linkElement.textContent = 'diff';
-                        }
+                    if (result.result !== 'Success') return;
 
-                        const actionResultElement = document.querySelector(`#${actionResultElementId}`)!;
-
-                        if (linkElement) actionResultElement.append('(done, see ', linkElement, ')');
-                        else actionResultElement.textContent = '(done, no changes)';
+                    let linkElement: HTMLAnchorElement | undefined;
+                    if (!('nochange' in result)) {
+                        linkElement = document.createElement('a');
+                        linkElement.target = '_blank';
+                        linkElement.href = mw.util.getUrl(
+                            `Special:Diff/${result.oldrevid ? `${result.oldrevid}/` : ''}${result.newrevid}`, // oldrevid is 0 on page creations, and is thus unneeded
+                        );
+                        linkElement.textContent = 'diff';
                     }
+
+                    const actionResultElement = document.querySelector(`#${actionResultElementId}`)!;
+
+                    if (linkElement) actionResultElement.append('(done, see ', linkElement, ')');
+                    else actionResultElement.textContent = '(done, no changes)';
                 })
                 .catch(async (errorCode, errorInfo) => {
                     if (errorCode === 'ratelimited') {
@@ -359,4 +363,4 @@ export default class HelperDialog extends OO.ui.ProcessDialog {
     }
 }
 
-Object.assign(HelperDialog.prototype, OO.ui.ProcessDialog.prototype);
+Object.assign(HelperDialog.prototype, OO.ui.ProcessDialog.prototype); // eslint-disable-line unicorn/no-top-level-side-effects

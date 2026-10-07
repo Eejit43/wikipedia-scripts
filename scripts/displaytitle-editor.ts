@@ -60,7 +60,7 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui.styles.icons-editing
             editBox.pushPending();
 
             await api.edit(mw.config.get('wgPageName'), (revision) => {
-                const text = revision.content.replaceAll(/{{\s*displaytitle\s*:\s*(.*?)\s*}}\n*/gi, '');
+                const text = revision.content.replaceAll(/\{\{\s*displaytitle\s*:\s*.*?\s*\}\}\n*/gi, '');
 
                 if (!editBox.getValue() || editBox.getValue().replaceAll('_', ' ') === actualTitle)
                     return { text, summary: 'Removing DISPLAYTITLE (via [[User:Eejit43/scripts/displaytitle-editor|script]])' };
@@ -69,22 +69,23 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui.styles.icons-editing
 
                 const summary = `${isAdded ? 'Adding DISPLAYTITLE of' : 'Changing DISPLAYTITLE to'} "${editBox.getValue()}" (via [[User:Eejit43/scripts/displaytitle-editor|script]])`;
 
-                const redirectRegex = /^#redirect\s*\[\[.*?]]/i;
-
-                if (/{{short description/i.test(text))
+                if (/\{\{short description/i.test(text))
                     return {
                         text: text.replace(
-                            /{{short description(.*?)}}/i,
+                            /\{\{short description(.*?)\}\}/i,
                             `{{short description$1}}\n{{DISPLAYTITLE:${editBox.getValue()}}}`,
                         ),
                         summary,
                     };
-                else if (redirectRegex.test(text))
+
+                const redirectRegex = /^#redirect\s*\[\[.*?\]\]/i;
+
+                if (redirectRegex.test(text))
                     return {
                         text: text.replace(redirectRegex, `$&\n\n{{DISPLAYTITLE:${editBox.getValue()}}}`),
                         summary,
                     };
-                else return { text: `{{DISPLAYTITLE:${editBox.getValue()}}}\n${text}`, summary };
+                return { text: `{{DISPLAYTITLE:${editBox.getValue()}}}\n${text}`, summary };
             });
 
             mw.notify('Successfully updated DISPLAYTITLE, reloading...', { type: 'success' });
@@ -97,8 +98,8 @@ mw.loader.using(['mediawiki.util', 'oojs-ui-core', 'oojs-ui.styles.icons-editing
 
         const pageContent = (await getPageContent(mw.config.get('wgPageName'))) ?? '';
 
-        const foundMagicWords = pageContent.match(/{{\s*displaytitle\s*:\s*(.*?)\s*}}/gi);
-        if (foundMagicWords) editBox.setValue(foundMagicWords.at(-1)!.replace(/{{\s*displaytitle\s*:\s*(.*?)\s*}}/i, '$1'));
+        const foundMagicWords = pageContent.match(/\{\{\s*displaytitle\s*:\s*.*?\s*\}\}/gi);
+        if (foundMagicWords) editBox.setValue(foundMagicWords.at(-1)!.replace(/\{\{\s*displaytitle\s*:\s*(.*?)\s*\}\}/i, '$1'));
 
         editBox.setDisabled(false);
         editBox.popPending();

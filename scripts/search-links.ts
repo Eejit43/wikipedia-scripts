@@ -8,7 +8,7 @@ if (mw.config.get('wgCanonicalSpecialPageName') === 'Search')
             url.searchParams.set('action', action);
 
             const linkElement = document.createElement('a');
-            linkElement.href = url.toString();
+            linkElement.href = url.href;
             linkElement.textContent = action;
 
             return linkElement;

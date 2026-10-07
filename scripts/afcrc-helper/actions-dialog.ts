@@ -19,6 +19,7 @@ export default class ActionsDialog extends OO.ui.Dialog {
         this.helperDialog = helperDialog;
     }
 
+    // eslint-disable-next-line unicorn/consistent-class-member-order
     initialize = () => {
         OO.ui.Dialog.prototype.initialize.apply(this);
 
@@ -70,4 +71,4 @@ export default class ActionsDialog extends OO.ui.Dialog {
     }
 }
 
-Object.assign(ActionsDialog.prototype, OO.ui.Dialog.prototype);
+Object.assign(ActionsDialog.prototype, OO.ui.Dialog.prototype); // eslint-disable-line unicorn/no-top-level-side-effects

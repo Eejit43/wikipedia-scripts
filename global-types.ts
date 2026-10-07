@@ -126,5 +126,4 @@ export interface PageTriageListResponse {
 export type MediaWikiDataError = { error?: { code: string; info: string } } | undefined;
 
 export type QueryContinuation =
-    | { batchcomplete?: true }
-    | { continue: { continue: string; [key: `${string}continue`]: string }; limits: Record<string, number> };
+    { batchcomplete?: true } | { continue: { continue: string; [key: `${string}continue`]: string }; limits: Record<string, number> };

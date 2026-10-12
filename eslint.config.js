@@ -3,12 +3,16 @@
 import importAlias from '@dword-design/eslint-plugin-import-alias';
 import sharedConfig from '@eejit/eslint-config-typescript';
 import { defineConfig, globalIgnores } from 'eslint/config';
+import globals from 'globals';
 
 export default defineConfig(
     globalIgnores(['dist/*', 'scripts/AFCRHS.ts', 'scripts/pageswap.ts']),
     sharedConfig,
     {
-        languageOptions: { parserOptions: { project: ['./tsconfig.json', './scripts/tsconfig.json'] } },
+        languageOptions: {
+            parserOptions: { project: ['./tsconfig.json', './scripts/tsconfig.json'] },
+            globals: globals.browser,
+        },
         rules: {
             'unicorn/catch-error-name': ['error', { ignore: ['errorCode'] }],
             'unicorn/prefer-await': 'off',

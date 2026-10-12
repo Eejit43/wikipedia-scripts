@@ -111,7 +111,7 @@ export default class RedirectsDialog extends HelperDialog {
         const summaryElement = document.createElement('summary');
         summaryElement.innerHTML = request.pages.map((page) => `<b>${page}</b>`).join(', ') + ' → ';
         summaryElement.addEventListener('keyup', (event) => {
-            if (document.activeElement?.tagName === 'INPUT' && event.key === ' ') event.preventDefault(); // eslint-disable-line unicorn/no-optional-chaining-on-undeclared-variable
+            if (document.activeElement?.tagName === 'INPUT' && event.key === ' ') event.preventDefault();
         });
 
         const targetEditorElement = document.createElement('input');

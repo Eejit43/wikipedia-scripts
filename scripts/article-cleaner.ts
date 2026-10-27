@@ -32,6 +32,17 @@ declare global {
     };
 }
 
+const IMAGE_PARAMETERS = new Set([
+    'cover',
+    'image_flag',
+    'image_seal',
+    'image_skyline',
+    'image',
+    'logo',
+    'map_image',
+    ...Array.from({ length: 10 }, (value, index) => `image${index}`),
+]);
+
 (() => {
     if (mw.config.get('wgNamespaceNumber') < 0) return; // Don't run in virtual namespaces
     if (!mw.config.get('wgIsProbablyEditable')) return; // Don't run if user can't edit page
@@ -516,10 +527,15 @@ function cleanupImproperCharacters(content: string, run: 1 | 2) {
  * @param run The run number of the function.
  */
 function cleanupYearRanges(content: string, run: 1 | 2) {
-    if (run === 1)
-        content = content.replaceAll(/(\(\d{3,4}) ?[‒–−-] ?(\d{3,4}\))/g, (original, start, end) =>
-            `${start}–${end}`.padEnd(original.length, '\0'),
+    if (run === 1) {
+        const regex = new RegExp(`(\\|\\s*(?:${[...IMAGE_PARAMETERS].join('|')})\\s*=[^|}\\n]*)|(\\(\\d{3,4}) ?[‒–−-] ?(\\d{3,4}\\))`, 'g'); // Prevent changing filenames passed to templates
+
+        content = content.replaceAll(
+            regex,
+            (original, imageParameter: string | undefined, start: string, end: string) =>
+                imageParameter ?? `${start}–${end}`.padEnd(original.length, '\0'),
         );
+    }
 
     return content;
 }
@@ -879,8 +895,6 @@ async function formatTemplates(content: string) {
             'pagenamebase',
         ];
 
-        private IMAGE_PARAMETERS = new Set(['cover', 'image_flag', 'image_seal', 'image_skyline', 'image', 'logo', 'map_image']);
-
         private IGNORED_IMAGE_SYNTAX = new Set([
             // Type
             'thumb',
@@ -907,8 +921,6 @@ async function formatTemplates(content: string) {
 
         constructor(startLocation: number) {
             this.location = { start: startLocation };
-
-            for (let number = 1; number <= 10; number++) this.IMAGE_PARAMETERS.add(`image${number}`);
         }
 
         public parse() {
@@ -1084,7 +1096,7 @@ async function formatTemplates(content: string) {
 
         private cleanupParameters() {
             this.parameters = this.parameters.map(({ key, value }) => {
-                if (key && this.IMAGE_PARAMETERS.has(key)) {
+                if (key && IMAGE_PARAMETERS.has(key)) {
                     value = value.trim();
 
                     const valueBefore = value;

@@ -82,4 +82,4 @@ export default class RedirectPageHereDialog extends OO.ui.ProcessDialog {
     };
 }
 
-Object.assign(RedirectPageHereDialog.prototype, OO.ui.ProcessDialog.prototype); // eslint-disable-line unicorn/no-top-level-side-effects
+Object.assign(RedirectPageHereDialog.prototype, OO.ui.ProcessDialog.prototype);

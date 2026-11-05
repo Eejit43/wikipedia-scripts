@@ -158,4 +158,4 @@ export default class RedirectTargetInputWidget extends OO.ui.TextInputWidget {
     };
 }
 
-Object.assign(RedirectTargetInputWidget.prototype, OO.ui.mixin.LookupElement.prototype); // eslint-disable-line unicorn/no-top-level-side-effects
+Object.assign(RedirectTargetInputWidget.prototype, OO.ui.mixin.LookupElement.prototype);

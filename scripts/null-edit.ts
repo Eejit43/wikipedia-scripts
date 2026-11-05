@@ -2,6 +2,7 @@ import { api } from '@/utility';
 
 mw.loader.using(['mediawiki.util'], () => {
     if (mw.config.get('wgNamespaceNumber') < 0) return; // Don't run in virtual namespaces
+    // eslint-disable-next-line unicorn/prefer-combined-guards
     if (!mw.config.get('wgIsProbablyEditable')) return; // Don't run if user can't edit page
 
     const link = mw.util.addPortletLink(mw.config.get('skin') === 'minerva' ? 'p-tb' : 'p-cactions', '#', 'Null edit', 'null-edit')!;

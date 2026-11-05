@@ -45,6 +45,7 @@ const IMAGE_PARAMETERS = new Set([
 
 (() => {
     if (mw.config.get('wgNamespaceNumber') < 0) return; // Don't run in virtual namespaces
+    // eslint-disable-next-line unicorn/prefer-combined-guards
     if (!mw.config.get('wgIsProbablyEditable')) return; // Don't run if user can't edit page
 
     const dependencies = ['mediawiki.util', 'jquery.textSelection'];
@@ -141,6 +142,7 @@ const IMAGE_PARAMETERS = new Set([
                 // Ignore if triggered by main content load instead of preview
                 if (!content[0]?.classList.contains('preview')) return; // eslint-disable-line @typescript-eslint/no-unnecessary-condition
 
+                // eslint-disable-next-line unicorn/prefer-combined-guards
                 if (!shouldAddScriptMessage) return;
 
                 const summaryInput = document.querySelector<HTMLInputElement>('.summary-input textarea')!;

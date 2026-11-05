@@ -207,7 +207,7 @@ class MonitoringListManager {
         }
 
         return Object.entries(mw.config.get('wgFormattedNamespaces'))
-            .filter(([, namespaceName]) => !notNamespaces!.includes(namespaceName || 'Article')) // eslint-disable-line unicorn/prefer-default-parameters
+            .filter(([, namespaceName]) => !notNamespaces!.includes(namespaceName || 'Article'))
             .map(([namespaceId]) => Number.parseInt(namespaceId));
     }
 }

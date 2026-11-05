@@ -71,4 +71,4 @@ export default class ActionsDialog extends OO.ui.Dialog {
     }
 }
 
-Object.assign(ActionsDialog.prototype, OO.ui.Dialog.prototype); // eslint-disable-line unicorn/no-top-level-side-effects
+Object.assign(ActionsDialog.prototype, OO.ui.Dialog.prototype);

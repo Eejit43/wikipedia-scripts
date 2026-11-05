@@ -1053,7 +1053,7 @@ export default class RedirectHelperDialog {
             /* Tag used in incorrect namespace */
             const doesMeetNamespaceRequirement = tagData.namespaceRequirement.some((requirement) => {
                 if (requirement === 'ALL') return true;
-                if (requirement === 'TALK') return this.pageTitleParsed.isTalkPage(); // eslint-disable-line unicorn/prefer-ternary
+                if (requirement === 'TALK') return this.pageTitleParsed.isTalkPage();
                 return this.pageTitleParsed.getNamespaceId() === requirement;
             });
             if (!doesMeetNamespaceRequirement)

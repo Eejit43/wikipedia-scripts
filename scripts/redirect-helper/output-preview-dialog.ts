@@ -56,4 +56,4 @@ export default class OutputPreviewDialog extends OO.ui.ProcessDialog {
     };
 }
 
-Object.assign(OutputPreviewDialog.prototype, OO.ui.ProcessDialog.prototype); // eslint-disable-line unicorn/no-top-level-side-effects
+Object.assign(OutputPreviewDialog.prototype, OO.ui.ProcessDialog.prototype);

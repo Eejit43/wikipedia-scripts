@@ -363,4 +363,4 @@ export default class HelperDialog extends OO.ui.ProcessDialog {
     }
 }
 
-Object.assign(HelperDialog.prototype, OO.ui.ProcessDialog.prototype); // eslint-disable-line unicorn/no-top-level-side-effects
+Object.assign(HelperDialog.prototype, OO.ui.ProcessDialog.prototype);

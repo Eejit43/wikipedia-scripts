@@ -48,4 +48,4 @@ export default class PageInputWidget extends OO.ui.TextInputWidget {
         data.map(({ data, label }) => new OO.ui.MenuOptionWidget({ data, label }));
 }
 
-Object.assign(PageInputWidget.prototype, OO.ui.mixin.LookupElement.prototype); // eslint-disable-line unicorn/no-top-level-side-effects
+Object.assign(PageInputWidget.prototype, OO.ui.mixin.LookupElement.prototype);

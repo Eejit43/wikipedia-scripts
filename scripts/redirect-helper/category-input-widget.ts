@@ -74,4 +74,4 @@ export default class CategoryInputWidget extends OO.ui.TextInputWidget {
         data.map(({ data, label }) => new OO.ui.MenuOptionWidget({ data, label }));
 }
 
-Object.assign(CategoryInputWidget.prototype, OO.ui.mixin.LookupElement.prototype); // eslint-disable-line unicorn/no-top-level-side-effects
+Object.assign(CategoryInputWidget.prototype, OO.ui.mixin.LookupElement.prototype);

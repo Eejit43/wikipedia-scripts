@@ -86,4 +86,4 @@ export default class ChangesDialog extends OO.ui.ProcessDialog {
     };
 }
 
-Object.assign(ChangesDialog.prototype, OO.ui.ProcessDialog.prototype); // eslint-disable-line unicorn/no-top-level-side-effects
+Object.assign(ChangesDialog.prototype, OO.ui.ProcessDialog.prototype);

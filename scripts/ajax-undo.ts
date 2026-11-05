@@ -63,7 +63,7 @@ mw.loader.using(['mediawiki.util'], () => {
                     return;
                 }
 
-                const revisionUser = undoSpan.closest(isDiff ? 'td' : 'li')?.querySelector('.mw-userlink bdi')?.textContent;
+                const revisionUser = undoSpan.closest(isDiff ? 'td' : 'li')?.querySelector(':scope .mw-userlink bdi')?.textContent;
 
                 if (!revisionUser) {
                     mw.notify('Could not find revision user!', { type: 'error' });

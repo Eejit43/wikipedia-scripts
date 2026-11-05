@@ -156,8 +156,7 @@ export default class RedirectRequestHandler {
 
             const comment = this.commentInput.getValue().trim();
 
-            if (comment) this.updateActionsToTake({ comment });
-            else this.updateActionsToTake({ comment: undefined });
+            this.updateActionsToTake({ comment: comment || undefined });
         } else {
             this.commentLayout.$element.hide();
 
@@ -344,8 +343,7 @@ export default class RedirectRequestHandler {
         this.commentInput.on('change', (value) => {
             const comment = value.trim();
 
-            if (comment) this.updateActionsToTake({ comment });
-            else this.updateActionsToTake({ comment: undefined });
+            this.updateActionsToTake({ comment: comment || undefined });
         });
 
         this.commentLayout = new OO.ui.FieldLayout(this.commentInput, {

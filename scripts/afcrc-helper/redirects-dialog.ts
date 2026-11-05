@@ -167,8 +167,7 @@ export default class RedirectsDialog extends HelperDialog {
         reasonLabel.textContent = 'Reason: ';
         reasonDiv.append(reasonLabel);
 
-        if (request.reason) reasonDiv.append(request.reason);
-        else reasonDiv.append(noneElement.cloneNode(true));
+        reasonDiv.append(request.reason || noneElement.cloneNode(true));
 
         requestInfoElement.append(reasonDiv);
 
@@ -178,8 +177,7 @@ export default class RedirectsDialog extends HelperDialog {
         sourceLabel.textContent = 'Source: ';
         sourceDiv.append(sourceLabel);
 
-        if (request.source) sourceDiv.append(request.source);
-        else sourceDiv.append(noneElement.cloneNode(true));
+        sourceDiv.append(request.source || noneElement.cloneNode(true));
 
         requestInfoElement.append(sourceDiv);
 

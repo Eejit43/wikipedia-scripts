@@ -377,17 +377,16 @@ function cleanupLinks(content: string, functionsCalledWhileEscaped: ((content: s
         else if (isAtString('</nowiki>')) isInsideNowiki = false;
         else if (isAtString('<!--')) isInsideComment = true;
         else if (isAtString('-->')) isInsideComment = false;
-        else if (!isInsideNowiki && !isInsideComment)
-            if (isAtString('[[')) links.push({ start: currentLocation - 2, end: -1, isNested: links.length > 0 });
-            else if (isAtString(']]')) {
-                const lastLink = links.pop();
-                if (!lastLink) continue;
+        else if (isInsideNowiki || isInsideComment) currentLocation++;
+        else if (isAtString('[[')) links.push({ start: currentLocation - 2, end: -1, isNested: links.length > 0 });
+        else if (isAtString(']]')) {
+            const lastLink = links.pop();
+            if (!lastLink) continue;
 
-                lastLink.end = currentLocation;
+            lastLink.end = currentLocation;
 
-                closedLinks.push(lastLink);
-            } else currentLocation++;
-        else currentLocation++;
+            closedLinks.push(lastLink);
+        } else currentLocation++;
 
     const newLinkContent: [LinkInformation, string][] = [];
 
@@ -654,20 +653,19 @@ function cleanupReferences(content: string) {
         else if (isAtString('</nowiki>')) isInsideNowiki = false;
         else if (isAtString('<!--')) isInsideComment = true;
         else if (isAtString('-->')) isInsideComment = false;
-        else if (!isInsideNowiki && !isInsideComment)
-            if (!isAtString('<references') && isAtString('<ref')) {
-                const start = currentLocation - 4;
+        else if (isInsideNowiki || isInsideComment) currentLocation++;
+        else if (!isAtString('<references') && isAtString('<ref')) {
+            const start = currentLocation - 4;
 
-                proceedUntilString('>');
+            proceedUntilString('>');
 
-                const isSelfClosing = content
-                    .slice(start, currentLocation - 1)
-                    .trimEnd()
-                    .endsWith('/');
+            const isSelfClosing = content
+                .slice(start, currentLocation - 1)
+                .trimEnd()
+                .endsWith('/');
 
-                references.push(isSelfClosing ? { start, end: currentLocation, isSelfClosing } : { start, end: -1 });
-            } else if (isAtString('</ref>')) references.at(-1)!.end = currentLocation;
-            else currentLocation++;
+            references.push(isSelfClosing ? { start, end: currentLocation, isSelfClosing } : { start, end: -1 });
+        } else if (isAtString('</ref>')) references.at(-1)!.end = currentLocation;
         else currentLocation++;
 
     const parser = new DOMParser();
@@ -1153,27 +1151,26 @@ async function formatTemplates(content: string) {
         else if (isAtString('</nowiki>')) isInsideNowiki = false;
         else if (isAtString('<!--')) isInsideComment = true;
         else if (isAtString('-->')) isInsideComment = false;
-        else if (!isInsideNowiki && !isInsideComment)
-            if (isAtString('[[')) isInsideLink = true;
-            else if (isInsideLink && isAtString(']]')) isInsideLink = false;
-            else if (isAtString('{{')) {
-                const template = new Template(currentLocation - 2);
+        else if (isInsideNowiki || isInsideComment) currentLocation++;
+        else if (isAtString('[[')) isInsideLink = true;
+        else if (isInsideLink && isAtString(']]')) isInsideLink = false;
+        else if (isAtString('{{')) {
+            const template = new Template(currentLocation - 2);
 
-                if (insideTemplates.length > 0) {
-                    template.isNested = true;
-                    insideTemplates.at(-1)?.subTemplates.push(template);
-                }
+            if (insideTemplates.length > 0) {
+                template.isNested = true;
+                insideTemplates.at(-1)?.subTemplates.push(template);
+            }
 
-                insideTemplates.push(template);
-            } else if (isAtString('}}')) {
-                const lastTemplate = insideTemplates.pop();
-                if (!lastTemplate) continue;
+            insideTemplates.push(template);
+        } else if (isAtString('}}')) {
+            const lastTemplate = insideTemplates.pop();
+            if (!lastTemplate) continue;
 
-                lastTemplate.location.end = currentLocation;
+            lastTemplate.location.end = currentLocation;
 
-                allTemplates.push(lastTemplate);
-            } else currentLocation++;
-        else currentLocation++;
+            allTemplates.push(lastTemplate);
+        } else currentLocation++;
 
     let newContent = content;
 
